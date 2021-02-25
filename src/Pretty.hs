@@ -25,6 +25,7 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+import Flow
 
 --------------------------------------------------------------------------------
 -- * Pretty printing class
@@ -126,7 +127,10 @@ inter sep ps =
 
 -- | Print all the printers separated by newlines.
 lined :: [Printer ()] -> Printer ()
-lined ps = sequence_ (intersperse newline ps)
+lined ps =
+    ps
+        |> intersperse newline
+        |> sequence_
 
 -- | Print all the printers separated newlines and optionally a line
 -- prefix.
