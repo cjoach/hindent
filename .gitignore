@@ -13,3 +13,4 @@ src/main/TestGenerate
 .stack-work
 .cabal-sandbox/
 cabal.sandbox.config
+stack.yaml.lock
