@@ -1,0 +1,4 @@
+name: hindent-elm
+version: "0.1.0"
+default-extensions:
+dependencies:
