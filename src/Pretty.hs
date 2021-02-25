@@ -2102,11 +2102,14 @@ ifFitsOnOneLineOrElse a b = do
 bindingGroup :: Binds NodeInfo -> Printer ()
 bindingGroup binds = do
     newline
-    indented
-        2
-        (do write "where"
+    indentedBlock
+        <| do
+            write "where"
             newline
-            indented 2 (pretty binds))
+            binds
+                |> pretty
+                |> indentedBlock
+            -- indentedBlock (pretty binds)
 
 infixApp ::
        Exp NodeInfo
