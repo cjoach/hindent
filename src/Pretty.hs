@@ -1957,15 +1957,6 @@ declTy dty =
                 tys -> prefixedLined "-> " (map pretty tys)
             Just st -> put st
 
--- | Use special record display, used by 'dataDecl' in a record scenario.
-qualConDecl :: QualConDecl NodeInfo -> Printer ()
-qualConDecl (QualConDecl _ tyvars ctx d) =
-  depend (unless (null (fromMaybe [] tyvars))
-                 (do write "forall "
-                     spaced (map pretty (fromMaybe [] tyvars))
-                     write ". "))
-         (withCtx ctx (recDecl d))
-
 -- | Fields are preceded with a space.
 conDecl :: ConDecl NodeInfo -> Printer ()
 conDecl (RecDecl _ name fields) = do
@@ -1990,22 +1981,6 @@ conDecl (ConDecl _ name bangty) = do
 conDecl (InfixConDecl _ a f b) =
   inter space [pretty a, pretty f, pretty b]
 
--- | Record decls are formatted like: Foo
--- { bar :: X
--- }
-recDecl :: ConDecl NodeInfo -> Printer ()
-recDecl (RecDecl _ name fields) =
-  do pretty name
-     indentSpaces <- getIndentSpaces
-     newline
-     column indentSpaces
-            (do depend (write "{!")
-                       (prefixedLined ","
-                                      (map (depend space . pretty) fields))
-                newline
-                write "}")
-recDecl r = prettyInternal r
-
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
 recUpdateExpr expWriter updates = do
   ifFitsOnOneLineOrElse hor $ do
@@ -2025,11 +2000,6 @@ recUpdateExpr expWriter updates = do
 
 --------------------------------------------------------------------------------
 -- Predicates
-
--- | Is the decl a record?
-isRecord :: QualConDecl t -> Bool
-isRecord (QualConDecl _ _ _ RecDecl{}) = True
-isRecord _ = False
 
 -- | If the given operator is an element of line breaks in configuration.
 isLineBreak :: QName NodeInfo -> Printer Bool
