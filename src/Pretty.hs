@@ -305,15 +305,6 @@ swing a b = do
             _ <- column (orig + indentSpaces) b
             return ()
 
--- | Swing the second printer below and indented with respect to the first by
--- the specified amount.
-swingBy :: Int64 -> Printer () -> Printer b -> Printer b
-swingBy i a b = do
-    orig <- gets psIndentLevel
-    a
-    newline
-    column (orig + i) b
-
 --------------------------------------------------------------------------------
 -- * Instances
 instance Pretty Context where
@@ -1707,11 +1698,7 @@ rhs (UnGuardedRhs _ (Do _ dos)) = do
         (if inCase
              then " -> "
              else " = ")
-    indentSpaces <- getIndentSpaces
-    let indentation
-            | inCase = indentSpaces
-            | otherwise = max 2 indentSpaces
-    swingBy indentation (write "do") (lined (map pretty dos))
+    swing (write "do") (lined (map pretty dos))
 rhs (UnGuardedRhs _ e) = do
     msg <-
         fitsOnOneLine
