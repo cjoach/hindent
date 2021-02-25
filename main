@@ -19,6 +19,11 @@ case "${1-}" in
     rm -rf stack.yaml.lock
     ;;
 
+  format )
+    mapfile -t files < <(fdfind -c never -t f ".hs")
+    hindent-elm "${files[@]}"
+    ;;
+
   *)
     cat << EOF
 Usage: $(pwd)
@@ -26,6 +31,7 @@ Usage: $(pwd)
   ./main build
   ./main clean
   ./main distclean
+  ./main format
 EOF
     ;;
 esac
