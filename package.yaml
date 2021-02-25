@@ -1,17 +1,45 @@
 name: hindent-elm
 version: "0.1.0"
+ghc-options:
+- -Weverything
+# someday
+- -Wno-prepositive-qualified-module
+# never
+- -Wno-missing-safe-haskell-mode
+- -Wno-missing-exported-signatures
+- -Wno-missing-import-lists
+- -Wno-missed-specialisations
+- -Wno-all-missed-specialisations
+- -Wno-unsafe
+- -Wno-safe
+- -Wno-missing-local-signatures
+- -Wno-monomorphism-restriction
 dependencies:
-- base >= 4.7 && <5
-- containers
 - Cabal
-- filepath
+- base
+- bytestring
+- containers
+- deepseq
 - directory
-- haskell-src-exts >= 1.20
+- exceptions
+- filepath
+- ghc-prim
+- haskell-src-exts
 - monad-loops
 - mtl
-- bytestring
-- utf8-string
-- transformers
-- exceptions
+- optparse-applicative
+- path
+- path-io
 - text
+- transformers
+- unix-compat
+- utf8-string
 - yaml
+library:
+  source-dirs: src
+executables:
+  hindent-elm:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+    - hindent-elm

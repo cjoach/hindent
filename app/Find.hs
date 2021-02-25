@@ -4,11 +4,9 @@
 
 -- Lifted from Stack.
 
-module Path.Find
+module Find
   (findFileUp
-  ,findDirUp
-  ,findFiles
-  ,findInParents)
+  )
   where
 
 import Control.Exception (evaluate)

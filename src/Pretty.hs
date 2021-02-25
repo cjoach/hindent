@@ -9,7 +9,7 @@
 
 -- | Pretty printing.
 
-module HIndent.Pretty
+module Pretty
   (pretty)
   where
 
@@ -22,7 +22,7 @@ import           Data.List
 import           Data.Maybe
 import           Data.Monoid ((<>))
 import           Data.Typeable
-import           HIndent.Types
+import           Types
 import qualified Language.Haskell.Exts as P
 import           Language.Haskell.Exts.SrcLoc
 import           Language.Haskell.Exts.Syntax

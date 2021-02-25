@@ -42,9 +42,9 @@ import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Traversable hiding (mapM)
-import           HIndent.CodeBlock
-import           HIndent.Pretty
-import           HIndent.Types
+import           CodeBlock
+import           Pretty
+import           Types
 import qualified Language.Haskell.Exts as Exts
 import           Language.Haskell.Exts hiding (Style, prettyPrint, Pretty, style, parse)
 import           Prelude

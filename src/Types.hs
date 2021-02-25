@@ -8,7 +8,7 @@
 
 -- | All types.
 
-module HIndent.Types
+module Types
   (Printer(..)
   ,PrintState(..)
   ,Config(..)

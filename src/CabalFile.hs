@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module HIndent.CabalFile
+module CabalFile
   ( getCabalExtensionsForSourcePath
   ) where
 

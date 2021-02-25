@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HIndent.CodeBlock
+module CodeBlock
   ( CodeBlock(..)
   , cppSplitBlocks
   ) where

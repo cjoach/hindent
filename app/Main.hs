@@ -18,11 +18,11 @@ import qualified Data.Yaml as Y
 import           Foreign.C.Error
 import           GHC.IO.Exception
 import           HIndent
-import           HIndent.CabalFile
-import           HIndent.Types
+import           CabalFile
+import           Types
 import           Language.Haskell.Exts hiding (Style, style)
 import           Path
-import qualified Path.Find as Path
+import           Find (findFileUp)
 import qualified Path.IO as Path
 import           Paths_hindent (version)
 import qualified System.Directory as IO
@@ -79,7 +79,7 @@ getConfig = do
   cur <- Path.getCurrentDir
   homeDir <- Path.getHomeDir
   mfile <-
-    Path.findFileUp cur ((== ".hindent.yaml") . toFilePath . filename) (Just homeDir)
+    findFileUp cur ((== ".hindent.yaml") . toFilePath . filename) (Just homeDir)
   case mfile of
     Nothing -> return defaultConfig
     Just file -> do
