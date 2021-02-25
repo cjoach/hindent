@@ -1,4 +1,17 @@
 name: hindent-elm
 version: "0.1.0"
-default-extensions:
 dependencies:
+- base >= 4.7 && <5
+- containers
+- Cabal
+- filepath
+- directory
+- haskell-src-exts >= 1.20
+- monad-loops
+- mtl
+- bytestring
+- utf8-string
+- transformers
+- exceptions
+- text
+- yaml

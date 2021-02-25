@@ -9,11 +9,18 @@ case "${1-}" in
     stack build
     ;;
 
+  distclean )
+    rm -rf .stack-work
+    rm -rf hindent-elm.cabal
+    rm -rf stack.yaml.lock
+    ;;
+
   *)
     cat << EOF
 Usage: $(pwd)
   ./main install
   ./main build
+  ./main distclean
 EOF
     ;;
 esac

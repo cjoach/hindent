@@ -1,16 +1,3 @@
-*.o
-*.hi
-*~
-dist/
-cabal-dev/
-.hsenv
-TAGS
-tags
-*.tag
-*.elc
-src/main/Main
-src/main/TestGenerate
 .stack-work
-.cabal-sandbox/
-cabal.sandbox.config
+hindent-elm.cabal
 stack.yaml.lock
