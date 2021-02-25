@@ -348,7 +348,8 @@ collectAllComments =
     traverseBackwards =
         traverseInOrder
             (\x y ->
-                 on (flip compare) (srcSpanEnd . srcInfoSpan . nodeInfoSpan) x y) -- Stop traversing if all comments have been consumed.
+                 on (flip compare) (srcSpanEnd . srcInfoSpan . nodeInfoSpan) x y -- Stop traversing if all comments have been consumed.
+             )
     shortCircuit m v = do
         comments <- get
         if null comments
