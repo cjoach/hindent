@@ -1,19 +1,7 @@
 name: hindent-elm
 version: "0.1.0"
 ghc-options:
-- -Weverything
-# someday
-- -Wno-prepositive-qualified-module
-# never
-- -Wno-missing-safe-haskell-mode
-- -Wno-missing-exported-signatures
-- -Wno-missing-import-lists
-- -Wno-missed-specialisations
-- -Wno-all-missed-specialisations
-- -Wno-unsafe
-- -Wno-safe
-- -Wno-missing-local-signatures
-- -Wno-monomorphism-restriction
+- -Wall
 dependencies:
 - Cabal
 - base

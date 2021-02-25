@@ -1,4 +1,3 @@
-{-# LANGUAGE Unsafe #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Main entry point to hindent.
@@ -24,12 +23,12 @@ import           Language.Haskell.Exts hiding (Style, style)
 import           Path
 import           Find (findFileUp)
 import qualified Path.IO as Path
-import           Paths_hindent (version)
+import           Paths_hindent_elm (version)
 import qualified System.Directory as IO
 import           System.Exit (exitWith)
 import qualified System.IO as IO
 import           Options.Applicative hiding (action, style)
-import           Data.Monoid ((<>))
+-- import           Data.Monoid ((<>))
 import qualified Data.Text as T
 
 data Action = Validate | Reformat

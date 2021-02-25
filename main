@@ -9,6 +9,10 @@ case "${1-}" in
     stack build
     ;;
 
+  clean )
+    stack clean
+    ;;
+
   distclean )
     rm -rf .stack-work
     rm -rf hindent-elm.cabal
@@ -20,6 +24,7 @@ case "${1-}" in
 Usage: $(pwd)
   ./main install
   ./main build
+  ./main clean
   ./main distclean
 EOF
     ;;
