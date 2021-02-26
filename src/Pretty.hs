@@ -499,11 +499,10 @@ exp e@(InfixApp _ a op b) = infixApp e a op b Nothing
 exp (If _ if' then' else') = do
     depend (write "if ") (pretty if')
     newline
-    indentedBlock
-        <| do
-            branch "then " then'
-            newline
-            branch "else " else'
+    indentedBlock <| do
+        branch "then " then'
+        newline
+        branch "else " else'
      -- Special handling for do.
     where
         branch str e =
@@ -512,9 +511,7 @@ exp (If _ if' then' else') = do
                     write str
                     write "do"
                     newline
-                    indentedBlock
-                        <| lined
-                        <| map pretty stmts
+                    indentedBlock <| lined <| map pretty stmts
                 _ -> depend (write str) (pretty e)
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
