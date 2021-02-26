@@ -2392,11 +2392,6 @@ instance Pretty ExportSpec where
 --    y
 -- is two invalid statements, not one valid infix op.
 stmt :: Stmt NodeInfo -> Printer ()
--- stmt (Qualifier _ e@(InfixApp _ a op b)) =
---     infixApp e a op b
--- stmt (Generator _ p e) = do
---     pretty p
---     indentedBlock (dependOrNewline (write " <-") space e pretty)
 stmt x =
     case x of
         Generator _ p e ->
@@ -2410,14 +2405,6 @@ stmt x =
                     pretty e
             in do
                 swing leftSide rightSide
-            -- pretty p
-            -- space
-            -- write "<-"
-            -- depend
-            --     (do
-            --          pretty p
-            --          write " <- ")
-            --     (pretty e)
 
         Qualifier _ e ->
             pretty e
