@@ -2583,13 +2583,8 @@ typ (TyParen _ e) =
 typ (TyInfix _ a promotedop b)
   -- Apply special rules to line-break operators.
  = do
-    let isLineBreak' op =
-            case op of
-                PromotedName _ op' ->
-                    isLineBreak op'
-
-                UnpromotedName _ op' ->
-                    isLineBreak op'
+    let symbolName =
+            getSymbolName promotedop
 
         prettyInfixOp' op =
             case op of
@@ -2598,7 +2593,7 @@ typ (TyInfix _ a promotedop b)
 
                 UnpromotedName _ op' ->
                     prettyInfixOp op'
-    linebreak <- isLineBreak' promotedop
+    linebreak <- isLineBreak symbolName
     if linebreak then do
         pretty a
         newline
@@ -2864,14 +2859,24 @@ recUpdateExpr expWriter updates = do
 
 
 --------------------------------------------------------------------------------
+
+getSymbolName :: MaybePromotedName NodeInfo -> QName NodeInfo
+getSymbolName symbol =
+    case symbol of
+        PromotedName _ symbolName ->
+            symbolName
+
+        UnpromotedName _ symbolName ->
+            symbolName
+
 -- Predicates
 -- | If the given operator is an element of line breaks in configuration.
 isLineBreak :: QName NodeInfo -> Printer Bool
 isLineBreak (UnQual _ (Symbol _ s)) = do
     breaks <- gets (configLineBreaks . psConfig)
-    return $ s `elem` breaks
-isLineBreak _ =
-    return False
+    let isInConfig =
+            elem s breaks
+    return isInConfig
 
 
 -- | Does printing the given thing overflow column limit? (e.g. 80)
@@ -2957,8 +2962,10 @@ infixApp wholeExpression a op b =
             ann wholeExpression
                 |> nodeInfoSpan
                 |> srcInfoSpan
-    in
-    if isBreakForced then
+    in do
+    let isVertical =
+            isBreakForced
+    if isVertical then
         vertical
 
     else

@@ -133,7 +133,7 @@ defaultConfig =
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True
-        , configLineBreaks = []
+        , configLineBreaks = ["|>"]
         , configExtensions = []
         }
 
