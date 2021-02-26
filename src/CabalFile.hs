@@ -33,7 +33,8 @@ data Stanza =
 toRelative :: FilePath -> FilePath -> Maybe FilePath
 toRelative parent child =
     let
-        rel = makeRelative parent child
+        rel =
+            makeRelative parent child
     in
     if rel == child
         then Nothing
@@ -44,11 +45,13 @@ mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
 mkStanza bi mnames fpaths =
     MkStanza bi $ \path ->
         let
-            modpaths = fmap toFilePath $ otherModules bi ++ mnames
+            modpaths =
+                fmap toFilePath $ otherModules bi ++ mnames
 
             inDir dir =
                 case toRelative dir path of
-                    Nothing -> False
+                    Nothing ->
+                        False
                     Just relpath ->
                         any (equalFilePath $ dropExtension relpath) modpaths ||
                         any (equalFilePath relpath) fpaths
@@ -61,11 +64,13 @@ packageStanzas pd =
     let
         libStanza :: Library -> Stanza
 
-        libStanza lib = mkStanza (libBuildInfo lib) (exposedModules lib) []
+        libStanza lib =
+            mkStanza (libBuildInfo lib) (exposedModules lib) []
 
         exeStanza :: Executable -> Stanza
 
-        exeStanza exe = mkStanza (buildInfo exe) [] [modulePath exe]
+        exeStanza exe =
+            mkStanza (buildInfo exe) [] [modulePath exe]
 
         testStanza :: TestSuite -> Stanza
 
@@ -73,19 +78,25 @@ packageStanzas pd =
             mkStanza
                 (testBuildInfo ts)
                 (case testInterface ts of
-                     TestSuiteLibV09 _ mname -> [mname]
-                     _ -> [])
+                     TestSuiteLibV09 _ mname ->
+                         [mname]
+                     _ ->
+                         [])
                 (case testInterface ts of
-                     TestSuiteExeV10 _ path -> [path]
-                     _ -> [])
+                     TestSuiteExeV10 _ path ->
+                         [path]
+                     _ ->
+                         [])
 
         benchStanza :: Benchmark -> Stanza
 
         benchStanza bn =
             mkStanza (benchmarkBuildInfo bn) [] $
             case benchmarkInterface bn of
-                BenchmarkExeV10 _ path -> [path]
-                _ -> []
+                BenchmarkExeV10 _ path ->
+                    [path]
+                _ ->
+                    []
     in
     mconcat
         [ maybeToList $ fmap libStanza $ library pd
@@ -103,8 +114,10 @@ findCabalFiles dir rel = do
     case cabalnames of
         []
             | dir == "/" -> return Nothing
-        [] -> findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
-        _ -> return $ Just (fmap (\n -> dir </> n) cabalnames, rel)
+        [] ->
+            findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
+        _ ->
+            return $ Just (fmap (\n -> dir </> n) cabalnames, rel)
 
 getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
 #if MIN_VERSION_Cabal(2, 2, 0)
@@ -115,8 +128,10 @@ getGenericPackageDescription cabalPath = do
 getGenericPackageDescription cabalPath = do
     cabaltext <- readFile cabalPath
     case parsePackageDescription cabaltext of
-        ParseOk _ gpd -> return $ Just gpd
-        _ -> return Nothing
+        ParseOk _ gpd ->
+            return $ Just gpd
+        _ ->
+            return Nothing
 #endif
 -- | Find the `Stanza` that refers to this source path
 getCabalStanza :: FilePath -> IO (Maybe Stanza)
@@ -130,16 +145,20 @@ getCabalStanza srcpath = do
                     genericPackageDescription <-
                         getGenericPackageDescription cabalpath
                     case genericPackageDescription of
-                        Nothing -> return []
+                        Nothing ->
+                            return []
                         Just gpd -> do
                             return $
                                 packageStanzas $ flattenPackageDescription gpd
             return $
                 case filter (\stanza -> stanzaIsSourceFilePath stanza relpath) $
                      mconcat stanzass of
-                    [] -> Nothing
-                    (stanza:_) -> Just stanza -- just pick the first one
-        Nothing -> return Nothing
+                    [] ->
+                        Nothing
+                    (stanza:_) ->
+                        Just stanza -- just pick the first one
+        Nothing ->
+            return Nothing
 
 -- | Get (Cabal package) language and extensions from the cabal file for this source path
 getCabalExtensions :: FilePath -> IO (Language, [Extension])
@@ -147,25 +166,30 @@ getCabalExtensions srcpath = do
     mstanza <- getCabalStanza srcpath
     return $
         case mstanza of
-            Nothing -> (Haskell98, [])
+            Nothing ->
+                (Haskell98, [])
             Just (MkStanza bi _) -> do
                 (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
 convertLanguage :: Language -> HSE.Language
-convertLanguage lang = read $ show lang
+convertLanguage lang =
+    read $ show lang
 
 convertKnownExtension :: KnownExtension -> Maybe HSE.KnownExtension
 convertKnownExtension ext =
     case readEither $ show ext of
-        Left _ -> Nothing
-        Right hext -> Just hext
+        Left _ ->
+            Nothing
+        Right hext ->
+            Just hext
 
 convertExtension :: Extension -> Maybe HSE.Extension
 convertExtension (EnableExtension ke) =
     fmap HSE.EnableExtension $ convertKnownExtension ke
 convertExtension (DisableExtension ke) =
     fmap HSE.DisableExtension $ convertKnownExtension ke
-convertExtension (UnknownExtension s) = Just $ HSE.UnknownExtension s
+convertExtension (UnknownExtension s) =
+    Just $ HSE.UnknownExtension s
 
 -- | Get extensions from the cabal file for this source path
 getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]

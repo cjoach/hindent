@@ -39,10 +39,14 @@ cppSplitBlocks inp =
 
         groupLines (line1:line2:remainingLines) =
             case mergeLines line1 line2 of
-                Just line1And2 -> groupLines (line1And2 : remainingLines)
-                Nothing -> line1 : groupLines (line2 : remainingLines)
-        groupLines xs@[_] = xs
-        groupLines xs@[] = xs
+                Just line1And2 ->
+                    groupLines (line1And2 : remainingLines)
+                Nothing ->
+                    line1 : groupLines (line2 : remainingLines)
+        groupLines xs@[_] =
+            xs
+        groupLines xs@[] =
+            xs
 
         mergeLines :: CodeBlock -> CodeBlock -> Maybe CodeBlock
 
@@ -52,11 +56,13 @@ cppSplitBlocks inp =
             Just $ Shebang (src1 <> "\n" <> src2)
         mergeLines (HaskellSource lineNumber1 src1) (HaskellSource _lineNumber2 src2) =
             Just $ HaskellSource lineNumber1 (src1 <> "\n" <> src2)
-        mergeLines _ _ = Nothing
+        mergeLines _ _ =
+            Nothing
 
         shebangLine :: ByteString -> Bool
 
-        shebangLine = S8.isPrefixOf "#!"
+        shebangLine =
+            S8.isPrefixOf "#!"
 
         cppLine :: ByteString -> Bool
 
@@ -77,20 +83,23 @@ cppSplitBlocks inp =
 
         hasEscapedTrailingNewline :: ByteString -> Bool
 
-        hasEscapedTrailingNewline src = "\\" `S8.isSuffixOf` src
+        hasEscapedTrailingNewline src =
+            "\\" `S8.isSuffixOf` src
 
         classifyLines :: [(Int, ByteString)] -> [CodeBlock]
 
         classifyLines allLines@((lineIndex, src):nextLines)
             | cppLine src =
                 let
-                    (cppLines, nextLines') = spanCPPLines allLines
+                    (cppLines, nextLines') =
+                        spanCPPLines allLines
                 in
                 CPPDirectives (S8.intercalate "\n" (map snd cppLines)) :
                 classifyLines nextLines'
             | shebangLine src = Shebang src : classifyLines nextLines
             | otherwise = HaskellSource lineIndex src : classifyLines nextLines
-        classifyLines [] = []
+        classifyLines [] =
+            []
 
         spanCPPLines ::
                [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
@@ -98,11 +107,13 @@ cppSplitBlocks inp =
         spanCPPLines (line@(_, src):nextLines)
             | hasEscapedTrailingNewline src =
                 let
-                    (cppLines, nextLines') = spanCPPLines nextLines
+                    (cppLines, nextLines') =
+                        spanCPPLines nextLines
                 in
                 (line : cppLines, nextLines')
             | otherwise = ([line], nextLines)
-        spanCPPLines [] = ([], [])
+        spanCPPLines [] =
+            ([], [])
     -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
     -- need to have a newline following them in order to parse properly, so we include
     -- the trailing newline in the code block if it existed.
@@ -116,11 +127,16 @@ cppSplitBlocks inp =
 
         modifyLast :: (a -> a) -> [a] -> [a]
 
-        modifyLast _ [] = []
-        modifyLast f [x] = [f x]
-        modifyLast f (x:xs) = x : modifyLast f xs
+        modifyLast _ [] =
+            []
+        modifyLast f [x] =
+            [f x]
+        modifyLast f (x:xs) =
+            x : modifyLast f xs
 
         inBlock :: (ByteString -> ByteString) -> CodeBlock -> CodeBlock
 
-        inBlock f (HaskellSource line txt) = HaskellSource line (f txt)
-        inBlock _ dir = dir
+        inBlock f (HaskellSource line txt) =
+            HaskellSource line (f txt)
+        inBlock _ dir =
+            dir

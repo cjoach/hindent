@@ -88,8 +88,10 @@ readExtension :: Monad m => String -> m Extension
 readExtension x =
     case classifyExtension x -- Foo
           of
-        UnknownExtension _ -> fail ("Unknown extension: " ++ x)
-        x' -> return x'
+        UnknownExtension _ ->
+            fail ("Unknown extension: " ++ x)
+        x' ->
+            return x'
 
 instance FromJSON Config where
     parseJSON (Y.Object v) =
@@ -110,7 +112,8 @@ instance FromJSON Config where
             (fromMaybe (configLineBreaks defaultConfig))
             (v Y..:? "line-breaks") <*>
         (traverse readExtension =<< fmap (fromMaybe []) (v Y..:? "extensions"))
-    parseJSON _ = fail "Expected Object for Config value"
+    parseJSON _ =
+        fail "Expected Object for Config value"
 
 -- | Default style configuration.
 defaultConfig :: Config
@@ -146,5 +149,7 @@ data NodeInfo =
         }
 
 instance Show NodeInfo where
-    show (NodeInfo _ []) = ""
-    show (NodeInfo _ s) = "{- " ++ show s ++ " -}"
+    show (NodeInfo _ []) =
+        ""
+    show (NodeInfo _ s) =
+        "{- " ++ show s ++ " -}"

@@ -61,21 +61,28 @@ reformat config mexts mfilepath =
     where
         processBlock :: CodeBlock -> Either String Builder
 
-        processBlock (Shebang text) = Right $ S.byteString text
-        processBlock (CPPDirectives text) = Right $ S.byteString text
+        processBlock (Shebang text) =
+            Right $ S.byteString text
+        processBlock (CPPDirectives text) =
+            Right $ S.byteString text
         processBlock (HaskellSource line text) =
             let
-                ls = S8.lines text
+                ls =
+                    S8.lines text
 
-                prefix = findPrefix ls
+                prefix =
+                    findPrefix ls
 
-                code = unlines' (map (stripPrefix prefix) ls)
+                code =
+                    unlines' (map (stripPrefix prefix) ls)
 
-                exts = readExtensions (UTF8.toString code)
+                exts =
+                    readExtensions (UTF8.toString code)
 
                 mode'' =
                     case exts of
-                        Nothing -> mode'
+                        Nothing ->
+                            mode'
                         Just (Nothing, exts') ->
                             mode'
                                 { extensions =
@@ -103,13 +110,16 @@ reformat config mexts mfilepath =
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
                          ": " ++ e)
 
-        unlines' = S.concat . intersperse "\n"
+        unlines' =
+            S.concat . intersperse "\n"
 
-        unlines'' = L.concat . intersperse "\n"
+        unlines'' =
+            L.concat . intersperse "\n"
 
         addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
 
-        addPrefix prefix = unlines'' . map (L8.fromStrict prefix <>) . L8.lines
+        addPrefix prefix =
+            unlines'' . map (L8.fromStrict prefix <>) . L8.lines
 
         stripPrefix :: ByteString -> ByteString -> ByteString
 
@@ -122,17 +132,20 @@ reformat config mexts mfilepath =
 
         findPrefix :: [ByteString] -> ByteString
 
-        findPrefix = takePrefix False . findSmallestPrefix . dropNewlines
+        findPrefix =
+            takePrefix False . findSmallestPrefix . dropNewlines
 
         dropNewlines :: [ByteString] -> [ByteString]
 
-        dropNewlines = filter (not . S.null . S8.dropWhile (== '\n'))
+        dropNewlines =
+            filter (not . S.null . S8.dropWhile (== '\n'))
 
         takePrefix :: Bool -> ByteString -> ByteString
 
         takePrefix bracketUsed txt =
             case S8.uncons txt of
-                Nothing -> ""
+                Nothing ->
+                    ""
                 Just ('>', txt') ->
                     if not bracketUsed
                         then S8.cons '>' (takePrefix True txt')
@@ -144,13 +157,17 @@ reformat config mexts mfilepath =
 
         findSmallestPrefix :: [ByteString] -> ByteString
 
-        findSmallestPrefix [] = ""
-        findSmallestPrefix ("":_) = ""
+        findSmallestPrefix [] =
+            ""
+        findSmallestPrefix ("":_) =
+            ""
         findSmallestPrefix (p:ps) =
             let
-                first = S8.head p
+                first =
+                    S8.head p
 
-                startsWithChar c x = S8.length x > 0 && S8.head x == c
+                startsWithChar c x =
+                    S8.length x > 0 && S8.head x == c
             in
             if all (startsWithChar first) ps
                 then S8.cons
@@ -162,8 +179,10 @@ reformat config mexts mfilepath =
             let
                 m =
                     case mexts of
-                        Just exts -> parseMode {extensions = exts}
-                        Nothing -> parseMode
+                        Just exts ->
+                            parseMode {extensions = exts}
+                        Nothing ->
+                            parseMode
             in
             m {parseFilename = fromMaybe "<interactive>" mfilepath}
 
@@ -223,20 +242,26 @@ runPrinterStyle config m =
 
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
-parseMode = defaultParseMode {extensions = allExtensions, fixities = Nothing}
+parseMode =
+    defaultParseMode {extensions = allExtensions, fixities = Nothing}
     where
-        allExtensions = filter isDisabledExtension knownExtensions
+        allExtensions =
+            filter isDisabledExtension knownExtensions
 
-        isDisabledExtension (DisableExtension _) = False
-        isDisabledExtension _ = True
+        isDisabledExtension (DisableExtension _) =
+            False
+        isDisabledExtension _ =
+            True
 
 -- | Test the given file.
 testFile :: FilePath -> IO ()
-testFile fp = S.readFile fp >>= test
+testFile fp =
+    S.readFile fp >>= test
 
 -- | Test the given file.
 testFileAst :: FilePath -> IO ()
-testFileAst fp = S.readFile fp >>= print . testAst
+testFileAst fp =
+    S.readFile fp >>= print . testAst
 
 -- | Test with the given style, prints to stdout.
 test :: ByteString -> IO ()
@@ -258,7 +283,8 @@ testAst x =
                              comments
                  in
                  ast)
-        ParseFailed _ e -> Left e
+        ParseFailed _ e ->
+            Left e
 
 -- | Default extensions.
 defaultExtensions :: [Extension]
@@ -290,14 +316,17 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 -- Extensions stuff stolen from hlint
 -- | Consume an extensions list from arguments.
 getExtensions :: [Text] -> [Extension]
-getExtensions = foldl f defaultExtensions . map T.unpack
+getExtensions =
+    foldl f defaultExtensions . map T.unpack
     where
-        f _ "Haskell98" = []
+        f _ "Haskell98" =
+            []
         f a ('N':'o':x)
             | Just x' <- readExtension x = delete x' a
         f a x
             | Just x' <- readExtension x = x' : delete x' a
-        f _ x = error $ "Unknown extension: " ++ x
+        f _ x =
+            error $ "Unknown extension: " ++ x
 
 --------------------------------------------------------------------------------
 -- Comments
@@ -313,7 +342,8 @@ traverseInOrder cmp f ast = do
         fmap
             (zip [0 :: Integer ..] . reverse)
             (execStateT (traverse (modify . (:)) ast) [])
-    let sorted = sortBy (\(_, x) (_, y) -> cmp x y) indexed
+    let sorted =
+            sortBy (\(_, x) (_, y) -> cmp x y) indexed
     results <-
         mapM
             (\(i, m) -> do
@@ -326,8 +356,10 @@ traverseInOrder cmp f ast = do
                   (do i <- gets head
                       modify tail
                       case lookup i results of
-                          Nothing -> error "traverseInOrder"
-                          Just x -> return x))
+                          Nothing ->
+                              error "traverseInOrder"
+                          Just x ->
+                              return x))
              ast)
         [0 ..]
 
@@ -379,7 +411,8 @@ collectAllComments =
                        fst (srcSpanStart nodeSpan)))) .
     fmap nodify
     where
-        nodify s = NodeInfo s mempty
+        nodify s =
+            NodeInfo s mempty
 
         -- Sort the comments by their end position.
         traverseBackwards =
@@ -431,7 +464,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
         addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
             return $ PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
-        addCommentsToWhereClauses other = return other
+        addCommentsToWhereClauses other =
+            return other
 
         addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
 
@@ -443,13 +477,15 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                     (PVar x (Ident declNodeInfo declString))
                     x'
                     x''
-        addCommentsToPatBind other = return other
+        addCommentsToPatBind other =
+            return other
 
         addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
 
         addCommentsBeforeNode nodeInfo = do
             comments <- get
-            let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
+            let (notAbove, above) =
+                    partitionAboveNotAbove comments nodeInfo
             put notAbove
             return $ addCommentsToNode CommentBeforeLine above nodeInfo
 
@@ -470,14 +506,18 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
 
         isAbove (Comment _ commentSpan _) span =
             let
-                (_, commentColStart) = srcSpanStart commentSpan
+                (_, commentColStart) =
+                    srcSpanStart commentSpan
 
-                (commentLnEnd, _) = srcSpanEnd commentSpan
+                (commentLnEnd, _) =
+                    srcSpanEnd commentSpan
 
-                (lnStart, colStart) = srcSpanStart span
+                (lnStart, colStart) =
+                    srcSpanStart span
             in
             commentColStart == colStart && commentLnEnd + 1 == lnStart
-addCommentsToTopLevelWhereClauses other = return other
+addCommentsToTopLevelWhereClauses other =
+    return other
 
 addCommentsToNode ::
        (SrcSpan -> SomeComment -> NodeComment)
