@@ -3012,23 +3012,24 @@ verticalInfixApplication a op b =
                         pretty op
                         space
 
-        afterOperator =
-            case b of
-                Lambda {} ->
-                    space >> pretty b
+        -- afterOperator =
+        --     -- case b of
+        --     --     Lambda {} ->
+        --     --         space >> pretty b
 
-                LCase {} ->
-                    space >> pretty b
+        --     --     LCase {} ->
+        --     --         space >> pretty b
 
-                Do _ stmts ->
-                    swing (write " do") $ lined (map pretty stmts)
+        --     --     Do _ stmts ->
+                    
+        --     --         swing (write " do") $ lined (map pretty stmts)
 
-                _ -> do pretty b
+        --         _ -> do pretty b
     in
     do
         pretty a
         operator
-        afterOperator
+        pretty b
 
 
 -- | A link in a chain of operator applications.
