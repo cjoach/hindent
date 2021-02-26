@@ -125,9 +125,11 @@ cppSplitBlocks inp =
         trailing :: ByteString
 
         trailing =
-            if S8.isSuffixOf "\n" inp
-                then "\n"
-                else ""
+            if S8.isSuffixOf "\n" inp then
+                "\n"
+
+            else
+                ""
 
         modifyLast :: (a -> a) -> [a] -> [a]
 

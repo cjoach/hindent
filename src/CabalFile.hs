@@ -40,9 +40,11 @@ toRelative parent child =
         rel =
             makeRelative parent child
     in
-    if rel == child
-        then Nothing
-        else Just rel
+    if rel == child then
+        Nothing
+
+    else
+        Just rel
 
 
 -- | Create a Stanza from `BuildInfo` and names of modules and paths

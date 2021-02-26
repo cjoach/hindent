@@ -63,13 +63,14 @@ pretty a = do
                      col <- gets psColumn
                      if col == 0
                -- write comment keeping original indentation
-                         then do
-                             let col' =
-                                     fromIntegral $ srcSpanStartColumn spn - 1
-                             column col' $ writeComment c
-                         else do
-                             space
-                             writeComment c
+                      then do
+                         let col' =
+                                 fromIntegral $ srcSpanStartColumn spn - 1
+                         column col' $ writeComment c
+
+                     else do
+                         space
+                         writeComment c
                  CommentAfterLine spn c -> do
                      when (i == 0) newline
            -- write comment keeping original indentation
@@ -144,9 +145,11 @@ inter sep ps =
         (\(i, p) next ->
              depend
                  (do p
-                     if i < length ps
-                         then sep
-                         else return ())
+                     if i < length ps then
+                         sep
+
+                     else
+                         return ())
                  next)
         (return ())
         (zip [1 ..] ps)
@@ -227,9 +230,11 @@ withCaseContext bool pr = do
 rhsSeparator :: Printer ()
 rhsSeparator = do
     inCase <- gets psInsideCase
-    if inCase
-        then write "->"
-        else write "="
+    if inCase then
+        write "->"
+
+    else
+        write "="
 
 
 -- | Make the latter's indentation depend upon the end column of the
@@ -240,9 +245,11 @@ depend maker dependent = do
     maker
     st <- get
     col <- gets psColumn
-    if psLine state' /= psLine st || psColumn state' /= psColumn st
-        then column col dependent
-        else dependent
+    if psLine state' /= psLine st || psColumn state' /= psColumn st then
+        column col dependent
+
+    else
+        dependent
 
 
 -- | Wrap.
@@ -302,14 +309,18 @@ write x = do
         out :: String
 
         out =
-            if psNewline state && not writingNewline
-                then (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
-                else x
+            if psNewline state && not writingNewline then
+                (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
+
+            else
+                x
 
         psColumn' =
-            if additionalLines > 0
-                then fromIntegral (length (concat (take 1 (reverse srclines))))
-                else psColumn state + fromIntegral (length out)
+            if additionalLines > 0 then
+                fromIntegral (length (concat (take 1 (reverse srclines))))
+
+            else
+                psColumn state + fromIntegral (length out)
     when
         hardFail
         (guard
@@ -649,7 +660,7 @@ exp (If _ if' then' else') = do
     pretty if'
     space
     branch "then" then'
-    newline
+    oneEmptyLine
     branch "else" else'
     -- Special handling for do.
     where
@@ -681,12 +692,16 @@ exp (App _ op arg) = do
             col' <- gets psColumn
             let diff =
                     col' - col -
-                    if col == 0
-                        then spaces
-                        else 0
-            if diff + 1 <= spaces
-                then space
-                else newline
+                    if col == 0 then
+                        spaces
+
+                    else
+                        0
+            if diff + 1 <= spaces then
+                space
+
+            else
+                newline
             indentedBlock (lined (map pretty args))
         Just st ->
             put st
@@ -785,11 +800,12 @@ exp (Case _ e alts) = do
         (write "case ")
         (do pretty e
             write " of")
-    if null alts
-        then write " {}"
-        else do
-            newline
-            indentedBlock (lined (map (withCaseContext True . pretty) alts))
+    if null alts then
+        write " {}"
+
+    else do
+        newline
+        indentedBlock (lined (map (withCaseContext True . pretty) alts))
 exp (Do _ stmts) =
     depend (write "do ") (lined (map pretty stmts))
 exp (MDo _ stmts) =
@@ -849,11 +865,12 @@ exp (QuasiQuote _ n s) =
     quotation n (string s)
 exp (LCase _ alts) = do
     write "\\case"
-    if null alts
-        then write " {}"
-        else do
-            newline
-            indentedBlock (lined (map (withCaseContext True . pretty) alts))
+    if null alts then
+        write " {}"
+
+    else do
+        newline
+        indentedBlock (lined (map (withCaseContext True . pretty) alts))
 exp (MultiIf _ alts) =
     withCaseContext
         True
@@ -1206,9 +1223,11 @@ instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
         depend (write "deriving" >> space >> writeStrategy) $ do
             let heads' =
-                    if length heads == 1
-                        then map stripParens heads
-                        else heads
+                    if length heads == 1 then
+                        map stripParens heads
+
+                    else
+                        heads
             maybeDerives <- fitsOnOneLine $ parens (commas (map pretty heads'))
             case maybeDerives of
                 Nothing ->
@@ -1611,9 +1630,11 @@ instance Pretty Module where
                     twoEmptyLines
                     (mapMaybe
                          (\(isNull, r) ->
-                              if isNull
-                                  then Nothing
-                                  else Just r)
+                              if isNull then
+                                  Nothing
+
+                              else
+                                  Just r)
                          [ (null pragmas, inter newline (map pretty pragmas))
                          , (case mayModHead of
                                 Nothing ->
@@ -1670,9 +1691,11 @@ formatImports =
         formatImportGroup imps = do
             shouldSortImports <- gets $ configSortImports . psConfig
             let imps1 =
-                    if shouldSortImports
-                        then sortImports imps
-                        else imps
+                    if shouldSortImports then
+                        sortImports imps
+
+                    else
+                        imps
             sequence_ . intersperse newline $ map formatImport imps1
 
         moduleVisibleName idecl =
@@ -2166,9 +2189,11 @@ rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ (Do _ dos)) = do
     inCase <- gets psInsideCase
     write
-        (if inCase
-             then " -> "
-             else " = ")
+        (if inCase then
+             " -> "
+
+         else
+             " = ")
     swing (write "do") (lined (map pretty dos))
 rhs (UnGuardedRhs _ e) = do
     space
@@ -2200,9 +2225,11 @@ guardedRhs (GuardedRhs _ stmts (Do _ dos)) = do
                      stmts))
     inCase <- gets psInsideCase
     write
-        (if inCase
-             then " -> "
-             else " = ")
+        (if inCase then
+             " -> "
+
+         else
+             " = ")
     swing (write "do") (lined (map pretty dos))
 guardedRhs (GuardedRhs _ stmts e) = do
     mst <- fitsOnOneLine printStmts
@@ -2338,19 +2365,19 @@ typ (TyInfix _ a promotedop b)
                 UnpromotedName _ op' ->
                     prettyInfixOp op'
     linebreak <- isLineBreak' promotedop
-    if linebreak
-        then do
-            pretty a
-            newline
-            prettyInfixOp' promotedop
-            space
-            pretty b
-        else do
-            pretty a
-            space
-            prettyInfixOp' promotedop
-            space
-            pretty b
+    if linebreak then do
+        pretty a
+        newline
+        prettyInfixOp' promotedop
+        space
+        pretty b
+
+    else do
+        pretty a
+        space
+        prettyInfixOp' promotedop
+        space
+        pretty b
 typ (TyKind _ ty k) =
     parens
         (do pretty ty
@@ -2428,12 +2455,13 @@ decl' (TypeSig _ names ty') = do
         Nothing -> do
             commas (map prettyTopName names)
             indentSpaces <- getIndentSpaces
-            if allNamesLength >= indentSpaces
-                then do
-                    write " ::"
-                    newline
-                    indented indentSpaces (depend (write "   ") (declTy ty'))
-                else (depend (write " :: ") (declTy ty'))
+            if allNamesLength >= indentSpaces then do
+                write " ::"
+                newline
+                indented indentSpaces (depend (write "   ") (declTy ty'))
+
+            else
+                (depend (write " :: ") (declTy ty'))
         Just st ->
             put st
     where
@@ -2517,23 +2545,24 @@ declTy dty =
             [e]
 
         prettyTy breakLine ty = do
-            if breakLine
-                then case collapseFaps ty of
-                         [] ->
-                             pretty ty
-                         tys ->
-                             prefixedLined "-> " (map pretty tys)
-                else do
-                    mst <- fitsOnOneLine (pretty ty)
-                    case mst of
-                        Nothing ->
-                            case collapseFaps ty of
-                                [] ->
-                                    pretty ty
-                                tys ->
-                                    prefixedLined "-> " (map pretty tys)
-                        Just st ->
-                            put st
+            if breakLine then
+                case collapseFaps ty of
+                    [] ->
+                        pretty ty
+                    tys ->
+                        prefixedLined "-> " (map pretty tys)
+
+            else do
+                mst <- fitsOnOneLine (pretty ty)
+                case mst of
+                    Nothing ->
+                        case collapseFaps ty of
+                            [] ->
+                                pretty ty
+                            tys ->
+                                prefixedLined "-> " (map pretty tys)
+                    Just st ->
+                        put st
 
 
 -- | Fields are preceded with a space.
@@ -2602,9 +2631,11 @@ fitsOnOneLine p = do
     put st
     guard $ ok || not (psFitOnOneLine st)
     return
-        (if ok
-             then Just st' {psFitOnOneLine = psFitOnOneLine st}
-             else Nothing)
+        (if ok then
+             Just st' {psFitOnOneLine = psFitOnOneLine st}
+
+         else
+             Nothing)
 
 
 -- | If first printer fits, use it, else use the second one.
@@ -2677,11 +2708,12 @@ infixApp e a op b indent =
                         Nothing -> do
                             col <- fmap (psColumn . snd) (sandbox (write ""))
               -- force indent for top-level template haskell expressions, #473.
-                            if col == 0
-                                then do
-                                    indentSpaces <- getIndentSpaces
-                                    column indentSpaces (prettyWithIndent b)
-                                else prettyWithIndent b
+                            if col == 0 then do
+                                indentSpaces <- getIndentSpaces
+                                column indentSpaces (prettyWithIndent b)
+
+                            else
+                                prettyWithIndent b
                         Just col -> do
                             indentSpaces <- getIndentSpaces
                             column (col + indentSpaces) (prettyWithIndent b)

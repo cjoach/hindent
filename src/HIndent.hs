@@ -128,11 +128,13 @@ reformat config mexts mfilepath =
         stripPrefix :: ByteString -> ByteString -> ByteString
 
         stripPrefix prefix line =
-            if S.null (S8.dropWhile (== '\n') line)
-                then line
-                else fromMaybe (error "Missing expected prefix") .
-                     s8_stripPrefix prefix $
-                     line
+            if S.null (S8.dropWhile (== '\n') line) then
+                line
+
+            else
+                fromMaybe (error "Missing expected prefix") .
+                s8_stripPrefix prefix $
+                line
 
         findPrefix :: [ByteString] -> ByteString
 
@@ -151,13 +153,17 @@ reformat config mexts mfilepath =
                 Nothing ->
                     ""
                 Just ('>', txt') ->
-                    if not bracketUsed
-                        then S8.cons '>' (takePrefix True txt')
-                        else ""
+                    if not bracketUsed then
+                        S8.cons '>' (takePrefix True txt')
+
+                    else
+                        ""
                 Just (c, txt') ->
-                    if c == ' ' || c == '\t'
-                        then S8.cons c (takePrefix bracketUsed txt')
-                        else ""
+                    if c == ' ' || c == '\t' then
+                        S8.cons c (takePrefix bracketUsed txt')
+
+                    else
+                        ""
 
         findSmallestPrefix :: [ByteString] -> ByteString
 
@@ -173,11 +179,11 @@ reformat config mexts mfilepath =
                 startsWithChar c x =
                     S8.length x > 0 && S8.head x == c
             in
-            if all (startsWithChar first) ps
-                then S8.cons
-                         first
-                         (findSmallestPrefix (S.tail p : map S.tail ps))
-                else ""
+            if all (startsWithChar first) ps then
+                S8.cons first (findSmallestPrefix (S.tail p : map S.tail ps))
+
+            else
+                ""
 
         mode' =
             let
@@ -191,26 +197,33 @@ reformat config mexts mfilepath =
             m {parseFilename = fromMaybe "<interactive>" mfilepath}
 
         preserveTrailingNewline f x =
-            if S8.null x || S8.all isSpace x
-                then return mempty
-                else if hasTrailingLine x || configTrailingNewline config
-                         then fmap
-                                  (\x' ->
-                                       if hasTrailingLine
-                                              (L.toStrict
-                                                   (S.toLazyByteString x'))
-                                           then x'
-                                           else x' <> "\n")
-                                  (f x)
-                         else f x
+            if S8.null x || S8.all isSpace x then
+                return mempty
+
+            else
+                if hasTrailingLine x || configTrailingNewline config then
+                    fmap
+                        (\x' ->
+                             if hasTrailingLine
+                                 (L.toStrict (S.toLazyByteString x')) then
+                                 x'
+
+                             else
+                                 x' <> "\n")
+                        (f x)
+
+                else
+                    f x
 
 
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
 hasTrailingLine xs =
-    if S8.null xs
-        then False
-        else S8.last xs == '\n'
+    if S8.null xs then
+        False
+
+    else
+        S8.last xs == '\n'
 
 
 -- | Print the module.
@@ -443,9 +456,11 @@ collectAllComments =
 
         shortCircuit m v = do
             comments <- get
-            if null comments
-                then return v
-                else m v
+            if null comments then
+                return v
+
+            else
+                m v
 
 
 -- | Collect comments by satisfying the given predicate, to collect a
@@ -461,9 +476,11 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
     let (others, mine) =
             partitionEithers
                 (map (\comment@(Comment _ commentSpan _) ->
-                          if predicate nodeSpan commentSpan
-                              then Right comment
-                              else Left comment)
+                          if predicate nodeSpan commentSpan then
+                              Right comment
+
+                          else
+                              Left comment)
                      comments)
     put others
     return $ addCommentsToNode cons mine nodeInfo
@@ -514,9 +531,11 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             fst $
             foldr'
                 (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
-                     if comment `isAbove` lastSpan
-                         then ((ls, comment : rs), commentSpan)
-                         else ((comment : ls, rs), lastSpan))
+                     if comment `isAbove` lastSpan then
+                         ((ls, comment : rs), commentSpan)
+
+                     else
+                         ((comment : ls, rs), lastSpan))
                 (([], []), nodeSpan)
                 cs
 
@@ -554,7 +573,9 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
             mkNodeComment
                 commentSpan
-                ((if multiLine
-                      then MultiLine
-                      else EndOfLine)
+                ((if multiLine then
+                      MultiLine
+
+                  else
+                      EndOfLine)
                      commentString)
