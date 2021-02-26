@@ -45,6 +45,7 @@ cppSplitBlocks inp =
             case mergeLines line1 line2 of
                 Just line1And2 ->
                     groupLines (line1And2 : remainingLines)
+
                 Nothing ->
                     line1 : groupLines (line2 : remainingLines)
         groupLines xs@[_] =

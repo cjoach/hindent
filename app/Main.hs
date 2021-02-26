@@ -59,6 +59,7 @@ main = do
     case runMode of
         ShowVersion ->
             putStrLn ("hindent " ++ showVersion version)
+
         Run style exts action paths ->
             if null paths then
                 L8.interact
@@ -69,13 +70,16 @@ main = do
                 forM_ paths $ \filepath -> do
                     cabalexts <- getCabalExtensionsForSourcePath filepath
                     text <- S.readFile filepath
-                    case reformat
-                             style
-                             (Just $ cabalexts ++ exts)
-                             (Just filepath)
-                             text of
+                    case
+                        reformat
+                            style
+                            (Just $ cabalexts ++ exts)
+                            (Just filepath)
+                            text
+                    of
                         Left e ->
                             error e
+
                         Right out ->
                             unless
                                 (L8.fromStrict text == S.toLazyByteString out) $
@@ -84,6 +88,7 @@ main = do
                                     IO.putStrLn $
                                         filepath ++ " is not formatted"
                                     exitWith (ExitFailure 1)
+
                                 Reformat -> do
                                     tmpDir <- IO.getTemporaryDirectory
                                     (fp, h) <-
@@ -116,11 +121,13 @@ getConfig = do
     case mfile of
         Nothing ->
             return defaultConfig
+
         Just file -> do
             result <- Y.decodeFileEither (toFilePath file)
             case result of
                 Left e ->
                     error (show e)
+
                 Right config ->
                     return config
 

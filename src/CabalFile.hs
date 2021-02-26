@@ -59,6 +59,7 @@ mkStanza bi mnames fpaths =
                 case toRelative dir path of
                     Nothing ->
                         False
+
                     Just relpath ->
                         any (equalFilePath $ dropExtension relpath) modpaths ||
                         any (equalFilePath relpath) fpaths
@@ -88,11 +89,13 @@ packageStanzas pd =
                 (case testInterface ts of
                      TestSuiteLibV09 _ mname ->
                          [mname]
+
                      _ ->
                          [])
                 (case testInterface ts of
                      TestSuiteExeV10 _ path ->
                          [path]
+
                      _ ->
                          [])
 
@@ -103,6 +106,7 @@ packageStanzas pd =
             case benchmarkInterface bn of
                 BenchmarkExeV10 _ path ->
                     [path]
+
                 _ ->
                     []
     in
@@ -123,8 +127,10 @@ findCabalFiles dir rel = do
     case cabalnames of
         []
             | dir == "/" -> return Nothing
+
         [] ->
             findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
+
         _ ->
             return $ Just (fmap (\n -> dir </> n) cabalnames, rel)
 
@@ -140,6 +146,7 @@ getGenericPackageDescription cabalPath = do
     case parsePackageDescription cabaltext of
         ParseOk _ gpd ->
             return $ Just gpd
+
         _ ->
             return Nothing
 #endif
@@ -157,16 +164,21 @@ getCabalStanza srcpath = do
                     case genericPackageDescription of
                         Nothing ->
                             return []
+
                         Just gpd -> do
                             return $
                                 packageStanzas $ flattenPackageDescription gpd
             return $
-                case filter (\stanza -> stanzaIsSourceFilePath stanza relpath) $
-                     mconcat stanzass of
+                case
+                    filter (\stanza -> stanzaIsSourceFilePath stanza relpath) $
+                    mconcat stanzass
+                of
                     [] ->
                         Nothing
+
                     (stanza:_) ->
                         Just stanza -- just pick the first one
+
         Nothing ->
             return Nothing
 
@@ -179,6 +191,7 @@ getCabalExtensions srcpath = do
         case mstanza of
             Nothing ->
                 (Haskell98, [])
+
             Just (MkStanza bi _) -> do
                 (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
@@ -193,6 +206,7 @@ convertKnownExtension ext =
     case readEither $ show ext of
         Left _ ->
             Nothing
+
         Right hext ->
             Just hext
 

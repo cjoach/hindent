@@ -87,6 +87,7 @@ reformat config mexts mfilepath =
                     case exts of
                         Nothing ->
                             mode'
+
                         Just (Nothing, exts') ->
                             mode'
                                 { extensions =
@@ -94,6 +95,7 @@ reformat config mexts mfilepath =
                                       configExtensions config ++
                                       extensions mode'
                                 }
+
                         Just (Just lang, exts') ->
                             mode'
                                 { baseLanguage = lang
@@ -109,6 +111,7 @@ reformat config mexts mfilepath =
                         (S.lazyByteString .
                          addPrefix prefix . S.toLazyByteString)
                         (prettyPrint config m comments)
+
                 ParseFailed loc e ->
                     Left
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
@@ -152,12 +155,14 @@ reformat config mexts mfilepath =
             case S8.uncons txt of
                 Nothing ->
                     ""
+
                 Just ('>', txt') ->
                     if not bracketUsed then
                         S8.cons '>' (takePrefix True txt')
 
                     else
                         ""
+
                 Just (c, txt') ->
                     if c == ' ' || c == '\t' then
                         S8.cons c (takePrefix bracketUsed txt')
@@ -191,6 +196,7 @@ reformat config mexts mfilepath =
                     case mexts of
                         Just exts ->
                             parseMode {extensions = exts}
+
                         Nothing ->
                             parseMode
             in
@@ -306,6 +312,7 @@ testAst x =
                              comments
                  in
                  ast)
+
         ParseFailed _ e ->
             Left e
 
@@ -386,6 +393,7 @@ traverseInOrder cmp f ast = do
                       case lookup i results of
                           Nothing ->
                               error "traverseInOrder"
+
                           Just x ->
                               return x))
              ast)

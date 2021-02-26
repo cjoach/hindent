@@ -91,10 +91,12 @@ readExtension :: (Monad m, MonadFail m) => String -> m Extension
 readExtension :: Monad m => String -> m Extension
 #endif
 readExtension x =
-    case classifyExtension x -- Foo
-          of
+    case
+        classifyExtension x -- Foo
+    of
         UnknownExtension _ ->
             fail ("Unknown extension: " ++ x)
+
         x' ->
             return x'
 

@@ -40,6 +40,7 @@ findPathUp pathType dir p upperBound = do
     case find p (pathType entries) of
         Just path ->
             return (Just path)
+
         Nothing
             | Just dir == upperBound -> return Nothing
             | parent dir == dir -> return Nothing
