@@ -2978,8 +2978,11 @@ infixApp wholeExpression a op b =
             space
             pretty b
 
-        vertical =
-            verticalInfixApplication a op b
+        verticalBefore =
+            verticalInfixApplicationBefore a op b
+
+        verticalAfter =
+            verticalInfixApplicationAfter a op b
 
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
@@ -2994,21 +2997,21 @@ infixApp wholeExpression a op b =
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
         if isBreakFromFile then
-            vertical
+            verticalBefore
 
         else if isBreakBeforeFromConfig then
-            vertical
+            verticalBefore
 
         else if isBreakAfterFromConfig then
-            vertical
+            verticalAfter
 
         else
-            ifFitsOnOneLineOrElse horizontal vertical
+            ifFitsOnOneLineOrElse horizontal verticalBefore
 
 
-verticalInfixApplication ::
+verticalInfixApplicationBefore ::
        Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
-verticalInfixApplication a op b =
+verticalInfixApplicationBefore a op b =
     case b of
         Do _ _ -> do
             pretty a
@@ -3024,6 +3027,25 @@ verticalInfixApplication a op b =
                 pretty op
                 space
                 pretty b
+
+
+verticalInfixApplicationAfter ::
+       Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
+verticalInfixApplicationAfter a op b =
+    case b of
+        Do _ _ -> do
+            pretty a
+            space
+            pretty op
+            space
+            pretty b
+
+        _ -> do
+            pretty a
+            space
+            pretty op
+            newline
+            indentedBlock (pretty b)
 
 
 -- | A link in a chain of operator applications.
