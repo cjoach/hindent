@@ -2597,7 +2597,7 @@ typ (TyInfix _ a promotedop b)
 
                 UnpromotedName _ op' ->
                     prettyInfixOp op'
-    linebreak <- isLineBreak symbolName
+    linebreak <- isLineBreakBefore symbolName
     if linebreak then do
         pretty a
         newline
@@ -2884,14 +2884,24 @@ getSymbolNameOp symbol =
 
 
 -- Predicates
--- | If the given operator is an element of line breaks in configuration.
-isLineBreak :: QName NodeInfo -> Printer Bool
-isLineBreak (UnQual _ (Symbol _ s)) = do
-    breaks <- gets (configLineBreaks . psConfig)
+-- | If the given operator is an element of line breaks before in configuration.
+isLineBreakBefore :: QName NodeInfo -> Printer Bool
+isLineBreakBefore (UnQual _ (Symbol _ s)) = do
+    breaks <- gets (configLineBreaksBefore . psConfig)
     let isInConfig =
             elem s breaks
     return isInConfig
-isLineBreak _ =
+isLineBreakBefore _ =
+    return False
+
+-- | If the given operator is an element of line breaks after in configuration.
+isLineBreakAfter :: QName NodeInfo -> Printer Bool
+isLineBreakAfter (UnQual _ (Symbol _ s)) = do
+    breaks <- gets (configLineBreaksAfter . psConfig)
+    let isInConfig =
+            elem s breaks
+    return isInConfig
+isLineBreakAfter _ =
     return False
 
 
@@ -2977,10 +2987,14 @@ infixApp wholeExpression a op b =
     in do
         let symbolName =
                 getSymbolNameOp op
-        isBreakFromConfig <- isLineBreak symbolName
-        let isBreakForced =
-                isBreakFromFile || isBreakFromConfig
-        if isBreakForced then
+        isBreakBeforeFromConfig <- isLineBreakBefore symbolName
+        isBreakAfterFromConfig <- isLineBreakAfter symbolName
+        if isBreakFromFile then
+            vertical
+        else if isBreakBeforeFromConfig then
+            vertical
+
+        else if isBreakAfterFromConfig then
             vertical
 
         else

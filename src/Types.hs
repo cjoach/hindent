@@ -80,7 +80,8 @@ data Config =
         , configIndentSpaces :: !Int64 -- ^ How many spaces to indent?
         , configTrailingNewline :: !Bool -- ^ End with a newline.
         , configSortImports :: !Bool -- ^ Sort imports in groups.
-        , configLineBreaks :: [String] -- ^ Break line when meets these operators.
+        , configLineBreaksBefore :: [String] -- ^ Break line when meets these operators.
+        , configLineBreaksAfter :: [String] -- ^ Break line when meets these operators.
         , configExtensions :: [Extension]
       -- ^ Extra language extensions enabled by default.
         }
@@ -117,8 +118,11 @@ instance FromJSON Config where
                 (fromMaybe (configSortImports defaultConfig))
                 (v Y..:? "sort-imports")
             <*> fmap
-                (fromMaybe (configLineBreaks defaultConfig))
-                (v Y..:? "line-breaks")
+                (fromMaybe (configLineBreaksBefore defaultConfig))
+                (v Y..:? "line-breaks-before")
+            <*> fmap
+                (fromMaybe (configLineBreaksAfter defaultConfig))
+                (v Y..:? "line-breaks-after")
             <*> (traverse readExtension
                      =<< fmap (fromMaybe []) (v Y..:? "extensions"))
     parseJSON _ =
@@ -133,7 +137,8 @@ defaultConfig =
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True
-        , configLineBreaks = ["|>"]
+        , configLineBreaksBefore = ["|>"]
+        , configLineBreaksAfter = ["<|"]
         , configExtensions = []
         }
 
