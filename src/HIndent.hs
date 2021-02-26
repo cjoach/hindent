@@ -206,22 +206,21 @@ reformat config mexts mfilepath =
             if S8.null x || S8.all isSpace x then
                 return mempty
 
+            else if hasTrailingLine x || configTrailingNewline config then
+                fmap
+                    (\x' ->
+                         if
+                             hasTrailingLine
+                                 (L.toStrict (S.toLazyByteString x'))
+                         then
+                             x'
+
+                         else
+                             x' <> "\n")
+                    (f x)
+
             else
-                if hasTrailingLine x || configTrailingNewline config then
-                    fmap
-                        (\x' ->
-                             if
-                                 hasTrailingLine
-                                     (L.toStrict (S.toLazyByteString x'))
-                             then
-                                 x'
-
-                             else
-                                 x' <> "\n")
-                        (f x)
-
-                else
-                    f x
+                f x
 
 
 -- | Does the strict bytestring have a trailing newline?

@@ -746,12 +746,9 @@ exp (If _ if' then' else') =
 
         printExpression expression =
             case expression of
-                Do _ stmts -> do
-                    potentialDo expression
-                    newline
-                    indentedBlock
-                        <| lined
-                            <| map pretty stmts
+                Do _ _ -> do
+                    space
+                    pretty expression
 
                 If _ _ _ _ -> do
                     space
@@ -2999,16 +2996,14 @@ infixApp wholeExpression a op b =
         if isBreakFromFile then
             vertical
 
+        else if isBreakBeforeFromConfig then
+            vertical
+
+        else if isBreakAfterFromConfig then
+            vertical
+
         else
-            if isBreakBeforeFromConfig then
-                vertical
-
-            else
-                if isBreakAfterFromConfig then
-                    vertical
-
-                else
-                    ifFitsOnOneLineOrElse horizontal vertical
+            ifFitsOnOneLineOrElse horizontal vertical
 
 
 verticalInfixApplication ::
