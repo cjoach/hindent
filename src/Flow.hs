@@ -3,7 +3,9 @@ module Flow
     , (<|)
     ) where
 
+
 import Data.Function ((&))
+
 
 infixl 0 |>
 

@@ -7,10 +7,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
+
 -- | Pretty printing.
 module Pretty
     ( pretty
     ) where
+
 
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
@@ -26,6 +28,7 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+
 
 --------------------------------------------------------------------------------
 -- * Pretty printing class
@@ -182,6 +185,12 @@ newline :: Printer ()
 newline = do
     write "\n"
     modify (\s -> s {psNewline = True})
+
+twoEmptyLines :: Printer ()
+twoEmptyLines = do
+    newline
+    newline
+    newline
 
 -- | Set the context to a case context, where RHS is printed with -> .
 withCaseContext :: Bool -> Printer a -> Printer a
@@ -1516,8 +1525,7 @@ instance Pretty Module where
         case x of
             Module _ mayModHead pragmas imps decls -> do
                 inter
-                    (do newline
-                        newline)
+                    twoEmptyLines
                     (mapMaybe
                          (\(isNull, r) ->
                               if isNull

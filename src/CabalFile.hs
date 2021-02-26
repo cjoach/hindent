@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
 
+
 module CabalFile
     ( getCabalExtensionsForSourcePath
     ) where
+
 
 import Control.Monad
 import qualified Data.ByteString as BS
@@ -22,6 +24,7 @@ import qualified Language.Haskell.Exts.Extension as HSE
 import System.Directory
 import System.FilePath
 import Text.Read
+
 
 data Stanza =
     MkStanza

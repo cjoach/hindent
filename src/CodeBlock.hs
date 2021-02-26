@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+
 module CodeBlock
     ( CodeBlock(..)
     , cppSplitBlocks
     ) where
 
+
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
+
 
 -- | A block of code.
 data CodeBlock

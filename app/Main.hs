@@ -1,11 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+
 -- | Main entry point to hindent.
 --
 -- hindent
 module Main
     ( main
     ) where
+
 
 import CabalFile
 import Control.Applicative
@@ -33,6 +35,7 @@ import Types
 
 -- import           Data.Monoid ((<>))
 import qualified Data.Text as T
+
 
 data Action
     = Validate

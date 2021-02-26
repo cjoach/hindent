@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, PatternGuards
   #-}
 
+
 -- | Haskell indenter.
 module HIndent
    -- * Formatting functions.
@@ -17,6 +18,7 @@ module HIndent
     , defaultExtensions
     , getExtensions
     ) where
+
 
 import CodeBlock
 import Control.Monad.State.Strict
@@ -48,6 +50,7 @@ import Language.Haskell.Exts hiding (Pretty, Style, parse, prettyPrint, style)
 import Prelude
 import Pretty
 import Types
+
 
 -- | Format the given source.
 reformat ::
