@@ -203,7 +203,10 @@ prefixedLined_ pref ps' =
             mapM_
                 (\p' -> do
                      newline
-                     depend (write pref) p')
+                     write pref
+                     p'
+                     -- depend (write pref) p'
+                )
                 ps
 
 
@@ -541,9 +544,11 @@ instance Pretty Pat where
                                     braces $ pretty field
 
                                 _ -> do
-                                    depend (write "{")
-                                        $ prefixedLined ","
-                                            $ map (depend space . pretty) fields
+                                    write "{"
+                                    space
+                                    fields
+                                        |> map pretty
+                                        |> prefixedLined_ ", "
                                     newline
                                     write "}"
                 horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -1708,8 +1713,12 @@ instance Pretty GadtDecl where
                         return ()
 
                     fs -> do
-                        depend (write "{") $ do
-                            prefixedLined "," (map (depend space . pretty) fs)
+                        write "{"
+                        space
+                        fs
+                            |> map pretty
+                            |> prefixedLined_ ", "
+                        newline
                         write "}"
                         p
 
@@ -2839,13 +2848,14 @@ conDecl :: ConDecl NodeInfo -> Printer ()
 conDecl (RecDecl _ name fields) = do
     pretty name
     newline
-    indentedBlock
-        (do
-             depend
-                 (write "{")
-                 (prefixedLined "," (map (depend space . pretty) fields))
-             newline
-             write "}")
+    indentedBlock <| do
+        write "{"
+        space
+        fields
+            |> map pretty
+            |> prefixedLined_ ", "
+        newline
+        write "}"
 conDecl (ConDecl _ name bangty) = do
     prettyQuoteName name
     unless
