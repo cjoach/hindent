@@ -42,6 +42,7 @@ import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Traversable hiding (mapM)
+import Flow
 import qualified Language.Haskell.Exts as Exts
 import Language.Haskell.Exts hiding (Pretty, Style, parse, prettyPrint, style)
 import Prelude
@@ -221,24 +222,22 @@ prettyPrint config m comments =
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
 runPrinterStyle config m =
-    maybe
-        (error "Printer failed with mzero call.")
-        psOutput
-        (runIdentity
-             (runMaybeT
-                  (execStateT
-                       (runPrinter m)
-                       (PrintState
-                            { psIndentLevel = 0
-                            , psOutput = mempty
-                            , psNewline = False
-                            , psColumn = 0
-                            , psLine = 1
-                            , psConfig = config
-                            , psInsideCase = False
-                            , psFitOnOneLine = False
-                            , psEolComment = False
-                            }))))
+    let
+        printState =
+            PrintState
+                { psIndentLevel = 0
+                , psOutput = mempty
+                , psNewline = False
+                , psColumn = 0
+                , psLine = 1
+                , psConfig = config
+                , psInsideCase = False
+                , psFitOnOneLine = False
+                , psEolComment = False
+                }
+    in
+    printState |> execStateT (runPrinter m) |> runMaybeT |> runIdentity |>
+    maybe (error "Printer failed with mzero call.") psOutput
 
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
