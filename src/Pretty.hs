@@ -645,23 +645,26 @@ exp e@(InfixApp _ a op b) =
     infixApp e a op b Nothing
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') = do
-    depend (write "if ") (pretty if')
+    write "if "
+    pretty if'
+    space
+    branch "then" then'
     newline
-    indentedBlock <| do
-        branch "then " then'
-        newline
-        branch "else " else'
-     -- Special handling for do.
+    branch "else" else'
+    -- Special handling for do.
     where
         branch str e =
             case e of
                 Do _ stmts -> do
                     write str
+                    space
                     write "do"
                     newline
                     indentedBlock <| lined <| map pretty stmts
-                _ ->
-                    depend (write str) (pretty e)
+                _ -> do
+                    write str
+                    newline
+                    indentedBlock (pretty e)
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
 exp (App _ op arg) = do
