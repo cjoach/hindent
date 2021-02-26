@@ -502,20 +502,21 @@ instance Pretty Pat where
 
                     verVariant =
                         depend (pretty qname >> space)
-                            $  do
-                            case fields of
-                                [] ->
-                                    write "{}"
+                            $ do
+                                case fields of
+                                    [] ->
+                                        write "{}"
 
-                                [field] ->
-                                    braces $ pretty field
+                                    [field] ->
+                                        braces $ pretty field
 
-                                _ -> do
-                                    depend (write "{")
-                                        $ prefixedLined ","
-                                        $ map (depend space . pretty) fields
-                                    newline
-                                    write "}"
+                                    _ -> do
+                                        depend (write "{")
+                                            $ prefixedLined ","
+                                                $ map (depend space . pretty)
+                                                    fields
+                                        newline
+                                        write "}"
                 horVariant `ifFitsOnOneLineOrElse` verVariant
 
             PAsPat _ n p ->
@@ -687,8 +688,8 @@ exp (TupleSection _ boxed mexps) = do
         verVariant =
             parensVerB boxed
                 $ prefixedLined
-                ","
-                (map (maybe (return ()) (depend space . pretty)) mexps)
+                    ","
+                    (map (maybe (return ()) (depend space . pretty)) mexps)
     mst <- fitsOnOneLine horVariant
     case mst of
         Nothing ->
@@ -774,10 +775,10 @@ exp (App _ op arg) = do
             let diff =
                     col' - col
                         - if col == 0 then
-                        spaces
+                            spaces
 
-                    else
-                        0
+                        else
+                            0
             if diff + 1 <= spaces then
                 space
 
@@ -829,10 +830,10 @@ exp (Let _ binds e) = do
 exp (ListComp _ e qstmt) = do
     let horVariant =
             brackets
-                $  do
-                pretty e
-                write " | "
-                commas $ map pretty qstmt
+                $ do
+                    pretty e
+                    write " | "
+                    commas $ map pretty qstmt
 
         verVariant = do
             write "[ "
@@ -845,20 +846,20 @@ exp (ListComp _ e qstmt) = do
 exp (ParComp _ e qstmts) = do
     let horVariant =
             brackets
-                $  do
-                pretty e
-                for_ qstmts
-                    $  \qstmt -> do
-                    write " | "
-                    commas $ map pretty qstmt
+                $ do
+                    pretty e
+                    for_ qstmts
+                        $ \qstmt -> do
+                            write " | "
+                            commas $ map pretty qstmt
 
         verVariant = do
             depend (write "[ ") $ pretty e
             newline
             for_ qstmts
-                $  \qstmt -> do
-                depend (write "| ") $ prefixedLined ", " $ map pretty qstmt
-                newline
+                $ \qstmt -> do
+                    depend (write "| ") $ prefixedLined ", " $ map pretty qstmt
+                    newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
 exp (TypeApp _ t) = do
@@ -888,10 +889,10 @@ exp (Paren _ e) =
 exp (Case _ e alts) = do
     msg <-
         fitsOnOneLine
-            <|  do
-            write "case "
-            pretty e
-            write " of"
+            <| do
+                write "case "
+                pretty e
+                write " of"
     case msg of
         Just st ->
             put st
@@ -900,10 +901,10 @@ exp (Case _ e alts) = do
             write "case"
             newline
             indentedBlock
-                <|  do
-                (pretty e)
-                newline
-                write "of"
+                <| do
+                    (pretty e)
+                    newline
+                    write "of"
     if null alts then
         write " {}"
 
@@ -1181,22 +1182,22 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
     pretty declhead
     for_ result
-        $  \r -> do
-        space
-        let sep =
-                case r of
-                    KindSig _ _ ->
-                        "::"
+        $ \r -> do
+            space
+            let sep =
+                    case r of
+                        KindSig _ _ ->
+                            "::"
 
-                    TyVarSig _ _ ->
-                        "="
-        write sep
-        space
-        pretty r
+                        TyVarSig _ _ ->
+                            "="
+            write sep
+            space
+            pretty r
     for_ injectivity
-        $  \i -> do
-        space
-        pretty i
+        $ \i -> do
+            space
+            pretty i
     space
     write "where"
     newline
@@ -1255,15 +1256,15 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
                           pretty kind
                   write " where"))
     indentedBlock
-        $  do
-        case condecls of
-            [] ->
-                return ()
+        $ do
+            case condecls of
+                [] ->
+                    return ()
 
-            _ -> do
-                newline
-                lined (map pretty condecls)
-        forM_ mderivs $ \deriv -> newline >> pretty deriv
+                _ -> do
+                    newline
+                    lined (map pretty condecls)
+            forM_ mderivs $ \deriv -> newline >> pretty deriv
 decl (InlineSig _ inline active name) = do
     write "{-# "
     unless inline $ write "NO"
@@ -1281,7 +1282,8 @@ decl (InlineSig _ inline active name) = do
     write " #-}"
 decl (MinimalPragma _ (Just formula)) =
     wrap "{-# " " #-}"
-        $  do depend (write "MINIMAL ") $ pretty formula
+        $ do
+            depend (write "MINIMAL ") $ pretty formula
 decl (ForImp _ callconv maybeSafety maybeName name ty) = do
     string "foreign import "
     pretty' callconv >> space
@@ -1300,9 +1302,9 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
     pretty' name
     tyline <-
         fitsOnOneLine
-            $  do
-            string " :: "
-            pretty' ty
+            $ do
+                string " :: "
+                pretty' ty
     case tyline of
         Just line ->
             put line
@@ -1310,9 +1312,9 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
         Nothing -> do
             newline
             indentedBlock
-                $  do
-                string ":: "
-                pretty' ty
+                $ do
+                    string ":: "
+                    pretty' ty
 decl (ForExp _ callconv maybeName name ty) = do
     string "foreign export "
     pretty' callconv >> space
@@ -1325,9 +1327,9 @@ decl (ForExp _ callconv maybeName name ty) = do
     pretty' name
     tyline <-
         fitsOnOneLine
-            $  do
-            string " :: "
-            pretty' ty
+            $ do
+                string " :: "
+                pretty' ty
     case tyline of
         Just line ->
             put line
@@ -1335,9 +1337,9 @@ decl (ForExp _ callconv maybeName name ty) = do
         Nothing -> do
             newline
             indentedBlock
-                $  do
-                string ":: "
-                pretty' ty
+                $ do
+                    string ":: "
+                    pretty' ty
 decl x' =
     pretty' x'
 
@@ -1356,25 +1358,27 @@ classHead ctx dhead fundeps decls =
                 (write "class ")
                 (withCtx ctx
                      $ depend
-                     (pretty dhead)
-                     (depend
-                          (unless
-                               (null fundeps)
-                               (write " | " >> commas (map pretty fundeps)))
-                          (unless (null (fromMaybe [] decls)) (write " where"))))
+                         (pretty dhead)
+                         (depend
+                              (unless
+                                   (null fundeps)
+                                   (write " | " >> commas (map pretty fundeps)))
+                              (unless
+                                   (null (fromMaybe [] decls))
+                                   (write " where"))))
 
         longHead = do
             depend (write "class ") (withCtx ctx $ pretty dhead)
             newline
             indentedBlock
-                $  do
-                unless (null fundeps)
-                    $  do
-                    depend
-                        (write "| ")
-                        (prefixedLined ", " $ map pretty fundeps)
-                    newline
-                unless (null (fromMaybe [] decls)) (write "where")
+                $ do
+                    unless (null fundeps)
+                        $ do
+                            depend
+                                (write "| ")
+                                (prefixedLined ", " $ map pretty fundeps)
+                            newline
+                    unless (null (fromMaybe [] decls)) (write "where")
 
 
 instance Pretty TypeEqn where
@@ -1387,20 +1391,21 @@ instance Pretty TypeEqn where
 instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
         depend (write "deriving" >> space >> writeStrategy)
-            $  do
-            let heads' =
-                    if length heads == 1 then
-                        map stripParens heads
+            $ do
+                let heads' =
+                        if length heads == 1 then
+                            map stripParens heads
 
-                    else
-                        heads
-            maybeDerives <- fitsOnOneLine $ parens (commas (map pretty heads'))
-            case maybeDerives of
-                Nothing ->
-                    formatMultiLine heads'
+                        else
+                            heads
+                maybeDerives <-
+                    fitsOnOneLine $ parens (commas (map pretty heads'))
+                case maybeDerives of
+                    Nothing ->
+                        formatMultiLine heads'
 
-                Just derives ->
-                    put derives
+                    Just derives ->
+                        put derives
         where
             writeStrategy =
                 case strategy of
@@ -1677,28 +1682,30 @@ instance Pretty GadtDecl where
 
                     fs -> do
                         depend (write "{")
-                            $  do
-                            prefixedLined "," (map (depend space . pretty) fs)
+                            $ do
+                                prefixedLined
+                                    ","
+                                    (map (depend space . pretty) fs)
                         write "}"
                         p
 
             horVar =
                 depend (pretty name >> write " :: ")
-                    $  do
-                    fields' (write " -> ")
-                    declTy t
+                    $ do
+                        fields' (write " -> ")
+                        declTy t
 
             verVar = do
                 pretty name
                 newline
                 indentedBlock
                     $ depend (write ":: ")
-                    $  do
-                    fields'
-                        $  do
-                        newline
-                        indented (-3) (write "-> ")
-                    declTy t
+                        $ do
+                            fields'
+                                $ do
+                                    newline
+                                    indented (-3) (write "-> ")
+                            declTy t
 
 
 instance Pretty Rhs where
@@ -1894,7 +1901,7 @@ formatImports :: [ImportDecl NodeInfo] -> Printer ()
 formatImports =
     sequence_
         . intersperse oneEmptyLine
-        . map formatImportGroup . groupAdjacentBy atNextLine
+            . map formatImportGroup . groupAdjacentBy atNextLine
     where
         atNextLine import1 import2 =
             let
@@ -2737,10 +2744,10 @@ decl' (TypeSig _ names ty') = do
             fromIntegral $ sum (map nameLength names) + 2 * (length names - 1)
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False
-        $  do
-        pretty pat
-        pretty rhs'
-        for_ mbinds bindingGroup
+        $ do
+            pretty pat
+            pretty rhs'
+            for_ mbinds bindingGroup
 -- | Handle records specially for a prettier display (see guide).
 decl' e =
     decl e
@@ -2870,10 +2877,10 @@ conDecl (InfixConDecl _ a f b) =
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
 recUpdateExpr expWriter updates = do
     ifFitsOnOneLineOrElse hor
-        $  do
-        expWriter
-        newline
-        indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
+        $ do
+            expWriter
+            newline
+            indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
     where
         hor = do
             expWriter
@@ -2949,10 +2956,10 @@ bindingGroup :: Binds NodeInfo -> Printer ()
 bindingGroup binds = do
     newline
     indentedBlock
-        <|  do
-        write "where"
-        newline
-        indentedBlock (pretty binds)
+        <| do
+            write "where"
+            newline
+            indentedBlock (pretty binds)
 
 
 infixApp ::
@@ -2997,10 +3004,11 @@ verticalInfixApplication ::
 verticalInfixApplication a op b = do
     pretty a
     newline
-    indentedBlock <| do
-        pretty op
-        space
-        pretty b
+    indentedBlock
+        <| do
+            pretty op
+            space
+            pretty b
     -- let
     --     operator =
     --         case a of
@@ -3010,26 +3018,20 @@ verticalInfixApplication a op b = do
     --                     (indentSpaces + 3)
     --                     (newline >> pretty op) -- 3 = "do "
     --                 space
-
     --             _ -> do
     --                 newline
     --                 indentedBlock
     --                     <|  do
     --                     pretty op
     --                     space
-
     --     -- afterOperator =
     --     --     -- case b of
     --     --     --     Lambda {} ->
     --     --     --         space >> pretty b
-
     --     --     --     LCase {} ->
     --     --     --         space >> pretty b
-
     --     --     --     Do _ stmts ->
-                    
     --     --     --         swing (write " do") $ lined (map pretty stmts)
-
     --     --         _ -> do pretty b
     -- in
     -- do

@@ -105,20 +105,20 @@ instance FromJSON Config where
     parseJSON (Y.Object v) =
         Config
             <$> fmap
-            (fromMaybe (configMaxColumns defaultConfig))
-            (v Y..:? "line-length")
+                (fromMaybe (configMaxColumns defaultConfig))
+                (v Y..:? "line-length")
             <*> fmap
-            (fromMaybe (configIndentSpaces defaultConfig))
-            (v Y..:? "indent-size" <|> v Y..:? "tab-size")
+                (fromMaybe (configIndentSpaces defaultConfig))
+                (v Y..:? "indent-size" <|> v Y..:? "tab-size")
             <*> fmap
-            (fromMaybe (configTrailingNewline defaultConfig))
-            (v Y..:? "force-trailing-newline")
+                (fromMaybe (configTrailingNewline defaultConfig))
+                (v Y..:? "force-trailing-newline")
             <*> fmap
-            (fromMaybe (configSortImports defaultConfig))
-            (v Y..:? "sort-imports")
+                (fromMaybe (configSortImports defaultConfig))
+                (v Y..:? "sort-imports")
             <*> fmap
-            (fromMaybe (configLineBreaks defaultConfig))
-            (v Y..:? "line-breaks")
+                (fromMaybe (configLineBreaks defaultConfig))
+                (v Y..:? "line-breaks")
             <*> (traverse readExtension
                      =<< fmap (fromMaybe []) (v Y..:? "extensions"))
     parseJSON _ =

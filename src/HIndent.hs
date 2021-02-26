@@ -93,7 +93,7 @@ reformat config mexts mfilepath =
                                 { extensions =
                                       exts'
                                           ++ configExtensions config
-                                          ++ extensions mode'
+                                              ++ extensions mode'
                                 }
 
                         Just (Just lang, exts') ->
@@ -102,7 +102,7 @@ reformat config mexts mfilepath =
                                 , extensions =
                                       exts'
                                           ++ configExtensions config
-                                          ++ extensions mode'
+                                              ++ extensions mode'
                                 }
             in
             case parseModuleWithComments mode'' (UTF8.toString code) of
@@ -416,40 +416,41 @@ collectAllComments =
                        fst (srcSpanStart commentSpan)
                            >= fst (srcSpanEnd nodeSpan))))
         <=< shortCircuit addCommentsToTopLevelWhereClauses
-        <=< shortCircuit
-        (traverse
+            <=< shortCircuit
+                (traverse
      -- Collect forwards comments which start at the end line of a
      -- node: Does the start line of the comment match the end-line
      -- of the node?
-             (collectCommentsBy
-                  CommentSameLine
-                  (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan)
-                           == fst (srcSpanEnd nodeSpan))))
-        <=< shortCircuit
-        (traverseBackwards
+                  (collectCommentsBy
+                       CommentSameLine
+                       (\nodeSpan commentSpan ->
+                            fst (srcSpanStart commentSpan)
+                                == fst (srcSpanEnd nodeSpan))))
+                <=< shortCircuit
+                    (traverseBackwards
      -- Collect backwards comments which are on the same line as a
      -- node: Does the start line & end line of the comment match
      -- that of the node?
-             (collectCommentsBy
-                  CommentSameLine
-                  (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan)
-                           == fst (srcSpanStart nodeSpan)
-                           && fst (srcSpanStart commentSpan)
-                           == fst (srcSpanEnd nodeSpan))))
-        <=< shortCircuit
-        (traverse
+                         (collectCommentsBy
+                              CommentSameLine
+                              (\nodeSpan commentSpan ->
+                                   fst (srcSpanStart commentSpan)
+                                       == fst (srcSpanStart nodeSpan)
+                                       && fst (srcSpanStart commentSpan)
+                                           == fst (srcSpanEnd nodeSpan))))
+                    <=< shortCircuit
+                        (traverse
      -- First, collect forwards comments for declarations which both
      -- start on column 1 and occur before the declaration.
-             (collectCommentsBy
-                  CommentBeforeLine
-                  (\nodeSpan commentSpan ->
-                       (snd (srcSpanStart nodeSpan) == 1
-                            && snd (srcSpanStart commentSpan) == 1)
-                           && fst (srcSpanStart commentSpan)
-                           < fst (srcSpanStart nodeSpan))))
-        . fmap nodify
+                             (collectCommentsBy
+                                  CommentBeforeLine
+                                  (\nodeSpan commentSpan ->
+                                       (snd (srcSpanStart nodeSpan) == 1
+                                            && snd (srcSpanStart commentSpan)
+                                                == 1)
+                                           && fst (srcSpanStart commentSpan)
+                                               < fst (srcSpanStart nodeSpan))))
+                        . fmap nodify
     where
         nodify s =
             NodeInfo s mempty
@@ -519,10 +520,10 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
             return
                 $ PatBind
-                bindInfoWithComments
-                (PVar x (Ident declNodeInfo declString))
-                x'
-                x''
+                    bindInfoWithComments
+                    (PVar x (Ident declNodeInfo declString))
+                    x'
+                    x''
         addCommentsToPatBind other =
             return other
 
@@ -541,14 +542,14 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
             fst
                 $ foldr'
-                (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
-                     if comment `isAbove` lastSpan then
-                         ((ls, comment : rs), commentSpan)
+                    (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
+                         if comment `isAbove` lastSpan then
+                             ((ls, comment : rs), commentSpan)
 
-                     else
-                         ((comment : ls, rs), lastSpan))
-                (([], []), nodeSpan)
-                cs
+                         else
+                             ((comment : ls, rs), lastSpan))
+                    (([], []), nodeSpan)
+                    cs
 
         isAbove :: Comment -> SrcSpan -> Bool
 

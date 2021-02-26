@@ -51,21 +51,21 @@ toRelative parent child =
 mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
 mkStanza bi mnames fpaths =
     MkStanza bi
-        $  \path ->
-        let
-            modpaths =
-                fmap toFilePath $ otherModules bi ++ mnames
+        $ \path ->
+            let
+                modpaths =
+                    fmap toFilePath $ otherModules bi ++ mnames
 
-            inDir dir =
-                case toRelative dir path of
-                    Nothing ->
-                        False
+                inDir dir =
+                    case toRelative dir path of
+                        Nothing ->
+                            False
 
-                    Just relpath ->
-                        any (equalFilePath $ dropExtension relpath) modpaths
-                            || any (equalFilePath relpath) fpaths
-        in
-        any inDir $ hsSourceDirs bi
+                        Just relpath ->
+                            any (equalFilePath $ dropExtension relpath) modpaths
+                                || any (equalFilePath relpath) fpaths
+            in
+            any inDir $ hsSourceDirs bi
 
 
 -- | Extract `Stanza`s from a package
@@ -105,11 +105,11 @@ packageStanzas pd =
         benchStanza bn =
             mkStanza (benchmarkBuildInfo bn) []
                 $ case benchmarkInterface bn of
-                BenchmarkExeV10 _ path ->
-                    [path]
+                    BenchmarkExeV10 _ path ->
+                        [path]
 
-                _ ->
-                    []
+                    _ ->
+                        []
     in
     mconcat
         [ maybeToList $ fmap libStanza $ library pd
@@ -160,26 +160,27 @@ getCabalStanza srcpath = do
         Just (cabalpaths, relpath) -> do
             stanzass <-
                 for cabalpaths
-                    $  \cabalpath -> do
-                    genericPackageDescription <-
-                        getGenericPackageDescription cabalpath
-                    case genericPackageDescription of
-                        Nothing ->
-                            return []
+                    $ \cabalpath -> do
+                        genericPackageDescription <-
+                            getGenericPackageDescription cabalpath
+                        case genericPackageDescription of
+                            Nothing ->
+                                return []
 
-                        Just gpd -> do
-                            return
-                                $ packageStanzas $ flattenPackageDescription gpd
+                            Just gpd -> do
+                                return
+                                    $ packageStanzas
+                                        $ flattenPackageDescription gpd
             return
                 $ case
-                filter (\stanza -> stanzaIsSourceFilePath stanza relpath)
-                    $ mconcat stanzass
-                of
-                [] ->
-                    Nothing
+                    filter (\stanza -> stanzaIsSourceFilePath stanza relpath)
+                        $ mconcat stanzass
+                    of
+                    [] ->
+                        Nothing
 
-                (stanza:_) ->
-                    Just stanza -- just pick the first one
+                    (stanza:_) ->
+                        Just stanza -- just pick the first one
 
         Nothing ->
             return Nothing
@@ -191,11 +192,11 @@ getCabalExtensions srcpath = do
     mstanza <- getCabalStanza srcpath
     return
         $ case mstanza of
-        Nothing ->
-            (Haskell98, [])
+            Nothing ->
+                (Haskell98, [])
 
-        Just (MkStanza bi _) -> do
-            (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
+            Just (MkStanza bi _) -> do
+                (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
 
 convertLanguage :: Language -> HSE.Language
@@ -228,5 +229,5 @@ getCabalExtensionsForSourcePath srcpath = do
     (lang, exts) <- getCabalExtensions srcpath
     return
         $ fmap HSE.EnableExtension
-        $ HSE.toExtensionList (convertLanguage lang)
-        $ mapMaybe convertExtension exts
+            $ HSE.toExtensionList (convertLanguage lang)
+                $ mapMaybe convertExtension exts
