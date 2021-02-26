@@ -263,7 +263,10 @@ runPrinterStyle config m =
                 , psEolComment = False
                 }
     in
-    printState |> execStateT (runPrinter m) |> runMaybeT |> runIdentity
+    printState
+        |> execStateT (runPrinter m)
+        |> runMaybeT
+        |> runIdentity
         |> maybe (error "Printer failed with mzero call.") psOutput
 
 

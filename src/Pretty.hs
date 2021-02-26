@@ -22,7 +22,6 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Debug.Trace (trace)
 import Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
@@ -159,13 +158,17 @@ inter sep ps =
 -- | Print all the printers separated by newlines.
 lined :: [Printer ()] -> Printer ()
 lined ps =
-    ps |> intersperse newline |> sequence_
+    ps
+        |> intersperse newline
+        |> sequence_
 
 
 -- | Print all the printers separated by newlines.
 doubleLined :: [Printer ()] -> Printer ()
 doubleLined ps =
-    ps |> intersperse (newline >> newline) |> sequence_
+    ps
+        |> intersperse (newline >> newline)
+        |> sequence_
 
 
 -- | Print all the printers separated newlines and optionally a line
@@ -2888,6 +2891,8 @@ isLineBreak (UnQual _ (Symbol _ s)) = do
     let isInConfig =
             elem s breaks
     return isInConfig
+isLineBreak _ =
+    return False
 
 
 -- | Does printing the given thing overflow column limit? (e.g. 80)
@@ -2958,20 +2963,11 @@ infixApp wholeExpression a op b =
             pretty op
             space
             pretty b
-            -- spaced
-            --     [ case link of
-            --         OpChainExp e' ->
-            --             pretty e'
-
-            --         OpChainLink qop ->
-            --             pretty qop
-            --     | link <- flattenOpChain wholeExpression
-            --     ]
 
         vertical =
             verticalInfixApplication a op b
 
-        isBreakForced =
+        isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
         srcSpan =
@@ -2979,15 +2975,12 @@ infixApp wholeExpression a op b =
                 |> nodeInfoSpan
                 |> srcInfoSpan
     in do
-        let isVertical =
-                isBreakForced
-
-            symbolName =
+        let symbolName =
                 getSymbolNameOp op
-
-            _ =
-                trace ("PROUT: " ++ show symbolName)
-        if isVertical then
+        isBreakFromConfig <- isLineBreak symbolName
+        let isBreakForced =
+                isBreakFromFile || isBreakFromConfig
+        if isBreakForced then
             vertical
 
         else
@@ -3019,15 +3012,6 @@ data OpChainLink l
     = OpChainExp (Exp l)
     | OpChainLink (QOp l)
     deriving (Show)
-
-
--- | Flatten a tree of InfixApp expressions into a chain of operator
--- links.
-flattenOpChain :: Exp l -> [OpChainLink l]
-flattenOpChain (InfixApp _ left op right) =
-    flattenOpChain left <> [OpChainLink op] <> flattenOpChain right
-flattenOpChain e =
-    [OpChainExp e]
 
 
 -- | Write a Template Haskell quotation or a quasi-quotation.
