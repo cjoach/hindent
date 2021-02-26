@@ -2994,42 +2994,48 @@ infixApp wholeExpression a op b =
 
 verticalInfixApplication ::
        Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
-verticalInfixApplication a op b =
-    let
-        operator =
-            case a of
-                Do _ _ -> do
-                    indentSpaces <- getIndentSpaces
-                    column
-                        (indentSpaces + 3)
-                        (newline >> pretty op) -- 3 = "do "
-                    space
-
-                _ -> do
-                    newline
-                    indentedBlock
-                        <|  do
-                        pretty op
-                        space
-
-        -- afterOperator =
-        --     -- case b of
-        --     --     Lambda {} ->
-        --     --         space >> pretty b
-
-        --     --     LCase {} ->
-        --     --         space >> pretty b
-
-        --     --     Do _ stmts ->
-                    
-        --     --         swing (write " do") $ lined (map pretty stmts)
-
-        --         _ -> do pretty b
-    in
-    do
-        pretty a
-        operator
+verticalInfixApplication a op b = do
+    pretty a
+    newline
+    indentedBlock <| do
+        pretty op
+        space
         pretty b
+    -- let
+    --     operator =
+    --         case a of
+    --             Do _ _ -> do
+    --                 indentSpaces <- getIndentSpaces
+    --                 column
+    --                     (indentSpaces + 3)
+    --                     (newline >> pretty op) -- 3 = "do "
+    --                 space
+
+    --             _ -> do
+    --                 newline
+    --                 indentedBlock
+    --                     <|  do
+    --                     pretty op
+    --                     space
+
+    --     -- afterOperator =
+    --     --     -- case b of
+    --     --     --     Lambda {} ->
+    --     --     --         space >> pretty b
+
+    --     --     --     LCase {} ->
+    --     --     --         space >> pretty b
+
+    --     --     --     Do _ stmts ->
+                    
+    --     --     --         swing (write " do") $ lined (map pretty stmts)
+
+    --     --         _ -> do pretty b
+    -- in
+    -- do
+    --     pretty a
+    --     operator
+    --     pretty b
 
 
 -- | A link in a chain of operator applications.
