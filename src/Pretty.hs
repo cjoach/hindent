@@ -2419,7 +2419,7 @@ stmt x =
             pretty e
 
         LetStmt _ binds ->
-            depend (write "let ") (pretty binds)
+            depend (writeLet >> space) (pretty binds)
 
         RecStmt _ es ->
             depend (write "rec ") (lined (map pretty es))
