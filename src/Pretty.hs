@@ -749,7 +749,13 @@ exp (If _ if' then' else') =
                 Do _ stmts -> do
                     potentialDo expression
                     newline
-                    indentedBlock <| lined <| map pretty stmts
+                    indentedBlock
+                        <| lined
+                            <| map pretty stmts
+
+                If _ _ _ _ -> do
+                    space
+                    pretty expression
 
                 _ -> do
                     newline
@@ -2894,6 +2900,7 @@ isLineBreakBefore (UnQual _ (Symbol _ s)) = do
 isLineBreakBefore _ =
     return False
 
+
 -- | If the given operator is an element of line breaks after in configuration.
 isLineBreakAfter :: QName NodeInfo -> Printer Bool
 isLineBreakAfter (UnQual _ (Symbol _ s)) = do
@@ -2991,14 +2998,17 @@ infixApp wholeExpression a op b =
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
         if isBreakFromFile then
             vertical
-        else if isBreakBeforeFromConfig then
-            vertical
-
-        else if isBreakAfterFromConfig then
-            vertical
 
         else
-            ifFitsOnOneLineOrElse horizontal vertical
+            if isBreakBeforeFromConfig then
+                vertical
+
+            else
+                if isBreakAfterFromConfig then
+                    vertical
+
+                else
+                    ifFitsOnOneLineOrElse horizontal vertical
 
 
 verticalInfixApplication ::
