@@ -2996,14 +2996,14 @@ infixApp wholeExpression a op b =
                 getSymbolNameOp op
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
-        if isBreakFromFile then
-            verticalBefore
-
-        else if isBreakBeforeFromConfig then
+        if isBreakBeforeFromConfig then
             verticalBefore
 
         else if isBreakAfterFromConfig then
             verticalAfter
+
+        else if isBreakFromFile then
+            verticalBefore
 
         else
             ifFitsOnOneLineOrElse horizontal verticalBefore
