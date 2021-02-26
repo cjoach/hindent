@@ -790,16 +790,29 @@ exp (Lambda _ ps e) = do
 exp (Paren _ e) =
     parens (pretty e)
 exp (Case _ e alts) = do
-    depend
-        (write "case ")
-        (do pretty e
-            write " of")
+    msg <-
+        fitsOnOneLine <| do
+            write "case "
+            pretty e
+            write " of"
+    case msg of
+        Just st ->
+            put st
+        Nothing -> do
+            write "case"
+            newline
+            indentedBlock (pretty e)
+            newline
+            write "of"
     if null alts then
         write " {}"
 
     else do
         newline
-        indentedBlock (lined (map (withCaseContext True . pretty) alts))
+        alts
+            |> map (withCaseContext True . pretty)
+            |> doubleLined
+            |> indentedBlock
 exp (Do _ stmts) =
     depend (write "do ") (lined (map pretty stmts))
 exp (MDo _ stmts) =
