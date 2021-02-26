@@ -752,8 +752,7 @@ exp (If _ if' then' else') =
                 _ -> do
                     newline
                     indentedBlock (pretty expression)
-    in
-    do
+    in do
         isOneLiner <- fitsOnOneLine_ ifLine
         write "if"
         if isOneLiner then
@@ -840,8 +839,7 @@ exp (Let _ binds e) =
                 _ -> do
                     newline
                     pretty e
-    in
-    do
+    in do
         writeLet
         newline
         indentedBlock (pretty binds)
