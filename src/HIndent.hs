@@ -91,9 +91,9 @@ reformat config mexts mfilepath =
                         Just (Nothing, exts') ->
                             mode'
                                 { extensions =
-                                      exts'
-                                          ++ configExtensions config
-                                              ++ extensions mode'
+                                    exts'
+                                        ++ configExtensions config
+                                            ++ extensions mode'
                                 }
 
                         Just (Just lang, exts') ->
@@ -579,7 +579,7 @@ addCommentsToNode ::
 addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments) =
     nodeInfo
         { nodeInfoComments =
-              existingComments <> map mkBeforeNodeComment newComments
+            existingComments <> map mkBeforeNodeComment newComments
         }
     where
         mkBeforeNodeComment :: Comment -> NodeComment

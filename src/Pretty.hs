@@ -190,6 +190,23 @@ prefixedLined pref ps' =
                      ps)
 
 
+-- | Print all the printers separated newlines and optionally a line
+-- prefix.
+prefixedLined_ :: String -> [Printer ()] -> Printer ()
+prefixedLined_ pref ps' =
+    case ps' of
+        [] ->
+            return ()
+
+        (p:ps) -> do
+            p
+            mapM_
+                (\p' -> do
+                     newline
+                     depend (write pref) p')
+                ps
+
+
 -- | Set the (newline-) indent level to the given column for the given
 -- printer.
 column :: Int64 -> Printer a -> Printer a
@@ -811,7 +828,7 @@ exp (App _ op arg) = do
         addComments n1 n2 =
             n2
                 { nodeInfoComments =
-                      nub (nodeInfoComments n2 ++ nodeInfoComments n1)
+                    nub (nodeInfoComments n2 ++ nodeInfoComments n1)
                 }
 -- | Space out commas in list.
 exp (List _ es) = do
@@ -2860,7 +2877,11 @@ recUpdateExpr expWriter updates = do
             braces $ commas $ map pretty updates
 
         updatesVer = do
-            depend (write "{ ") $ prefixedLined ", " $ map pretty updates
+            write "{"
+            space
+            updates
+                |> map pretty
+                |> prefixedLined_ ", "
             newline
             write "}"
 
