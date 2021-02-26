@@ -688,7 +688,7 @@ exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
 -- | Infix apps, same algorithm as ChrisDone at the moment.
 exp e@(InfixApp _ a op b) =
-    infixApp e a op b Nothing
+    infixApp e a op b 4
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') = do
     write "if "
@@ -848,9 +848,10 @@ exp (Case _ e alts) = do
         Nothing -> do
             write "case"
             newline
-            indentedBlock (pretty e)
-            newline
-            write "of"
+            indentedBlock <| do
+                (pretty e)
+                newline
+                write "of"
     if null alts then
         write " {}"
 
@@ -2823,7 +2824,7 @@ infixApp ::
     -> Maybe Int64
     -> Printer ()
 infixApp e a op b indent =
-    hor `ifFitsOnOneLineOrElse` ver
+    ver
     where
         hor =
             spaced

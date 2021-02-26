@@ -76,7 +76,7 @@ main = do
                             (Just $ cabalexts ++ exts)
                             (Just filepath)
                             text
-                    of
+                        of
                         Left e ->
                             error e
 
