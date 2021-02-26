@@ -2405,20 +2405,33 @@ stmt x =
 
 -- | Handle do and case specially and also space out guards more.
 rhs :: Rhs NodeInfo -> Printer ()
-rhs (UnGuardedRhs _ (Do _ dos)) = do
-    inCase <- gets psInsideCase
-    write
-        (if inCase then
-             " -> "
+-- rhs (UnGuardedRhs _ (Do _ dos)) = do
+--     inCase <- gets psInsideCase
+--     write
+--         (if inCase then
+--              " -> "
 
-         else
-             " = ")
-    swing writeDo (lined (map pretty dos))
-rhs (UnGuardedRhs _ e) = do
-    space
-    rhsSeparator
-    newline
-    indentedBlock (pretty e)
+--          else
+--              " = ")
+--     swing writeDo (lined (map pretty dos))
+rhs (UnGuardedRhs _ e) =
+    case e of
+        Do _ _ -> do
+            space
+            rhsSeparator
+            space
+            pretty e
+
+        _ -> do
+            space
+            rhsSeparator
+            newline
+            indentedBlock (pretty e)
+-- do
+--     space
+--     rhsSeparator
+--     newline
+--     indentedBlock (pretty e)
 rhs (GuardedRhss _ gas) = do
     newline
     gas
