@@ -708,29 +708,31 @@ exp (If _ if' then' else') =
             write "then"
             potentialDo then'
     in do
-    oneLine <- fitsOnOneLine ifLine
-    case oneLine of
-        Just line ->
-            put line
+    isOneLiner <- fitsOnOneLine_ ifLine
 
-        Nothing -> do
-            write "if"
-            newline
-            indentedBlock (pretty if')
-            newline
-            write "then"
-            potentialDo then'
+    if isOneLiner then
+        put ifLine
+
+    else do
+        write "if"
+        newline
+        indentedBlock (pretty if')
+        newline
+        write "then"
+        potentialDo then'
 
     newline
-    map pretty then'
-        |> lined
-        |> indentedBlock
+    indentedBlock <| lined <| map pretty then'
+    -- map pretty then'
+    --     |> lined
+    --     |> indentedBlock
     oneEmptyLine
     write "else"
     potentialDo else'
-    map pretty else'
-        |> lined
-        |> indentedBlock
+    indentedBlock <| lined <| map pretty else'
+    -- map pretty else'
+    --     |> lined
+    --     |> indentedBlock
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
 exp (App _ op arg) = do
@@ -2810,6 +2812,19 @@ isLineBreak (UnQual _ (Symbol _ s)) = do
     return $ s `elem` breaks
 isLineBreak _ =
     return False
+
+
+
+-- | Does printing the given thing overflow column limit? (e.g. 80)
+fitsOnOneLine_ :: Printer a -> Printer Bool
+fitsOnOneLine_ p = do
+    st <- get
+    put st {psFitOnOneLine = True}
+    ok <- fmap (const True) p <|> return False
+    st' <- get
+    put st
+    guard $ ok || not (psFitOnOneLine st)
+    return ok
 
 
 -- | Does printing the given thing overflow column limit? (e.g. 80)
