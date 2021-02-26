@@ -72,9 +72,11 @@ cppSplitBlocks inp =
         classifyLines :: [(Int, ByteString)] -> [CodeBlock]
         classifyLines allLines@((lineIndex, src):nextLines)
             | cppLine src =
-                let (cppLines, nextLines') = spanCPPLines allLines
-                 in CPPDirectives (S8.intercalate "\n" (map snd cppLines)) :
-                    classifyLines nextLines'
+                let
+                    (cppLines, nextLines') = spanCPPLines allLines
+                in
+                CPPDirectives (S8.intercalate "\n" (map snd cppLines)) :
+                classifyLines nextLines'
             | shebangLine src = Shebang src : classifyLines nextLines
             | otherwise = HaskellSource lineIndex src : classifyLines nextLines
         classifyLines [] = []
@@ -82,8 +84,10 @@ cppSplitBlocks inp =
                [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
         spanCPPLines (line@(_, src):nextLines)
             | hasEscapedTrailingNewline src =
-                let (cppLines, nextLines') = spanCPPLines nextLines
-                 in (line : cppLines, nextLines')
+                let
+                    (cppLines, nextLines') = spanCPPLines nextLines
+                in
+                (line : cppLines, nextLines')
             | otherwise = ([line], nextLines)
         spanCPPLines [] = ([], [])
     -- Hack to work around some parser issues in haskell-src-exts: Some pragmas

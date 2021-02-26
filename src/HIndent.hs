@@ -63,7 +63,8 @@ reformat config mexts mfilepath =
         processBlock (Shebang text) = Right $ S.byteString text
         processBlock (CPPDirectives text) = Right $ S.byteString text
         processBlock (HaskellSource line text) =
-            let ls = S8.lines text
+            let
+                ls = S8.lines text
                 prefix = findPrefix ls
                 code = unlines' (map (stripPrefix prefix) ls)
                 exts = readExtensions (UTF8.toString code)
@@ -85,17 +86,17 @@ reformat config mexts mfilepath =
                                       configExtensions config ++
                                       extensions mode'
                                 }
-             in case parseModuleWithComments mode'' (UTF8.toString code) of
-                    ParseOk (m, comments) ->
-                        fmap
-                            (S.lazyByteString .
-                             addPrefix prefix . S.toLazyByteString)
-                            (prettyPrint config m comments)
-                    ParseFailed loc e ->
-                        Left
-                            (Exts.prettyPrint
-                                 (loc {srcLine = srcLine loc + line}) ++
-                             ": " ++ e)
+            in
+            case parseModuleWithComments mode'' (UTF8.toString code) of
+                ParseOk (m, comments) ->
+                    fmap
+                        (S.lazyByteString .
+                         addPrefix prefix . S.toLazyByteString)
+                        (prettyPrint config m comments)
+                ParseFailed loc e ->
+                    Left
+                        (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
+                         ": " ++ e)
         unlines' = S.concat . intersperse "\n"
         unlines'' = L.concat . intersperse "\n"
         addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
@@ -127,19 +128,23 @@ reformat config mexts mfilepath =
         findSmallestPrefix [] = ""
         findSmallestPrefix ("":_) = ""
         findSmallestPrefix (p:ps) =
-            let first = S8.head p
+            let
+                first = S8.head p
                 startsWithChar c x = S8.length x > 0 && S8.head x == c
-             in if all (startsWithChar first) ps
-                    then S8.cons
-                             first
-                             (findSmallestPrefix (S.tail p : map S.tail ps))
-                    else ""
+            in
+            if all (startsWithChar first) ps
+                then S8.cons
+                         first
+                         (findSmallestPrefix (S.tail p : map S.tail ps))
+                else ""
         mode' =
-            let m =
+            let
+                m =
                     case mexts of
                         Just exts -> parseMode {extensions = exts}
                         Nothing -> parseMode
-             in m {parseFilename = fromMaybe "<interactive>" mfilepath}
+            in
+            m {parseFilename = fromMaybe "<interactive>" mfilepath}
         preserveTrailingNewline f x =
             if S8.null x || S8.all isSpace x
                 then return mempty
@@ -164,11 +169,13 @@ hasTrailingLine xs =
 -- | Print the module.
 prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Either a Builder
 prettyPrint config m comments =
-    let ast =
+    let
+        ast =
             evalState
                 (collectAllComments (fromMaybe m (applyFixities baseFixities m)))
                 comments
-     in Right (runPrinterStyle config (pretty ast))
+    in
+    Right (runPrinterStyle config (pretty ast))
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
@@ -220,12 +227,14 @@ testAst x =
     case parseModuleWithComments parseMode (UTF8.toString x) of
         ParseOk (m, comments) ->
             Right
-                (let ast =
+                (let
+                     ast =
                          evalState
                              (collectAllComments
                                   (fromMaybe m (applyFixities baseFixities m)))
                              comments
-                  in ast)
+                 in
+                 ast)
         ParseFailed _ e -> Left e
 
 -- | Default extensions.
@@ -426,10 +435,12 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                 cs
         isAbove :: Comment -> SrcSpan -> Bool
         isAbove (Comment _ commentSpan _) span =
-            let (_, commentColStart) = srcSpanStart commentSpan
+            let
+                (_, commentColStart) = srcSpanStart commentSpan
                 (commentLnEnd, _) = srcSpanEnd commentSpan
                 (lnStart, colStart) = srcSpanStart span
-             in commentColStart == colStart && commentLnEnd + 1 == lnStart
+            in
+            commentColStart == colStart && commentLnEnd + 1 == lnStart
 addCommentsToTopLevelWhereClauses other = return other
 
 addCommentsToNode ::

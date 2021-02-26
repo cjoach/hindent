@@ -103,6 +103,11 @@ indentedBlock p = do
     indentSpaces <- getIndentSpaces
     indented indentSpaces p
 
+indentedBack :: Printer a -> Printer a
+indentedBack p = do
+    indentSpaces <- getIndentSpaces
+    indented (-indentSpaces) p
+
 -- | Print all the printers separated by spaces.
 spaced :: [Printer ()] -> Printer ()
 spaced = inter space
@@ -559,12 +564,14 @@ exp (List _ es) = do
         p = brackets (inter (write ", ") (map pretty es))
 exp (RecUpdate _ exp' updates) = recUpdateExpr (pretty exp') updates
 exp (RecConstr _ qname updates) = recUpdateExpr (pretty qname) updates
-exp (Let _ binds e) =
-    depend
-        (write "let ")
-        (do pretty binds
+exp (Let _ binds e) = do
+    swing (write "let") <| do
+        pretty binds
+        newline
+        indentedBack <| do
+            write "in"
             newline
-            indented (-3) (depend (write "in ") (pretty e)))
+            pretty e
 exp (ListComp _ e qstmt) = do
     let horVariant =
             brackets $ do
@@ -1326,10 +1333,12 @@ formatImports =
     map formatImportGroup . groupAdjacentBy atNextLine
     where
         atNextLine import1 import2 =
-            let end1 = srcSpanEndLine (srcInfoSpan (nodeInfoSpan (ann import1)))
+            let
+                end1 = srcSpanEndLine (srcInfoSpan (nodeInfoSpan (ann import1)))
                 start2 =
                     srcSpanStartLine (srcInfoSpan (nodeInfoSpan (ann import2)))
-             in start2 - end1 <= 1
+            in
+            start2 - end1 <= 1
         formatImportGroup imps = do
             shouldSortImports <- gets $ configSortImports . psConfig
             let imps1 =
@@ -1338,8 +1347,10 @@ formatImports =
                         else imps
             sequence_ . intersperse newline $ map formatImport imps1
         moduleVisibleName idecl =
-            let ModuleName _ name = importModule idecl
-             in name
+            let
+                ModuleName _ name = importModule idecl
+            in
+            name
         formatImport = pretty
         sortImports imps =
             sortOn moduleVisibleName . map sortImportSpecsOnImport $ imps
@@ -1364,8 +1375,10 @@ spanAdjacentBy _ [] = ([], [])
 spanAdjacentBy _ [x] = ([x], [])
 spanAdjacentBy adj (x:xs@(y:_))
     | adj x y =
-        let (xs', rest') = spanAdjacentBy adj xs
-         in (x : xs', rest')
+        let
+            (xs', rest') = spanAdjacentBy adj xs
+        in
+        (x : xs', rest')
     | otherwise = ([x], xs)
 
 importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering

@@ -32,28 +32,33 @@ data Stanza =
 -- | Find the relative path of a child path in a parent, if it is a child
 toRelative :: FilePath -> FilePath -> Maybe FilePath
 toRelative parent child =
-    let rel = makeRelative parent child
-     in if rel == child
-            then Nothing
-            else Just rel
+    let
+        rel = makeRelative parent child
+    in
+    if rel == child
+        then Nothing
+        else Just rel
 
 -- | Create a Stanza from `BuildInfo` and names of modules and paths
 mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
 mkStanza bi mnames fpaths =
     MkStanza bi $ \path ->
-        let modpaths = fmap toFilePath $ otherModules bi ++ mnames
+        let
+            modpaths = fmap toFilePath $ otherModules bi ++ mnames
             inDir dir =
                 case toRelative dir path of
                     Nothing -> False
                     Just relpath ->
                         any (equalFilePath $ dropExtension relpath) modpaths ||
                         any (equalFilePath relpath) fpaths
-         in any inDir $ hsSourceDirs bi
+        in
+        any inDir $ hsSourceDirs bi
 
 -- | Extract `Stanza`s from a package
 packageStanzas :: PackageDescription -> [Stanza]
 packageStanzas pd =
-    let libStanza :: Library -> Stanza
+    let
+        libStanza :: Library -> Stanza
         libStanza lib = mkStanza (libBuildInfo lib) (exposedModules lib) []
         exeStanza :: Executable -> Stanza
         exeStanza exe = mkStanza (buildInfo exe) [] [modulePath exe]
@@ -73,12 +78,13 @@ packageStanzas pd =
             case benchmarkInterface bn of
                 BenchmarkExeV10 _ path -> [path]
                 _ -> []
-     in mconcat
-            [ maybeToList $ fmap libStanza $ library pd
-            , fmap exeStanza $ executables pd
-            , fmap testStanza $ testSuites pd
-            , fmap benchStanza $ benchmarks pd
-            ]
+    in
+    mconcat
+        [ maybeToList $ fmap libStanza $ library pd
+        , fmap exeStanza $ executables pd
+        , fmap testStanza $ testSuites pd
+        , fmap benchStanza $ benchmarks pd
+        ]
 
 -- | Find cabal files that are "above" the source path
 findCabalFiles :: FilePath -> FilePath -> IO (Maybe ([FilePath], FilePath))
