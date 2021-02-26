@@ -688,7 +688,7 @@ exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
 -- | Infix apps, same algorithm as ChrisDone at the moment.
 exp e@(InfixApp _ a op b) =
-    infixApp e a op b 4
+    infixApp e a op b Nothing
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') = do
     write "if "
@@ -2846,10 +2846,11 @@ infixApp e a op b indent =
                         column
                             (fromMaybe 0 indent + indentSpaces + 3)
                             (newline >> pretty op) -- 3 = "do "
-                        return space
+                        space
 
-                    _ ->
-                        space >> pretty op >> return newline
+                    _ -> do
+                        newline
+                        pretty op
             case b of
                 Lambda {} ->
                     space >> pretty b
@@ -2862,20 +2863,22 @@ infixApp e a op b indent =
 
                 _ -> do
                     beforeRhs
-                    case indent of
-                        Nothing -> do
-                            col <- fmap (psColumn . snd) (sandbox (write ""))
-              -- force indent for top-level template haskell expressions, #473.
-                            if col == 0 then do
-                                indentSpaces <- getIndentSpaces
-                                column indentSpaces (prettyWithIndent b)
+                    indentedBlock <| do
+                        prettyWithIndent b
+                    -- case indent of
+                    --     Nothing -> do
+                    --         col <- fmap (psColumn . snd) (sandbox (write ""))
+              -- -- force indent for top-level template haskell expressions, #473.
+                    --         if col == 0 then do
+                    --             indentSpaces <- getIndentSpaces
+                    --             column indentSpaces (prettyWithIndent b)
 
-                            else
-                                prettyWithIndent b
+                    --         else
+                    --             prettyWithIndent b
 
-                        Just col -> do
-                            indentSpaces <- getIndentSpaces
-                            column (col + indentSpaces) (prettyWithIndent b)
+                    --     Just col -> do
+                    --         indentSpaces <- getIndentSpaces
+                    --         column (col + indentSpaces) (prettyWithIndent b)
 
         prettyWithIndent e' =
             case e' of
