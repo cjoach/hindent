@@ -1712,14 +1712,14 @@ rhs (UnGuardedRhs _ e) = do
         Just st -> put st
 rhs (GuardedRhss _ gas) = do
     newline
-    n <- getIndentSpaces
-    indented
-        n
-        (lined
-             (map (\p -> do
-                       write "|"
-                       pretty p)
-                  gas))
+    gas
+        |> map
+            ( \p -> do
+               write "|"
+               pretty p
+            )
+        |> lined
+        |> indentedBlock
 
 -- | Implement dangling right-hand-sides.
 guardedRhs :: GuardedRhs NodeInfo -> Printer ()
