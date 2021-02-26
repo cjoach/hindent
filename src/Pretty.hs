@@ -186,6 +186,11 @@ newline = do
     write "\n"
     modify (\s -> s {psNewline = True})
 
+oneEmptyLine :: Printer ()
+oneEmptyLine = do
+    newline
+    newline
+
 twoEmptyLines :: Printer ()
 twoEmptyLines = do
     newline
@@ -1570,7 +1575,7 @@ instance Pretty Module where
 formatImports :: [ImportDecl NodeInfo] -> Printer ()
 formatImports =
     sequence_ .
-    intersperse (newline >> newline) .
+    intersperse oneEmptyLine .
     map formatImportGroup . groupAdjacentBy atNextLine
     where
         atNextLine import1 import2 =
