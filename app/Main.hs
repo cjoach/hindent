@@ -54,8 +54,8 @@ main = do
     runMode <-
         execParser
             (info
-                 (options config <**> helper)
-                 (header "hindent - Reformat Haskell source code"))
+                (options config <**> helper)
+                (header "hindent - Reformat Haskell source code"))
     case runMode of
         ShowVersion ->
             putStrLn ("hindent " ++ showVersion version)
@@ -64,7 +64,7 @@ main = do
             if null paths then
                 L8.interact
                     (either error S.toLazyByteString
-                         . reformat style (Just exts) Nothing . L8.toStrict)
+                        . reformat style (Just exts) Nothing . L8.toStrict)
 
             else
                 forM_ paths
@@ -84,7 +84,7 @@ main = do
                             Right out ->
                                 unless
                                     (L8.fromStrict text
-                                         == S.toLazyByteString out)
+                                        == S.toLazyByteString out)
                                     $ case action of
                                         Validate -> do
                                             IO.putStrLn
@@ -109,7 +109,7 @@ main = do
                                                             == Just
                                                                 ((\(Errno a) ->
                                                                       a)
-                                                                     eXDEV)
+                                                                    eXDEV)
                                                     then
                                                         IO.copyFile fp filepath
                                                             >> IO.removeFile fp
@@ -153,41 +153,41 @@ options config =
     where
         style =
             (makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline
-                 <*> sortImports)
+                <*> sortImports)
                 <* optional
                     (strOption
-                         (long "style"
-                              <> help
-                                  "Style to print with (historical, now ignored)"
-                                  <> metavar "STYLE") :: Parser String)
+                        (long "style"
+                            <> help
+                                "Style to print with (historical, now ignored)"
+                                <> metavar "STYLE") :: Parser String)
 
         exts =
             fmap
                 getExtensions
                 (many
-                     (T.pack
-                          <$> strOption
-                              (short 'X'
-                                   <> help "Language extension"
-                                       <> metavar "GHCEXT")))
+                    (T.pack
+                        <$> strOption
+                            (short 'X'
+                                <> help "Language extension"
+                                    <> metavar "GHCEXT")))
 
         indentSpaces =
             option
                 auto
                 (long "indent-size"
-                     <> help "Indentation size in spaces"
-                         <> value (configIndentSpaces config) <> showDefault)
+                    <> help "Indentation size in spaces"
+                        <> value (configIndentSpaces config) <> showDefault)
                 <|> option
                     auto
                     (long "tab-size"
-                         <> help "Same as --indent-size, for compatibility")
+                        <> help "Same as --indent-size, for compatibility")
 
         lineLen =
             option
                 auto
                 (long "line-length"
-                     <> help "Desired length of lines"
-                         <> value (configMaxColumns config) <> showDefault)
+                    <> help "Desired length of lines"
+                        <> value (configMaxColumns config) <> showDefault)
 
         trailingNewline =
             not
@@ -195,14 +195,14 @@ options config =
                     (not (configTrailingNewline config))
                     (configTrailingNewline config)
                     (long "no-force-newline"
-                         <> help "Don't force a trailing newline" <> showDefault)
+                        <> help "Don't force a trailing newline" <> showDefault)
 
         sortImports =
             flag
                 Nothing
                 (Just True)
                 (long "sort-imports"
-                     <> help "Sort imports in groups" <> showDefault)
+                    <> help "Sort imports in groups" <> showDefault)
                 <|> flag
                     Nothing
                     (Just False)
@@ -213,8 +213,7 @@ options config =
                 Reformat
                 Validate
                 (long "validate"
-                     <> help
-                         "Check if files are formatted without changing them")
+                    <> help "Check if files are formatted without changing them")
 
         makeStyle s mlen tabs trailing imports =
             s

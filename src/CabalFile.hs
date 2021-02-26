@@ -88,17 +88,17 @@ packageStanzas pd =
             mkStanza
                 (testBuildInfo ts)
                 (case testInterface ts of
-                     TestSuiteLibV09 _ mname ->
-                         [mname]
+                    TestSuiteLibV09 _ mname ->
+                        [mname]
 
-                     _ ->
-                         [])
+                    _ ->
+                        [])
                 (case testInterface ts of
-                     TestSuiteExeV10 _ path ->
-                         [path]
+                    TestSuiteExeV10 _ path ->
+                        [path]
 
-                     _ ->
-                         [])
+                    _ ->
+                        [])
 
         benchStanza :: Benchmark -> Stanza
 

@@ -109,13 +109,13 @@ reformat config mexts mfilepath =
                 ParseOk (m, comments) ->
                     fmap
                         (S.lazyByteString
-                             . addPrefix prefix . S.toLazyByteString)
+                            . addPrefix prefix . S.toLazyByteString)
                         (prettyPrint config m comments)
 
                 ParseFailed loc e ->
                     Left
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line})
-                             ++ ": " ++ e)
+                            ++ ": " ++ e)
 
         unlines' =
             S.concat . intersperse "\n"
@@ -210,13 +210,12 @@ reformat config mexts mfilepath =
                 fmap
                     (\x' ->
                          if
-                             hasTrailingLine
-                                 (L.toStrict (S.toLazyByteString x'))
+                            hasTrailingLine (L.toStrict (S.toLazyByteString x'))
                          then
-                             x'
+                            x'
 
                          else
-                             x' <> "\n")
+                            x' <> "\n")
                     (f x)
 
             else
@@ -309,11 +308,11 @@ testAst x =
         ParseOk (m, comments) ->
             Right
                 (let
-                     ast =
-                         evalState
-                             (collectAllComments
-                                  (fromMaybe m (applyFixities baseFixities m)))
-                             comments
+                    ast =
+                        evalState
+                            (collectAllComments
+                                (fromMaybe m (applyFixities baseFixities m)))
+                            comments
                  in
                  ast)
 
@@ -391,17 +390,17 @@ traverseInOrder cmp f ast = do
             sorted
     evalStateT
         (traverse
-             (const
-                  (do
-                       i <- gets head
-                       modify tail
-                       case lookup i results of
-                           Nothing ->
-                               error "traverseInOrder"
+            (const
+                (do
+                    i <- gets head
+                    modify tail
+                    case lookup i results of
+                        Nothing ->
+                            error "traverseInOrder"
 
-                           Just x ->
-                               return x))
-             ast)
+                        Just x ->
+                            return x))
+            ast)
         [0 ..]
 
 
@@ -412,11 +411,11 @@ collectAllComments =
     shortCircuit
         (traverseBackwards
      -- Finally, collect backwards comments which come after each node.
-             (collectCommentsBy
-                  CommentAfterLine
-                  (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan)
-                           >= fst (srcSpanEnd nodeSpan))))
+            (collectCommentsBy
+                CommentAfterLine
+                (\nodeSpan commentSpan ->
+                     fst (srcSpanStart commentSpan)
+                        >= fst (srcSpanEnd nodeSpan))))
         <=< shortCircuit addCommentsToTopLevelWhereClauses
             <=< shortCircuit
                 (traverse
@@ -424,34 +423,34 @@ collectAllComments =
      -- node: Does the start line of the comment match the end-line
      -- of the node?
                   (collectCommentsBy
-                       CommentSameLine
-                       (\nodeSpan commentSpan ->
-                            fst (srcSpanStart commentSpan)
-                                == fst (srcSpanEnd nodeSpan))))
+                    CommentSameLine
+                    (\nodeSpan commentSpan ->
+                         fst (srcSpanStart commentSpan)
+                            == fst (srcSpanEnd nodeSpan))))
                 <=< shortCircuit
                     (traverseBackwards
      -- Collect backwards comments which are on the same line as a
      -- node: Does the start line & end line of the comment match
      -- that of the node?
-                         (collectCommentsBy
-                              CommentSameLine
-                              (\nodeSpan commentSpan ->
-                                   fst (srcSpanStart commentSpan)
-                                       == fst (srcSpanStart nodeSpan)
-                                       && fst (srcSpanStart commentSpan)
-                                           == fst (srcSpanEnd nodeSpan))))
+                        (collectCommentsBy
+                            CommentSameLine
+                            (\nodeSpan commentSpan ->
+                                 fst (srcSpanStart commentSpan)
+                                    == fst (srcSpanStart nodeSpan)
+                                    && fst (srcSpanStart commentSpan)
+                                        == fst (srcSpanEnd nodeSpan))))
                     <=< shortCircuit
                         (traverse
      -- First, collect forwards comments for declarations which both
      -- start on column 1 and occur before the declaration.
-                             (collectCommentsBy
-                                  CommentBeforeLine
-                                  (\nodeSpan commentSpan ->
-                                       (snd (srcSpanStart nodeSpan) == 1
-                                            && snd (srcSpanStart commentSpan)
-                                                == 1)
-                                           && fst (srcSpanStart commentSpan)
-                                               < fst (srcSpanStart nodeSpan))))
+                            (collectCommentsBy
+                                CommentBeforeLine
+                                (\nodeSpan commentSpan ->
+                                     (snd (srcSpanStart nodeSpan) == 1
+                                        && snd (srcSpanStart commentSpan)
+                                            == 1)
+                                        && fst (srcSpanStart commentSpan)
+                                            < fst (srcSpanStart nodeSpan))))
                         . fmap nodify
     where
         nodify s =
@@ -462,10 +461,10 @@ collectAllComments =
             traverseInOrder
                 (\x y ->
                      on
-                         (flip compare)
-                         (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
-                         x
-                         y -- Stop traversing if all comments have been consumed.
+                        (flip compare)
+                        (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
+                        x
+                        y -- Stop traversing if all comments have been consumed.
                  )
 
         shortCircuit m v = do
@@ -491,11 +490,11 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
             partitionEithers
                 (map (\comment@(Comment _ commentSpan _) ->
                           if predicate nodeSpan commentSpan then
-                              Right comment
+                            Right comment
 
                           else
-                              Left comment)
-                     comments)
+                            Left comment)
+                    comments)
     put others
     return $ addCommentsToNode cons mine nodeInfo
 
@@ -546,10 +545,10 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                 $ foldr'
                     (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
                          if comment `isAbove` lastSpan then
-                             ((ls, comment : rs), commentSpan)
+                            ((ls, comment : rs), commentSpan)
 
                          else
-                             ((comment : ls, rs), lastSpan))
+                            ((comment : ls, rs), lastSpan))
                     (([], []), nodeSpan)
                     cs
 
@@ -588,8 +587,8 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
             mkNodeComment
                 commentSpan
                 ((if multiLine then
-                      MultiLine
+                    MultiLine
 
                   else
-                      EndOfLine)
-                     commentString)
+                    EndOfLine)
+                    commentString)
