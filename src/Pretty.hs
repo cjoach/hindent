@@ -829,14 +829,25 @@ exp (RecUpdate _ exp' updates) =
     recUpdateExpr (pretty exp') updates
 exp (RecConstr _ qname updates) =
     recUpdateExpr (pretty qname) updates
-exp (Let _ binds e) = do
-    write "let"
-    newline
-    indentedBlock (pretty binds)
-    newline
-    write "in"
-    newline
-    pretty e
+exp (Let _ binds e) =
+    let
+        afterIn =
+            case e of
+                Do _ _ -> do
+                    space
+                    pretty e
+
+                _ -> do
+                    newline
+                    pretty e
+    in
+    do
+        writeLet
+        newline
+        indentedBlock (pretty binds)
+        newline
+        writeIn
+        afterIn
 exp (ListComp _ e qstmt) = do
     let horVariant =
             brackets
