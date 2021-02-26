@@ -689,28 +689,48 @@ exp (UnboxedSum {}) =
 exp e@(InfixApp _ a op b) =
     infixApp e a op b
 -- | If bodies are indented 4 spaces. Handle also do-notation.
-exp (If _ if' then' else') = do
-    write "if "
-    pretty if'
-    space
-    branch "then" then'
-    oneEmptyLine
-    branch "else" else'
-    -- Special handling for do.
-    where
-        branch str e =
-            case e of
+exp (If _ if' then' else') =
+    let
+        potentialDo expression =
+            case expression of
                 Do _ stmts -> do
-                    write str
                     space
                     write "do"
-                    newline
-                    indentedBlock <| lined <| map pretty stmts
 
                 _ -> do
-                    write str
-                    newline
-                    indentedBlock (pretty e)
+                    return ()
+
+        ifLine = do
+            write "if"
+            space
+            pretty if'
+            space
+            write "then"
+            potentialDo then'
+    in do
+    oneLine <- fitsOnOneLine ifLine
+    case oneLine of
+        Just line ->
+            put line
+
+        Nothing -> do
+            write "if"
+            newline
+            indentedBlock (pretty if')
+            newline
+            write "then"
+            potentialDo then'
+
+    newline
+    map pretty then'
+        |> lined
+        |> indentedBlock
+    oneEmptyLine
+    write "else"
+    potentialDo else'
+    map pretty else'
+        |> lined
+        |> indentedBlock
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
 exp (App _ op arg) = do
