@@ -93,7 +93,7 @@ readExtension :: Monad m => String -> m Extension
 readExtension x =
     case
         classifyExtension x -- Foo
-    of
+        of
         UnknownExtension _ ->
             fail ("Unknown extension: " ++ x)
 
@@ -103,23 +103,24 @@ readExtension x =
 
 instance FromJSON Config where
     parseJSON (Y.Object v) =
-        Config <$>
-        fmap
+        Config
+            <$> fmap
             (fromMaybe (configMaxColumns defaultConfig))
-            (v Y..:? "line-length") <*>
-        fmap
+            (v Y..:? "line-length")
+            <*> fmap
             (fromMaybe (configIndentSpaces defaultConfig))
-            (v Y..:? "indent-size" <|> v Y..:? "tab-size") <*>
-        fmap
+            (v Y..:? "indent-size" <|> v Y..:? "tab-size")
+            <*> fmap
             (fromMaybe (configTrailingNewline defaultConfig))
-            (v Y..:? "force-trailing-newline") <*>
-        fmap
+            (v Y..:? "force-trailing-newline")
+            <*> fmap
             (fromMaybe (configSortImports defaultConfig))
-            (v Y..:? "sort-imports") <*>
-        fmap
+            (v Y..:? "sort-imports")
+            <*> fmap
             (fromMaybe (configLineBreaks defaultConfig))
-            (v Y..:? "line-breaks") <*>
-        (traverse readExtension =<< fmap (fromMaybe []) (v Y..:? "extensions"))
+            (v Y..:? "line-breaks")
+            <*> (traverse readExtension
+                     =<< fmap (fromMaybe []) (v Y..:? "extensions"))
     parseJSON _ =
         fail "Expected Object for Config value"
 

@@ -323,8 +323,8 @@ write x = do
     when
         hardFail
         (guard
-             (additionalLines == 0 &&
-              (psColumn' <= configMaxColumns (psConfig state))))
+             (additionalLines == 0
+                  && (psColumn' <= configMaxColumns (psConfig state))))
     modify
         (\s ->
              s
@@ -363,8 +363,6 @@ getIndentSpaces =
 --     new <- get
 --     put orig
 --     return (a, new)
-
-
 -- | Render a type with a context, or not.
 withCtx ::
        (Pretty ast, Show (ast NodeInfo))
@@ -485,7 +483,8 @@ instance Pretty Pat where
                         braces $ commas $ map pretty fields
 
                     verVariant =
-                        depend (pretty qname >> space) $ do
+                        depend (pretty qname >> space)
+                            $  do
                             case fields of
                                 [] ->
                                     write "{}"
@@ -494,9 +493,9 @@ instance Pretty Pat where
                                     braces $ pretty field
 
                                 _ -> do
-                                    depend (write "{") $
-                                        prefixedLined "," $
-                                        map (depend space . pretty) fields
+                                    depend (write "{")
+                                        $ prefixedLined ","
+                                        $ map (depend space . pretty) fields
                                     newline
                                     write "}"
                 horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -637,8 +636,8 @@ exp (Tuple _ boxed exps) = do
             parensHorB boxed $ inter (write ", ") (map pretty exps)
 
         verVariant =
-            parensVerB boxed $
-            prefixedLined "," (map (depend space . pretty) exps)
+            parensVerB boxed
+                $ prefixedLined "," (map (depend space . pretty) exps)
     mst <- fitsOnOneLine horVariant
     case mst of
         Nothing ->
@@ -659,12 +658,12 @@ exp (Tuple _ boxed exps) = do
 -- | Space out tuples.
 exp (TupleSection _ boxed mexps) = do
     let horVariant =
-            parensHorB boxed $
-            inter (write ", ") (map (maybe (return ()) pretty) mexps)
+            parensHorB boxed
+                $ inter (write ", ") (map (maybe (return ()) pretty) mexps)
 
         verVariant =
-            parensVerB boxed $
-            prefixedLined
+            parensVerB boxed
+                $ prefixedLined
                 ","
                 (map (maybe (return ()) (depend space . pretty)) mexps)
     mst <- fitsOnOneLine horVariant
@@ -727,8 +726,8 @@ exp (App _ op arg) = do
             pretty f
             col' <- gets psColumn
             let diff =
-                    col' - col -
-                    if col == 0 then
+                    col' - col
+                        - if col == 0 then
                         spaces
 
                     else
@@ -783,7 +782,8 @@ exp (Let _ binds e) = do
     pretty e
 exp (ListComp _ e qstmt) = do
     let horVariant =
-            brackets $ do
+            brackets
+                $  do
                 pretty e
                 write " | "
                 commas $ map pretty qstmt
@@ -798,16 +798,19 @@ exp (ListComp _ e qstmt) = do
     horVariant `ifFitsOnOneLineOrElse` verVariant
 exp (ParComp _ e qstmts) = do
     let horVariant =
-            brackets $ do
+            brackets
+                $  do
                 pretty e
-                for_ qstmts $ \qstmt -> do
+                for_ qstmts
+                    $  \qstmt -> do
                     write " | "
                     commas $ map pretty qstmt
 
         verVariant = do
             depend (write "[ ") $ pretty e
             newline
-            for_ qstmts $ \qstmt -> do
+            for_ qstmts
+                $  \qstmt -> do
                 depend (write "| ") $ prefixedLined ", " $ map pretty qstmt
                 newline
             write "]"
@@ -837,7 +840,8 @@ exp (Paren _ e) =
     parens (pretty e)
 exp (Case _ e alts) = do
     msg <-
-        fitsOnOneLine <| do
+        fitsOnOneLine
+            <|  do
             write "case "
             pretty e
             write " of"
@@ -848,7 +852,8 @@ exp (Case _ e alts) = do
         Nothing -> do
             write "case"
             newline
-            indentedBlock <| do
+            indentedBlock
+                <|  do
                 (pretty e)
                 newline
                 write "of"
@@ -857,8 +862,8 @@ exp (Case _ e alts) = do
 
     else do
         newline
-        alts |> map (withCaseContext True . pretty) |> doubleLined |>
-            indentedBlock
+        alts |> map (withCaseContext True . pretty) |> doubleLined
+            |> indentedBlock
 exp (Do _ stmts) =
     depend (write "do ") (lined (map pretty stmts))
 exp (MDo _ stmts) =
@@ -1102,7 +1107,8 @@ decl (TypeFamDecl _ declhead result injectivity) = do
 decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
     pretty declhead
-    for_ result $ \r -> do
+    for_ result
+        $  \r -> do
         space
         let sep =
                 case r of
@@ -1114,7 +1120,8 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
         write sep
         space
         pretty r
-    for_ injectivity $ \i -> do
+    for_ injectivity
+        $  \i -> do
         space
         pretty i
     space
@@ -1170,7 +1177,8 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
                          write " :: "
                          pretty kind
                  write " where"))
-    indentedBlock $ do
+    indentedBlock
+        $  do
         case condecls of
             [] ->
                 return ()
@@ -1213,7 +1221,8 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
             return ()
     pretty' name
     tyline <-
-        fitsOnOneLine $ do
+        fitsOnOneLine
+            $  do
             string " :: "
             pretty' ty
     case tyline of
@@ -1222,7 +1231,8 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
 
         Nothing -> do
             newline
-            indentedBlock $ do
+            indentedBlock
+                $  do
                 string ":: "
                 pretty' ty
 decl (ForExp _ callconv maybeName name ty) = do
@@ -1236,7 +1246,8 @@ decl (ForExp _ callconv maybeName name ty) = do
             return ()
     pretty' name
     tyline <-
-        fitsOnOneLine $ do
+        fitsOnOneLine
+            $  do
             string " :: "
             pretty' ty
     case tyline of
@@ -1245,7 +1256,8 @@ decl (ForExp _ callconv maybeName name ty) = do
 
         Nothing -> do
             newline
-            indentedBlock $ do
+            indentedBlock
+                $  do
                 string ":: "
                 pretty' ty
 decl x' =
@@ -1264,8 +1276,8 @@ classHead ctx dhead fundeps decls =
         shortHead =
             depend
                 (write "class ")
-                (withCtx ctx $
-                 depend
+                (withCtx ctx
+                     $ depend
                      (pretty dhead)
                      (depend
                           (unless
@@ -1276,8 +1288,10 @@ classHead ctx dhead fundeps decls =
         longHead = do
             depend (write "class ") (withCtx ctx $ pretty dhead)
             newline
-            indentedBlock $ do
-                unless (null fundeps) $ do
+            indentedBlock
+                $  do
+                unless (null fundeps)
+                    $  do
                     depend
                         (write "| ")
                         (prefixedLined ", " $ map pretty fundeps)
@@ -1294,7 +1308,8 @@ instance Pretty TypeEqn where
 
 instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
-        depend (write "deriving" >> space >> writeStrategy) $ do
+        depend (write "deriving" >> space >> writeStrategy)
+            $  do
             let heads' =
                     if length heads == 1 then
                         map stripParens heads
@@ -1576,25 +1591,29 @@ instance Pretty GadtDecl where
                         return ()
 
                     fs -> do
-                        depend (write "{") $ do
+                        depend (write "{")
+                            $  do
                             prefixedLined "," (map (depend space . pretty) fs)
                         write "}"
                         p
 
             horVar =
-                depend (pretty name >> write " :: ") $ do
+                depend (pretty name >> write " :: ")
+                    $  do
                     fields' (write " -> ")
                     declTy t
 
             verVar = do
                 pretty name
                 newline
-                indentedBlock $
-                    depend (write ":: ") $ do
-                        fields' $ do
-                            newline
-                            indented (-3) (write "-> ")
-                        declTy t
+                indentedBlock
+                    $ depend (write ":: ")
+                    $  do
+                    fields'
+                        $  do
+                        newline
+                        indented (-3) (write "-> ")
+                    declTy t
 
 
 instance Pretty Rhs where
@@ -1651,7 +1670,7 @@ instance Pretty InstHead where
         case
             x
       -- Base cases
-        of
+            of
             IHCon _ name ->
                 pretty name
 
@@ -1784,9 +1803,9 @@ instance Pretty Module where
 -- | Format imports, preserving empty newlines between groups.
 formatImports :: [ImportDecl NodeInfo] -> Printer ()
 formatImports =
-    sequence_ .
-    intersperse oneEmptyLine .
-    map formatImportGroup . groupAdjacentBy atNextLine
+    sequence_
+        . intersperse oneEmptyLine
+        . map formatImportGroup . groupAdjacentBy atNextLine
     where
         atNextLine import1 import2 =
             let
@@ -2333,13 +2352,12 @@ rhs (UnGuardedRhs _ e) = do
     indentedBlock (pretty e)
 rhs (GuardedRhss _ gas) = do
     newline
-    gas |>
-        map
-            (\p -> do
-                 write "|"
-                 pretty p) |>
-        lined |>
-        indentedBlock
+    gas
+        |> map (\p -> do
+                    write "|"
+                    pretty p)
+        |> lined
+        |> indentedBlock
 
 
 -- | Implement dangling right-hand-sides.
@@ -2451,8 +2469,8 @@ typ (TyTuple _ Unboxed types) = do
     let horVar =
             wrap "(# " " #)" $ inter (write ", ") (map pretty types)
     let verVar =
-            wrap "(#" " #)" $
-            prefixedLined "," (map (depend space . pretty) types)
+            wrap "(#" " #)"
+                $ prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyForall _ mbinds ctx ty) =
     depend
@@ -2614,7 +2632,8 @@ decl' (TypeSig _ names ty') = do
         allNamesLength =
             fromIntegral $ sum (map nameLength names) + 2 * (length names - 1)
 decl' (PatBind _ pat rhs' mbinds) =
-    withCaseContext False $ do
+    withCaseContext False
+        $  do
         pretty pat
         pretty rhs'
         for_ mbinds bindingGroup
@@ -2742,7 +2761,8 @@ conDecl (InfixConDecl _ a f b) =
 
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
 recUpdateExpr expWriter updates = do
-    ifFitsOnOneLineOrElse hor $ do
+    ifFitsOnOneLineOrElse hor
+        $  do
         expWriter
         newline
         indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
@@ -2809,7 +2829,8 @@ ifFitsOnOneLineOrElse a b = do
 bindingGroup :: Binds NodeInfo -> Printer ()
 bindingGroup binds = do
     newline
-    indentedBlock <| do
+    indentedBlock
+        <|  do
         write "where"
         newline
         indentedBlock (pretty binds)
@@ -2833,18 +2854,12 @@ infixApp e a op b =
                         pretty qop
                 | link <- flattenOpChain e
                 ]
-
     in
-    ifFitsOnOneLineOrElse
-        horizontal
-        (verticalInfixApplication a op b)
+    ifFitsOnOneLineOrElse horizontal (verticalInfixApplication a op b)
 
 
 verticalInfixApplication ::
-       Exp NodeInfo
-    -> QOp NodeInfo
-    -> Exp NodeInfo
-    -> Printer ()
+       Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
 verticalInfixApplication a op b =
     let
         operator =
@@ -2858,30 +2873,27 @@ verticalInfixApplication a op b =
 
                 _ -> do
                     newline
-                    indentedBlock <| do
+                    indentedBlock
+                        <|  do
                         pretty op
                         space
 
         afterOperator =
             case b of
                 Lambda {} ->
-                    space
-                        >> pretty b
+                    space >> pretty b
 
                 LCase {} ->
-                    space
-                        >> pretty b
+                    space >> pretty b
 
                 Do _ stmts ->
-                    swing (write " do")
-                        $ lined (map pretty stmts)
+                    swing (write " do") $ lined (map pretty stmts)
 
-                _ -> do
-                    pretty b
-    in do
-    pretty a
-    operator
-    afterOperator
+                _ -> do pretty b
+    in
+    do pretty a
+       operator
+       afterOperator
 
 
 -- | A link in a chain of operator applications.

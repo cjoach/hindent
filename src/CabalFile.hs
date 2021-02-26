@@ -50,7 +50,8 @@ toRelative parent child =
 -- | Create a Stanza from `BuildInfo` and names of modules and paths
 mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
 mkStanza bi mnames fpaths =
-    MkStanza bi $ \path ->
+    MkStanza bi
+        $  \path ->
         let
             modpaths =
                 fmap toFilePath $ otherModules bi ++ mnames
@@ -61,8 +62,8 @@ mkStanza bi mnames fpaths =
                         False
 
                     Just relpath ->
-                        any (equalFilePath $ dropExtension relpath) modpaths ||
-                        any (equalFilePath relpath) fpaths
+                        any (equalFilePath $ dropExtension relpath) modpaths
+                            || any (equalFilePath relpath) fpaths
         in
         any inDir $ hsSourceDirs bi
 
@@ -102,8 +103,8 @@ packageStanzas pd =
         benchStanza :: Benchmark -> Stanza
 
         benchStanza bn =
-            mkStanza (benchmarkBuildInfo bn) [] $
-            case benchmarkInterface bn of
+            mkStanza (benchmarkBuildInfo bn) []
+                $ case benchmarkInterface bn of
                 BenchmarkExeV10 _ path ->
                     [path]
 
@@ -158,7 +159,8 @@ getCabalStanza srcpath = do
     case mcp of
         Just (cabalpaths, relpath) -> do
             stanzass <-
-                for cabalpaths $ \cabalpath -> do
+                for cabalpaths
+                    $  \cabalpath -> do
                     genericPackageDescription <-
                         getGenericPackageDescription cabalpath
                     case genericPackageDescription of
@@ -166,18 +168,18 @@ getCabalStanza srcpath = do
                             return []
 
                         Just gpd -> do
-                            return $
-                                packageStanzas $ flattenPackageDescription gpd
-            return $
-                case
-                    filter (\stanza -> stanzaIsSourceFilePath stanza relpath) $
-                    mconcat stanzass
+                            return
+                                $ packageStanzas $ flattenPackageDescription gpd
+            return
+                $ case
+                filter (\stanza -> stanzaIsSourceFilePath stanza relpath)
+                    $ mconcat stanzass
                 of
-                    [] ->
-                        Nothing
+                [] ->
+                    Nothing
 
-                    (stanza:_) ->
-                        Just stanza -- just pick the first one
+                (stanza:_) ->
+                    Just stanza -- just pick the first one
 
         Nothing ->
             return Nothing
@@ -187,13 +189,13 @@ getCabalStanza srcpath = do
 getCabalExtensions :: FilePath -> IO (Language, [Extension])
 getCabalExtensions srcpath = do
     mstanza <- getCabalStanza srcpath
-    return $
-        case mstanza of
-            Nothing ->
-                (Haskell98, [])
+    return
+        $ case mstanza of
+        Nothing ->
+            (Haskell98, [])
 
-            Just (MkStanza bi _) -> do
-                (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
+        Just (MkStanza bi _) -> do
+            (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
 
 convertLanguage :: Language -> HSE.Language
@@ -224,7 +226,7 @@ convertExtension (UnknownExtension s) =
 getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]
 getCabalExtensionsForSourcePath srcpath = do
     (lang, exts) <- getCabalExtensions srcpath
-    return $
-        fmap HSE.EnableExtension $
-        HSE.toExtensionList (convertLanguage lang) $
-        mapMaybe convertExtension exts
+    return
+        $ fmap HSE.EnableExtension
+        $ HSE.toExtensionList (convertLanguage lang)
+        $ mapMaybe convertExtension exts

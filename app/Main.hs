@@ -63,11 +63,12 @@ main = do
         Run style exts action paths ->
             if null paths then
                 L8.interact
-                    (either error S.toLazyByteString .
-                     reformat style (Just exts) Nothing . L8.toStrict)
+                    (either error S.toLazyByteString
+                         . reformat style (Just exts) Nothing . L8.toStrict)
 
             else
-                forM_ paths $ \filepath -> do
+                forM_ paths
+                    $  \filepath -> do
                     cabalexts <- getCabalExtensionsForSourcePath filepath
                     text <- S.readFile filepath
                     case
@@ -82,11 +83,11 @@ main = do
 
                         Right out ->
                             unless
-                                (L8.fromStrict text == S.toLazyByteString out) $
-                            case action of
+                                (L8.fromStrict text == S.toLazyByteString out)
+                                $ case action of
                                 Validate -> do
-                                    IO.putStrLn $
-                                        filepath ++ " is not formatted"
+                                    IO.putStrLn
+                                        $ filepath ++ " is not formatted"
                                     exitWith (ExitFailure 1)
 
                                 Reformat -> do
@@ -97,10 +98,11 @@ main = do
                                     IO.hFlush h
                                     IO.hClose h
                                     let exdev e =
-                                            if ioe_errno e ==
-                                            Just ((\(Errno a) -> a) eXDEV) then
-                                                IO.copyFile fp filepath >>
-                                                IO.removeFile fp
+                                            if ioe_errno e
+                                                == Just
+                                                ((\(Errno a) -> a) eXDEV) then
+                                                IO.copyFile fp filepath
+                                                    >> IO.removeFile fp
 
                                             else
                                                 throw e
@@ -135,60 +137,61 @@ getConfig = do
 -- | Program options.
 options :: Config -> Parser RunMode
 options config =
-    flag' ShowVersion (long "version" <> help "Print the version") <|>
-    (Run <$> style <*> exts <*> action <*> files)
+    flag' ShowVersion (long "version" <> help "Print the version")
+        <|> (Run <$> style <*> exts <*> action <*> files)
     where
         style =
-            (makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline <*>
-             sortImports) <*
-            optional
+            (makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline
+                 <*> sortImports)
+                <* optional
                 (strOption
-                     (long "style" <>
-                      help "Style to print with (historical, now ignored)" <>
-                      metavar "STYLE") :: Parser String)
+                     (long "style"
+                          <> help
+                          "Style to print with (historical, now ignored)"
+                          <> metavar "STYLE") :: Parser String)
 
         exts =
             fmap
                 getExtensions
                 (many
-                     (T.pack <$>
-                      strOption
-                          (short 'X' <>
-                           help "Language extension" <> metavar "GHCEXT")))
+                     (T.pack
+                          <$> strOption
+                          (short 'X'
+                               <> help "Language extension" <> metavar "GHCEXT")))
 
         indentSpaces =
             option
                 auto
-                (long "indent-size" <>
-                 help "Indentation size in spaces" <>
-                 value (configIndentSpaces config) <> showDefault) <|>
-            option
+                (long "indent-size"
+                     <> help "Indentation size in spaces"
+                     <> value (configIndentSpaces config) <> showDefault)
+                <|> option
                 auto
-                (long "tab-size" <>
-                 help "Same as --indent-size, for compatibility")
+                (long "tab-size"
+                     <> help "Same as --indent-size, for compatibility")
 
         lineLen =
             option
                 auto
-                (long "line-length" <>
-                 help "Desired length of lines" <>
-                 value (configMaxColumns config) <> showDefault)
+                (long "line-length"
+                     <> help "Desired length of lines"
+                     <> value (configMaxColumns config) <> showDefault)
 
         trailingNewline =
-            not <$>
-            flag
+            not
+                <$> flag
                 (not (configTrailingNewline config))
                 (configTrailingNewline config)
-                (long "no-force-newline" <>
-                 help "Don't force a trailing newline" <> showDefault)
+                (long "no-force-newline"
+                     <> help "Don't force a trailing newline" <> showDefault)
 
         sortImports =
             flag
                 Nothing
                 (Just True)
-                (long "sort-imports" <>
-                 help "Sort imports in groups" <> showDefault) <|>
-            flag
+                (long "sort-imports"
+                     <> help "Sort imports in groups" <> showDefault)
+                <|> flag
                 Nothing
                 (Just False)
                 (long "no-sort-imports" <> help "Don't sort imports")
@@ -197,8 +200,9 @@ options config =
             flag
                 Reformat
                 Validate
-                (long "validate" <>
-                 help "Check if files are formatted without changing them")
+                (long "validate"
+                     <> help
+                     "Check if files are formatted without changing them")
 
         makeStyle s mlen tabs trailing imports =
             s

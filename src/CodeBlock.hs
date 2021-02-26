@@ -35,9 +35,9 @@ data CodeBlock
 -- will become five blocks, one for each CPP line and one for each pair of declarations.
 cppSplitBlocks :: ByteString -> [CodeBlock]
 cppSplitBlocks inp =
-    modifyLast (inBlock (<> trailing)) .
-    groupLines . classifyLines . zip [0 ..] . S8.lines $
-    inp
+    modifyLast (inBlock (<> trailing))
+        . groupLines . classifyLines . zip [0 ..] . S8.lines
+        $ inp
     where
         groupLines :: [CodeBlock] -> [CodeBlock]
 
@@ -99,8 +99,8 @@ cppSplitBlocks inp =
                     (cppLines, nextLines') =
                         spanCPPLines allLines
                 in
-                CPPDirectives (S8.intercalate "\n" (map snd cppLines)) :
-                classifyLines nextLines'
+                CPPDirectives (S8.intercalate "\n" (map snd cppLines))
+                    : classifyLines nextLines'
             | shebangLine src = Shebang src : classifyLines nextLines
             | otherwise = HaskellSource lineIndex src : classifyLines nextLines
         classifyLines [] =

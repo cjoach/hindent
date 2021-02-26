@@ -91,31 +91,31 @@ reformat config mexts mfilepath =
                         Just (Nothing, exts') ->
                             mode'
                                 { extensions =
-                                      exts' ++
-                                      configExtensions config ++
-                                      extensions mode'
+                                      exts'
+                                          ++ configExtensions config
+                                          ++ extensions mode'
                                 }
 
                         Just (Just lang, exts') ->
                             mode'
                                 { baseLanguage = lang
                                 , extensions =
-                                      exts' ++
-                                      configExtensions config ++
-                                      extensions mode'
+                                      exts'
+                                          ++ configExtensions config
+                                          ++ extensions mode'
                                 }
             in
             case parseModuleWithComments mode'' (UTF8.toString code) of
                 ParseOk (m, comments) ->
                     fmap
-                        (S.lazyByteString .
-                         addPrefix prefix . S.toLazyByteString)
+                        (S.lazyByteString
+                             . addPrefix prefix . S.toLazyByteString)
                         (prettyPrint config m comments)
 
                 ParseFailed loc e ->
                     Left
-                        (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
-                         ": " ++ e)
+                        (Exts.prettyPrint (loc {srcLine = srcLine loc + line})
+                             ++ ": " ++ e)
 
         unlines' =
             S.concat . intersperse "\n"
@@ -135,9 +135,9 @@ reformat config mexts mfilepath =
                 line
 
             else
-                fromMaybe (error "Missing expected prefix") .
-                s8_stripPrefix prefix $
-                line
+                fromMaybe (error "Missing expected prefix")
+                    . s8_stripPrefix prefix
+                    $ line
 
         findPrefix :: [ByteString] -> ByteString
 
@@ -261,8 +261,8 @@ runPrinterStyle config m =
                 , psEolComment = False
                 }
     in
-    printState |> execStateT (runPrinter m) |> runMaybeT |> runIdentity |>
-    maybe (error "Printer failed with mzero call.") psOutput
+    printState |> execStateT (runPrinter m) |> runMaybeT |> runIdentity
+        |> maybe (error "Printer failed with mzero call.") psOutput
 
 
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
@@ -294,8 +294,8 @@ testFileAst fp =
 -- | Test with the given style, prints to stdout.
 test :: ByteString -> IO ()
 test =
-    either error (L8.putStrLn . S.toLazyByteString) .
-    reformat defaultConfig Nothing Nothing
+    either error (L8.putStrLn . S.toLazyByteString)
+        . reformat defaultConfig Nothing Nothing
 
 
 -- | Parse the source and annotate it with comments, yielding the resulting AST.
@@ -320,8 +320,8 @@ testAst x =
 -- | Default extensions.
 defaultExtensions :: [Extension]
 defaultExtensions =
-    [e | e@EnableExtension {} <- knownExtensions] \\
-    map EnableExtension badExtensions
+    [e | e@EnableExtension {} <- knownExtensions]
+        \\ map EnableExtension badExtensions
 
 
 -- | Extensions which steal too much syntax.
@@ -410,10 +410,10 @@ collectAllComments =
              (collectCommentsBy
                   CommentAfterLine
                   (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan) >=
-                       fst (srcSpanEnd nodeSpan)))) <=<
-    shortCircuit addCommentsToTopLevelWhereClauses <=<
-    shortCircuit
+                       fst (srcSpanStart commentSpan)
+                           >= fst (srcSpanEnd nodeSpan))))
+        <=< shortCircuit addCommentsToTopLevelWhereClauses
+        <=< shortCircuit
         (traverse
      -- Collect forwards comments which start at the end line of a
      -- node: Does the start line of the comment match the end-line
@@ -421,9 +421,9 @@ collectAllComments =
              (collectCommentsBy
                   CommentSameLine
                   (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan) ==
-                       fst (srcSpanEnd nodeSpan)))) <=<
-    shortCircuit
+                       fst (srcSpanStart commentSpan)
+                           == fst (srcSpanEnd nodeSpan))))
+        <=< shortCircuit
         (traverseBackwards
      -- Collect backwards comments which are on the same line as a
      -- node: Does the start line & end line of the comment match
@@ -431,22 +431,22 @@ collectAllComments =
              (collectCommentsBy
                   CommentSameLine
                   (\nodeSpan commentSpan ->
-                       fst (srcSpanStart commentSpan) ==
-                       fst (srcSpanStart nodeSpan) &&
-                       fst (srcSpanStart commentSpan) ==
-                       fst (srcSpanEnd nodeSpan)))) <=<
-    shortCircuit
+                       fst (srcSpanStart commentSpan)
+                           == fst (srcSpanStart nodeSpan)
+                           && fst (srcSpanStart commentSpan)
+                           == fst (srcSpanEnd nodeSpan))))
+        <=< shortCircuit
         (traverse
      -- First, collect forwards comments for declarations which both
      -- start on column 1 and occur before the declaration.
              (collectCommentsBy
                   CommentBeforeLine
                   (\nodeSpan commentSpan ->
-                       (snd (srcSpanStart nodeSpan) == 1 &&
-                        snd (srcSpanStart commentSpan) == 1) &&
-                       fst (srcSpanStart commentSpan) <
-                       fst (srcSpanStart nodeSpan)))) .
-    fmap nodify
+                       (snd (srcSpanStart nodeSpan) == 1
+                            && snd (srcSpanStart commentSpan) == 1)
+                           && fst (srcSpanStart commentSpan)
+                           < fst (srcSpanStart nodeSpan))))
+        . fmap nodify
     where
         nodify s =
             NodeInfo s mempty
@@ -514,12 +514,12 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
 
         addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
-            return $
-                PatBind
-                    bindInfoWithComments
-                    (PVar x (Ident declNodeInfo declString))
-                    x'
-                    x''
+            return
+                $ PatBind
+                bindInfoWithComments
+                (PVar x (Ident declNodeInfo declString))
+                x'
+                x''
         addCommentsToPatBind other =
             return other
 
@@ -536,8 +536,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                [Comment] -> NodeInfo -> ([Comment], [Comment])
 
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
-            fst $
-            foldr'
+            fst
+                $ foldr'
                 (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
                      if comment `isAbove` lastSpan then
                          ((ls, comment : rs), commentSpan)
