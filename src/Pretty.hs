@@ -354,6 +354,16 @@ writeMdo =
     write "mdo"
 
 
+writeLet :: Printer ()
+writeLet =
+    write "let"
+
+
+writeIn :: Printer ()
+writeIn =
+    write "in"
+
+
 -- | Write a string.
 string :: String -> Printer ()
 string =
@@ -2382,19 +2392,32 @@ instance Pretty ExportSpec where
 --    y
 -- is two invalid statements, not one valid infix op.
 stmt :: Stmt NodeInfo -> Printer ()
-stmt (Qualifier _ e@(InfixApp _ a op b)) =
-    infixApp e a op b
-stmt (Generator _ p e) = do
-    pretty p
-    indentedBlock (dependOrNewline (write " <-") space e pretty)
+-- stmt (Qualifier _ e@(InfixApp _ a op b)) =
+--     infixApp e a op b
+-- stmt (Generator _ p e) = do
+--     pretty p
+--     indentedBlock (dependOrNewline (write " <-") space e pretty)
 stmt x =
     case x of
         Generator _ p e ->
-            depend
-                (do
-                     pretty p
-                     write " <- ")
-                (pretty e)
+            let
+                leftSide = do
+                    pretty p
+                    space
+                    write "<-"
+
+                rightSide =
+                    pretty e
+            in do
+                swing leftSide rightSide
+            -- pretty p
+            -- space
+            -- write "<-"
+            -- depend
+            --     (do
+            --          pretty p
+            --          write " <- ")
+            --     (pretty e)
 
         Qualifier _ e ->
             pretty e
