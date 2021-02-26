@@ -499,12 +499,11 @@ exp e@(InfixApp _ a op b) = infixApp e a op b Nothing
 exp (If _ if' then' else') = do
     depend (write "if ") (pretty if')
     newline
-    indentSpaces <- getIndentSpaces
-    indented
-        indentSpaces
-        (do branch "then " then'
+    indentedBlock
+        <| do
+            branch "then " then'
             newline
-            branch "else " else')
+            branch "else " else'
      -- Special handling for do.
     where
         branch str e =
@@ -513,8 +512,9 @@ exp (If _ if' then' else') = do
                     write str
                     write "do"
                     newline
-                    indentSpaces <- getIndentSpaces
-                    indented indentSpaces (lined (map pretty stmts))
+                    indentedBlock
+                        <| lined
+                        <| map pretty stmts
                 _ -> depend (write str) (pretty e)
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
@@ -536,8 +536,7 @@ exp (App _ op arg) = do
             if diff + 1 <= spaces
                 then space
                 else newline
-            spaces' <- getIndentSpaces
-            indented spaces' (lined (map pretty args))
+            indentedBlock (lined (map pretty args))
         Just st -> put st
     where
         flatten (App label' op' arg') =
@@ -1585,8 +1584,7 @@ instance Pretty ModuleHead where
             (return ())
             (\exports -> do
                  newline
-                 indentSpaces <- getIndentSpaces
-                 indented indentSpaces (pretty exports))
+                 indentedBlock (pretty exports))
             mexports
         write " where"
 
@@ -1660,9 +1658,8 @@ stmt (Qualifier _ e@(InfixApp _ a op b)) = do
     col <- fmap (psColumn . snd) (sandbox (write ""))
     infixApp e a op b (Just col)
 stmt (Generator _ p e) = do
-    indentSpaces <- getIndentSpaces
     pretty p
-    indented indentSpaces (dependOrNewline (write " <-") space e pretty)
+    indentedBlock (dependOrNewline (write " <-") space e pretty)
 stmt x =
     case x of
         Generator _ p e ->
@@ -1827,8 +1824,7 @@ typ (TyForall _ mbinds ctx ty) =
                  write "forall "
                  spaced (map pretty ts)
                  write ". ")
-        (do indentSpaces <- getIndentSpaces
-            withCtx ctx (indented indentSpaces (pretty ty)))
+        (do withCtx ctx (indentedBlock (pretty ty)))
 typ (TyFun _ a b) =
     depend
         (do pretty a
