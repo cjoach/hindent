@@ -100,9 +100,9 @@ reformat config mexts mfilepath =
                             mode'
                                 { baseLanguage = lang
                                 , extensions =
-                                      exts'
-                                          ++ configExtensions config
-                                              ++ extensions mode'
+                                    exts'
+                                        ++ configExtensions config
+                                            ++ extensions mode'
                                 }
             in
             case parseModuleWithComments mode'' (UTF8.toString code) of

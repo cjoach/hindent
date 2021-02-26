@@ -204,9 +204,7 @@ prefixedLined_ pref ps' =
                 (\p' -> do
                      newline
                      write pref
-                     p'
-                     -- depend (write pref) p'
-                )
+                     p')
                 ps
 
 
