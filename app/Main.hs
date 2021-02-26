@@ -127,6 +127,7 @@ options config =
                      (long "style" <>
                       help "Style to print with (historical, now ignored)" <>
                       metavar "STYLE") :: Parser String)
+
         exts =
             fmap
                 getExtensions
@@ -135,6 +136,7 @@ options config =
                       strOption
                           (short 'X' <>
                            help "Language extension" <> metavar "GHCEXT")))
+
         indentSpaces =
             option
                 auto
@@ -145,12 +147,14 @@ options config =
                 auto
                 (long "tab-size" <>
                  help "Same as --indent-size, for compatibility")
+
         lineLen =
             option
                 auto
                 (long "line-length" <>
                  help "Desired length of lines" <>
                  value (configMaxColumns config) <> showDefault)
+
         trailingNewline =
             not <$>
             flag
@@ -158,6 +162,7 @@ options config =
                 (configTrailingNewline config)
                 (long "no-force-newline" <>
                  help "Don't force a trailing newline" <> showDefault)
+
         sortImports =
             flag
                 Nothing
@@ -168,12 +173,14 @@ options config =
                 Nothing
                 (Just False)
                 (long "no-sort-imports" <> help "Don't sort imports")
+
         action =
             flag
                 Reformat
                 Validate
                 (long "validate" <>
                  help "Check if files are formatted without changing them")
+
         makeStyle s mlen tabs trailing imports =
             s
                 { configMaxColumns = mlen
@@ -181,4 +188,5 @@ options config =
                 , configTrailingNewline = trailing
                 , configSortImports = fromMaybe (configSortImports s) imports
                 }
+
         files = many (strArgument (metavar "FILENAMES"))

@@ -60,14 +60,19 @@ reformat config mexts mfilepath =
         (fmap (mconcat . intersperse "\n") . mapM processBlock . cppSplitBlocks)
     where
         processBlock :: CodeBlock -> Either String Builder
+
         processBlock (Shebang text) = Right $ S.byteString text
         processBlock (CPPDirectives text) = Right $ S.byteString text
         processBlock (HaskellSource line text) =
             let
                 ls = S8.lines text
+
                 prefix = findPrefix ls
+
                 code = unlines' (map (stripPrefix prefix) ls)
+
                 exts = readExtensions (UTF8.toString code)
+
                 mode'' =
                     case exts of
                         Nothing -> mode'
@@ -97,22 +102,34 @@ reformat config mexts mfilepath =
                     Left
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line}) ++
                          ": " ++ e)
+
         unlines' = S.concat . intersperse "\n"
+
         unlines'' = L.concat . intersperse "\n"
+
         addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
+
         addPrefix prefix = unlines'' . map (L8.fromStrict prefix <>) . L8.lines
+
         stripPrefix :: ByteString -> ByteString -> ByteString
+
         stripPrefix prefix line =
             if S.null (S8.dropWhile (== '\n') line)
                 then line
                 else fromMaybe (error "Missing expected prefix") .
                      s8_stripPrefix prefix $
                      line
+
         findPrefix :: [ByteString] -> ByteString
+
         findPrefix = takePrefix False . findSmallestPrefix . dropNewlines
+
         dropNewlines :: [ByteString] -> [ByteString]
+
         dropNewlines = filter (not . S.null . S8.dropWhile (== '\n'))
+
         takePrefix :: Bool -> ByteString -> ByteString
+
         takePrefix bracketUsed txt =
             case S8.uncons txt of
                 Nothing -> ""
@@ -124,12 +141,15 @@ reformat config mexts mfilepath =
                     if c == ' ' || c == '\t'
                         then S8.cons c (takePrefix bracketUsed txt')
                         else ""
+
         findSmallestPrefix :: [ByteString] -> ByteString
+
         findSmallestPrefix [] = ""
         findSmallestPrefix ("":_) = ""
         findSmallestPrefix (p:ps) =
             let
                 first = S8.head p
+
                 startsWithChar c x = S8.length x > 0 && S8.head x == c
             in
             if all (startsWithChar first) ps
@@ -137,6 +157,7 @@ reformat config mexts mfilepath =
                          first
                          (findSmallestPrefix (S.tail p : map S.tail ps))
                 else ""
+
         mode' =
             let
                 m =
@@ -145,6 +166,7 @@ reformat config mexts mfilepath =
                         Nothing -> parseMode
             in
             m {parseFilename = fromMaybe "<interactive>" mfilepath}
+
         preserveTrailingNewline f x =
             if S8.null x || S8.all isSpace x
                 then return mempty
@@ -204,6 +226,7 @@ parseMode :: ParseMode
 parseMode = defaultParseMode {extensions = allExtensions, fixities = Nothing}
     where
         allExtensions = filter isDisabledExtension knownExtensions
+
         isDisabledExtension (DisableExtension _) = False
         isDisabledExtension _ = True
 
@@ -357,6 +380,7 @@ collectAllComments =
     fmap nodify
     where
         nodify s = NodeInfo s mempty
+
         -- Sort the comments by their end position.
         traverseBackwards =
             traverseInOrder
@@ -367,6 +391,7 @@ collectAllComments =
                          x
                          y -- Stop traversing if all comments have been consumed.
                  )
+
         shortCircuit m v = do
             comments <- get
             if null comments
@@ -402,11 +427,14 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
     where
         addCommentsToWhereClauses ::
                Decl NodeInfo -> State [Comment] (Decl NodeInfo)
+
         addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
             return $ PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
         addCommentsToWhereClauses other = return other
+
         addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
+
         addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
             return $
@@ -416,14 +444,18 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                     x'
                     x''
         addCommentsToPatBind other = return other
+
         addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
+
         addCommentsBeforeNode nodeInfo = do
             comments <- get
             let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
             put notAbove
             return $ addCommentsToNode CommentBeforeLine above nodeInfo
+
         partitionAboveNotAbove ::
                [Comment] -> NodeInfo -> ([Comment], [Comment])
+
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
             fst $
             foldr'
@@ -433,11 +465,15 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                          else ((comment : ls, rs), lastSpan))
                 (([], []), nodeSpan)
                 cs
+
         isAbove :: Comment -> SrcSpan -> Bool
+
         isAbove (Comment _ commentSpan _) span =
             let
                 (_, commentColStart) = srcSpanStart commentSpan
+
                 (commentLnEnd, _) = srcSpanEnd commentSpan
+
                 (lnStart, colStart) = srcSpanStart span
             in
             commentColStart == colStart && commentLnEnd + 1 == lnStart
@@ -455,6 +491,7 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
         }
     where
         mkBeforeNodeComment :: Comment -> NodeComment
+
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
             mkNodeComment
                 commentSpan

@@ -72,6 +72,7 @@ pretty a = do
         (zip [0 :: Int ..] comments)
     where
         comments = nodeInfoComments (ann a)
+
         writeComment =
             \case
                 EndOfLine cs -> do
@@ -133,6 +134,10 @@ inter sep ps =
 -- | Print all the printers separated by newlines.
 lined :: [Printer ()] -> Printer ()
 lined ps = ps |> intersperse newline |> sequence_
+
+-- | Print all the printers separated by newlines.
+doubleLined :: [Printer ()] -> Printer ()
+doubleLined ps = ps |> intersperse (newline >> newline) |> sequence_
 
 -- | Print all the printers separated newlines and optionally a line
 -- prefix.
@@ -232,11 +237,14 @@ write x = do
     when addingNewline newline
     state <- get
     let writingNewline = x == "\n"
+
         out :: String
+
         out =
             if psNewline state && not writingNewline
                 then (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
                 else x
+
         psColumn' =
             if additionalLines > 0
                 then fromIntegral (length (concat (take 1 (reverse srclines))))
@@ -257,6 +265,7 @@ write x = do
                  })
     where
         srclines = lines x
+
         additionalLines = length (filter (== '\n') x)
 
 -- | Write a string.
@@ -366,6 +375,7 @@ instance Pretty Pat where
                         pretty qname
                         space
                         braces $ commas $ map pretty fields
+
                     verVariant =
                         depend (pretty qname >> space) $ do
                             case fields of
@@ -466,6 +476,7 @@ exp (Lambda _ pats (Do l stmts)) = do
 -- | Space out tuples.
 exp (Tuple _ boxed exps) = do
     let horVariant = parensHorB boxed $ inter (write ", ") (map pretty exps)
+
         verVariant =
             parensVerB boxed $
             prefixedLined "," (map (depend space . pretty) exps)
@@ -476,6 +487,7 @@ exp (Tuple _ boxed exps) = do
     where
         parensHorB Boxed = parens
         parensHorB Unboxed = wrap "(# " " #)"
+
         parensVerB Boxed = parens
         parensVerB Unboxed = wrap "(#" "#)"
 -- | Space out tuples.
@@ -483,6 +495,7 @@ exp (TupleSection _ boxed mexps) = do
     let horVariant =
             parensHorB boxed $
             inter (write ", ") (map (maybe (return ()) pretty) mexps)
+
         verVariant =
             parensVerB boxed $
             prefixedLined
@@ -495,6 +508,7 @@ exp (TupleSection _ boxed mexps) = do
     where
         parensHorB Boxed = parens
         parensHorB Unboxed = wrap "(# " " #)"
+
         parensVerB Boxed = parens
         parensVerB Unboxed = wrap "(#" "#)"
 exp (UnboxedSum {}) = error "FIXME: No implementation for UnboxedSum."
@@ -544,6 +558,7 @@ exp (App _ op arg) = do
         flatten (App label' op' arg') =
             flatten op' ++ [amap (addComments label') arg']
         flatten x = [x]
+
         addComments n1 n2 =
             n2
                 { nodeInfoComments =
@@ -578,6 +593,7 @@ exp (ListComp _ e qstmt) = do
                 pretty e
                 write " | "
                 commas $ map pretty qstmt
+
         verVariant = do
             write "[ "
             pretty e
@@ -593,6 +609,7 @@ exp (ParComp _ e qstmts) = do
                 for_ qstmts $ \qstmt -> do
                     write " | "
                     commas $ map pretty qstmt
+
         verVariant = do
             depend (write "[ ") $ pretty e
             newline
@@ -854,6 +871,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                 indentSpaces
                 (do newline
                     pretty x)
+
         multiCons xs = do
             newline
             indentSpaces <- getIndentSpaces
@@ -953,6 +971,7 @@ classHead ctx dhead fundeps decls = shortHead `ifFitsOnOneLineOrElse` longHead
                                (null fundeps)
                                (write " | " >> commas (map pretty fundeps)))
                           (unless (null (fromMaybe [] decls)) (write " where"))))
+
         longHead = do
             depend (write "class ") (withCtx ctx $ pretty dhead)
             newline
@@ -986,8 +1005,10 @@ instance Pretty Deriving where
                 case strategy of
                     Nothing -> return ()
                     Just st -> pretty st >> space
+
             stripParens (IParen _ iRule) = stripParens iRule
             stripParens x = x
+
             formatMultiLine derives = do
                 depend (write "( ") $ prefixedLined ", " (map pretty derives)
                 newline
@@ -1037,7 +1058,7 @@ instance Pretty Unpackedness where
 instance Pretty Binds where
     prettyInternal x =
         case x of
-            BDecls _ ds -> lined (map pretty ds)
+            BDecls _ ds -> doubleLined (map pretty ds)
             IPBinds _ i -> lined (map pretty i)
 
 instance Pretty ClassDecl where
@@ -1182,10 +1203,12 @@ instance Pretty GadtDecl where
                             prefixedLined "," (map (depend space . pretty) fs)
                         write "}"
                         p
+
             horVar =
                 depend (pretty name >> write " :: ") $ do
                     fields' (write " -> ")
                     declTy t
+
             verVar = do
                 pretty name
                 newline
@@ -1335,10 +1358,12 @@ formatImports =
         atNextLine import1 import2 =
             let
                 end1 = srcSpanEndLine (srcInfoSpan (nodeInfoSpan (ann import1)))
+
                 start2 =
                     srcSpanStartLine (srcInfoSpan (nodeInfoSpan (ann import2)))
             in
             start2 - end1 <= 1
+
         formatImportGroup imps = do
             shouldSortImports <- gets $ configSortImports . psConfig
             let imps1 =
@@ -1346,20 +1371,26 @@ formatImports =
                         then sortImports imps
                         else imps
             sequence_ . intersperse newline $ map formatImport imps1
+
         moduleVisibleName idecl =
             let
                 ModuleName _ name = importModule idecl
             in
             name
+
         formatImport = pretty
+
         sortImports imps =
             sortOn moduleVisibleName . map sortImportSpecsOnImport $ imps
+
         sortImportSpecsOnImport imp =
             imp {importSpecs = fmap sortImportSpecs (importSpecs imp)}
+
         sortImportSpecs (ImportSpecList l hiding specs) =
             ImportSpecList l hiding sortedSpecs
             where
                 sortedSpecs = sortBy importSpecCompare . map sortCNames $ specs
+
                 sortCNames (IThingWith l2 name cNames) =
                     IThingWith l2 name . sortBy cNameCompare $ cNames
                 sortCNames is = is
@@ -1778,6 +1809,7 @@ guardedRhs (GuardedRhs _ stmts e) = do
                                   space
                                   pretty p)
                              stmts))
+
         swingIt = swing (write " " >> rhsSeparator) (pretty e)
 
 match :: Match NodeInfo -> Printer ()
@@ -1856,6 +1888,7 @@ typ (TyInfix _ a promotedop b)
             case op of
                 PromotedName _ op' -> isLineBreak op'
                 UnpromotedName _ op' -> isLineBreak op'
+
         prettyInfixOp' op =
             case op of
                 PromotedName _ op' -> write "'" >> prettyInfixOp op'
@@ -1951,6 +1984,7 @@ decl' (TypeSig _ names ty') = do
     where
         nameLength (Ident _ s) = length s
         nameLength (Symbol _ s) = length s + 2
+
         allNamesLength =
             fromIntegral $ sum (map nameLength names) + 2 * (length names - 1)
 decl' (PatBind _ pat rhs' mbinds) =
@@ -2016,6 +2050,7 @@ declTy dty =
     where
         collapseFaps (TyFun _ arg result) = arg : collapseFaps result
         collapseFaps e = [e]
+
         prettyTy breakLine ty = do
             if breakLine
                 then case collapseFaps ty of
@@ -2063,7 +2098,9 @@ recUpdateExpr expWriter updates = do
             expWriter
             space
             updatesHor
+
         updatesHor = braces $ commas $ map pretty updates
+
         updatesVer = do
             depend (write "{ ") $ prefixedLined ", " $ map pretty updates
             newline
@@ -2131,6 +2168,7 @@ infixApp e a op b indent = hor `ifFitsOnOneLineOrElse` ver
                     OpChainLink qop -> pretty qop
                 | link <- flattenOpChain e
                 ]
+
         ver = do
             prettyWithIndent a
             beforeRhs <-
@@ -2160,6 +2198,7 @@ infixApp e a op b indent = hor `ifFitsOnOneLineOrElse` ver
                         Just col -> do
                             indentSpaces <- getIndentSpaces
                             column (col + indentSpaces) (prettyWithIndent b)
+
         prettyWithIndent e' =
             case e' of
                 InfixApp _ a' op' b' -> infixApp e' a' op' b' indent

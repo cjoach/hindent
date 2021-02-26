@@ -45,6 +45,7 @@ mkStanza bi mnames fpaths =
     MkStanza bi $ \path ->
         let
             modpaths = fmap toFilePath $ otherModules bi ++ mnames
+
             inDir dir =
                 case toRelative dir path of
                     Nothing -> False
@@ -59,10 +60,15 @@ packageStanzas :: PackageDescription -> [Stanza]
 packageStanzas pd =
     let
         libStanza :: Library -> Stanza
+
         libStanza lib = mkStanza (libBuildInfo lib) (exposedModules lib) []
+
         exeStanza :: Executable -> Stanza
+
         exeStanza exe = mkStanza (buildInfo exe) [] [modulePath exe]
+
         testStanza :: TestSuite -> Stanza
+
         testStanza ts =
             mkStanza
                 (testBuildInfo ts)
@@ -72,7 +78,9 @@ packageStanzas pd =
                 (case testInterface ts of
                      TestSuiteExeV10 _ path -> [path]
                      _ -> [])
+
         benchStanza :: Benchmark -> Stanza
+
         benchStanza bn =
             mkStanza (benchmarkBuildInfo bn) [] $
             case benchmarkInterface bn of
