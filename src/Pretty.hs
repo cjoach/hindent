@@ -354,15 +354,15 @@ getIndentSpaces =
     gets (configIndentSpaces . psConfig)
 
 
--- | Play with a printer and then restore the state to what it was
--- before.
-sandbox :: Printer a -> Printer (a, PrintState)
-sandbox p = do
-    orig <- get
-    a <- p
-    new <- get
-    put orig
-    return (a, new)
+-- -- | Play with a printer and then restore the state to what it was
+-- -- before.
+-- sandbox :: Printer a -> Printer (a, PrintState)
+-- sandbox p = do
+--     orig <- get
+--     a <- p
+--     new <- get
+--     put orig
+--     return (a, new)
 
 
 -- | Render a type with a context, or not.
@@ -688,7 +688,7 @@ exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
 -- | Infix apps, same algorithm as ChrisDone at the moment.
 exp e@(InfixApp _ a op b) =
-    infixApp e a op b Nothing
+    infixApp e a op b
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') = do
     write "if "
@@ -2266,9 +2266,8 @@ instance Pretty ExportSpec where
 --    y
 -- is two invalid statements, not one valid infix op.
 stmt :: Stmt NodeInfo -> Printer ()
-stmt (Qualifier _ e@(InfixApp _ a op b)) = do
-    col <- fmap (psColumn . snd) (sandbox (write ""))
-    infixApp e a op b (Just col)
+stmt (Qualifier _ e@(InfixApp _ a op b)) =
+    infixApp e a op b
 stmt (Generator _ p e) = do
     pretty p
     indentedBlock (dependOrNewline (write " <-") space e pretty)
@@ -2821,12 +2820,10 @@ infixApp ::
     -> Exp NodeInfo
     -> QOp NodeInfo
     -> Exp NodeInfo
-    -> Maybe Int64
     -> Printer ()
-infixApp e a op b indent =
-    ver
-    where
-        hor =
+infixApp e a op b =
+    let
+        horizontal =
             spaced
                 [ case link of
                     OpChainExp e' ->
@@ -2837,56 +2834,40 @@ infixApp e a op b indent =
                 | link <- flattenOpChain e
                 ]
 
-        ver = do
-            prettyWithIndent a
-            beforeRhs <-
-                case a of
-                    Do _ _ -> do
-                        indentSpaces <- getIndentSpaces
-                        column
-                            (fromMaybe 0 indent + indentSpaces + 3)
-                            (newline >> pretty op) -- 3 = "do "
-                        space
+        vertical = do
+            pretty a
+            let beforeRhs =
+                    case a of
+                        Do _ _ -> do
+                            indentSpaces <- getIndentSpaces
+                            column
+                                (indentSpaces + 3)
+                                (newline >> pretty op) -- 3 = "do "
+                            space
 
-                    _ -> do
-                        newline
-                        pretty op
+                        _ -> do
+                            newline
+                            indentedBlock <| do
+                                pretty op
+                                space
             case b of
                 Lambda {} ->
-                    space >> pretty b
+                    space
+                        >> pretty b
 
                 LCase {} ->
-                    space >> pretty b
+                    space
+                        >> pretty b
 
                 Do _ stmts ->
-                    swing (write " do") $ lined (map pretty stmts)
+                    swing (write " do")
+                        $ lined (map pretty stmts)
 
                 _ -> do
                     beforeRhs
-                    indentedBlock <| do
-                        prettyWithIndent b
-                    -- case indent of
-                    --     Nothing -> do
-                    --         col <- fmap (psColumn . snd) (sandbox (write ""))
-              -- -- force indent for top-level template haskell expressions, #473.
-                    --         if col == 0 then do
-                    --             indentSpaces <- getIndentSpaces
-                    --             column indentSpaces (prettyWithIndent b)
-
-                    --         else
-                    --             prettyWithIndent b
-
-                    --     Just col -> do
-                    --         indentSpaces <- getIndentSpaces
-                    --         column (col + indentSpaces) (prettyWithIndent b)
-
-        prettyWithIndent e' =
-            case e' of
-                InfixApp _ a' op' b' ->
-                    infixApp e' a' op' b' indent
-
-                _ ->
-                    pretty e'
+                    pretty b
+    in
+    ifFitsOnOneLineOrElse horizontal vertical
 
 
 -- | A link in a chain of operator applications.
