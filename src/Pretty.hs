@@ -22,6 +22,7 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
+import Debug.Trace (trace)
 import Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
@@ -2584,7 +2585,7 @@ typ (TyInfix _ a promotedop b)
   -- Apply special rules to line-break operators.
  = do
     let symbolName =
-            getSymbolName promotedop
+            getSymbolNameTy promotedop
 
         prettyInfixOp' op =
             case op of
@@ -2859,15 +2860,25 @@ recUpdateExpr expWriter updates = do
 
 
 --------------------------------------------------------------------------------
-
-getSymbolName :: MaybePromotedName NodeInfo -> QName NodeInfo
-getSymbolName symbol =
+getSymbolNameTy :: MaybePromotedName NodeInfo -> QName NodeInfo
+getSymbolNameTy symbol =
     case symbol of
         PromotedName _ symbolName ->
             symbolName
 
         UnpromotedName _ symbolName ->
             symbolName
+
+
+getSymbolNameOp :: QOp NodeInfo -> QName NodeInfo
+getSymbolNameOp symbol =
+    case symbol of
+        QVarOp _ symbolName ->
+            symbolName
+
+        QConOp _ symbolName ->
+            symbolName
+
 
 -- Predicates
 -- | If the given operator is an element of line breaks in configuration.
@@ -2941,16 +2952,21 @@ infixApp ::
     -> Printer ()
 infixApp wholeExpression a op b =
     let
-        horizontal =
-            spaced
-                [ case link of
-                    OpChainExp e' ->
-                        pretty e'
+        horizontal = do
+            pretty a
+            space
+            pretty op
+            space
+            pretty b
+            -- spaced
+            --     [ case link of
+            --         OpChainExp e' ->
+            --             pretty e'
 
-                    OpChainLink qop ->
-                        pretty qop
-                | link <- flattenOpChain wholeExpression
-                ]
+            --         OpChainLink qop ->
+            --             pretty qop
+            --     | link <- flattenOpChain wholeExpression
+            --     ]
 
         vertical =
             verticalInfixApplication a op b
@@ -2963,13 +2979,19 @@ infixApp wholeExpression a op b =
                 |> nodeInfoSpan
                 |> srcInfoSpan
     in do
-    let isVertical =
-            isBreakForced
-    if isVertical then
-        vertical
+        let isVertical =
+                isBreakForced
 
-    else
-        ifFitsOnOneLineOrElse horizontal vertical
+            symbolName =
+                getSymbolNameOp op
+
+            _ =
+                trace ("PROUT: " ++ show symbolName)
+        if isVertical then
+            vertical
+
+        else
+            ifFitsOnOneLineOrElse horizontal vertical
 
 
 verticalInfixApplication ::
