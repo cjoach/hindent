@@ -63,9 +63,10 @@ pretty a = do
              case c' of
                  CommentSameLine spn c -> do
                      col <- gets psColumn
-                     if col == 0
+                     if
+                         col == 0
                -- write comment keeping original indentation
-                      then do
+                     then do
                          let col' =
                                  fromIntegral $ srcSpanStartColumn spn - 1
                          column col' $ writeComment c
@@ -691,17 +692,6 @@ exp e@(InfixApp _ a op b) =
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') =
     let
-        printExpression expression =
-            case expression of
-                Do _ stmts -> do
-                    space
-                    write "do"
-                    newline
-                    indentedBlock <| lined <| map pretty stmts
-
-                _ -> do
-                    indentedBlock (pretty e)
-
         ifLine = do
             write "if"
             space
@@ -709,31 +699,41 @@ exp (If _ if' then' else') =
             space
             write "then"
             potentialDo then'
-    in do
-    isOneLiner <- fitsOnOneLine_ ifLine
 
-    if isOneLiner then
-        put ifLine
+        potentialDo expression =
+            case expression of
+                Do _ stmts -> do
+                    space
+                    write "do"
 
-    else do
-        write "if"
-        newline
-        indentedBlock (pretty if')
-        newline
-        write "then"
-        printExpression then'
+                _ ->
+                    return ()
 
-    newline
-    printExpression then'
-    -- map pretty then'
-    --     |> lined
-    --     |> indentedBlock
-    oneEmptyLine
-    write "else"
-    printExpression else'
-    -- map pretty else'
-    --     |> lined
-    --     |> indentedBlock
+        printExpression expression =
+            case expression of
+                Do _ stmts -> do
+                    potentialDo expression
+                    newline
+                    indentedBlock <| lined <| map pretty stmts
+
+                _ -> do
+                    newline
+                    indentedBlock (pretty expression)
+    in
+    do isOneLiner <- fitsOnOneLine_ ifLine
+       write "if"
+       if isOneLiner then
+           space >> pretty if' >> space
+
+       else do
+           newline
+           indentedBlock (pretty if')
+           newline
+       write "then"
+       printExpression then'
+       oneEmptyLine
+       write "else"
+       printExpression else'
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
 exp (App _ op arg) = do
@@ -2815,7 +2815,6 @@ isLineBreak _ =
     return False
 
 
-
 -- | Does printing the given thing overflow column limit? (e.g. 80)
 fitsOnOneLine_ :: Printer a -> Printer Bool
 fitsOnOneLine_ p = do
@@ -2878,7 +2877,7 @@ infixApp ::
     -> QOp NodeInfo
     -> Exp NodeInfo
     -> Printer ()
-infixApp e a op b =
+infixApp wholeExpression a op b =
     let
         horizontal =
             spaced
@@ -2888,10 +2887,25 @@ infixApp e a op b =
 
                     OpChainLink qop ->
                         pretty qop
-                | link <- flattenOpChain e
+                | link <- flattenOpChain wholeExpression
                 ]
+
+        vertical =
+            verticalInfixApplication a op b
+
+        isBreakForced =
+            srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
+
+        srcSpan =
+            ann wholeExpression
+                |> nodeInfoSpan
+                |> srcInfoSpan
     in
-    ifFitsOnOneLineOrElse horizontal (verticalInfixApplication a op b)
+    if isBreakForced then
+        vertical
+
+    else
+        ifFitsOnOneLineOrElse horizontal vertical
 
 
 verticalInfixApplication ::

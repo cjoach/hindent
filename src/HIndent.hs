@@ -210,8 +210,10 @@ reformat config mexts mfilepath =
                 if hasTrailingLine x || configTrailingNewline config then
                     fmap
                         (\x' ->
-                             if hasTrailingLine
-                                 (L.toStrict (S.toLazyByteString x')) then
+                             if
+                                 hasTrailingLine
+                                     (L.toStrict (S.toLazyByteString x'))
+                             then
                                  x'
 
                              else

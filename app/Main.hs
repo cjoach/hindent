@@ -98,9 +98,11 @@ main = do
                                     IO.hFlush h
                                     IO.hClose h
                                     let exdev e =
-                                            if ioe_errno e
-                                                == Just
-                                                ((\(Errno a) -> a) eXDEV) then
+                                            if
+                                                ioe_errno e
+                                                    == Just
+                                                    ((\(Errno a) -> a) eXDEV)
+                                            then
                                                 IO.copyFile fp filepath
                                                     >> IO.removeFile fp
 

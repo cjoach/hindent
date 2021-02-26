@@ -20,7 +20,11 @@ case "${1-}" in
     ;;
 
   format )
-    mapfile -t files < <(fdfind -c never -t f ".hs")
+    #mapfile -t files < <(fdfind -c never -t f ".hs")
+
+    ## Archlinux with fd
+    mapfile -t files < <(fd -c never -t f ".hs")
+
     hindent-elm "${files[@]}"
     ;;
 
