@@ -120,12 +120,6 @@ indentedBlock p = do
     indented indentSpaces p
 
 
-indentedBack :: Printer a -> Printer a
-indentedBack p = do
-    indentSpaces <- getIndentSpaces
-    indented (-indentSpaces) p
-
-
 -- | Print all the printers separated by spaces.
 spaced :: [Printer ()] -> Printer ()
 spaced =
@@ -736,13 +730,13 @@ exp (RecUpdate _ exp' updates) =
 exp (RecConstr _ qname updates) =
     recUpdateExpr (pretty qname) updates
 exp (Let _ binds e) = do
-    swing (write "let") <| do
-        pretty binds
-        newline
-        indentedBack <| do
-            write "in"
-            newline
-            pretty e
+    write "let"
+    newline
+    indentedBlock (pretty binds)
+    newline
+    write "in"
+    newline
+    pretty e
 exp (ListComp _ e qstmt) = do
     let horVariant =
             brackets $ do
