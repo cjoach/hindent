@@ -2,6 +2,7 @@ name: hindent-elm
 version: "0.1.0"
 ghc-options:
 - -Wall
+- -Wno-incomplete-patterns
 dependencies:
 - Cabal
 - base
