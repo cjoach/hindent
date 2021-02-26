@@ -2425,33 +2425,6 @@ stmt x =
             depend (write "rec ") (lined (map pretty es))
 
 
--- | Make the right hand side dependent if it fits on one line,
--- otherwise send it to the next line.
-dependOrNewline ::
-       Printer ()
-    -> Printer ()
-    -> Exp NodeInfo
-    -> (Exp NodeInfo -> Printer ())
-    -> Printer ()
-dependOrNewline left prefix right f = do
-    msg <- fitsOnOneLine renderDependent
-    case msg of
-        Nothing -> do
-            left
-            newline
-            (f right)
-
-        Just st ->
-            put st
-    where
-        renderDependent =
-            depend
-                left
-                (do
-                     prefix
-                     f right)
-
-
 -- | Handle do and case specially and also space out guards more.
 rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ (Do _ dos)) = do
