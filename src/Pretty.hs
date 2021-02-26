@@ -2993,14 +2993,24 @@ infixApp wholeExpression a op b =
 
 verticalInfixApplication ::
        Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
-verticalInfixApplication a op b = do
-    pretty a
-    newline
-    indentedBlock
-        <| do
+verticalInfixApplication a op b =
+    case b of
+        Do _ _ -> do
+            pretty a
+            space
             pretty op
             space
             pretty b
+
+
+        _ -> do
+            pretty a
+            newline
+            indentedBlock
+                <| do
+                    pretty op
+                    space
+                    pretty b
 
 
 -- | A link in a chain of operator applications.
