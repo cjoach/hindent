@@ -3000,7 +3000,7 @@ infixApp wholeExpression a op b =
             verticalBefore
 
         else if isBreakAfterFromConfig then
-            verticalAfter
+            ifFitsOnOneLineOrElse horizontal verticalAfter
 
         else if isBreakFromFile then
             verticalBefore
