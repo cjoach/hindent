@@ -343,6 +343,16 @@ write x = do
             length (filter (== '\n') x)
 
 
+writeDo :: Printer ()
+writeDo =
+    write "do"
+
+
+writeMdo :: Printer ()
+writeMdo =
+    write "mdo"
+
+
 -- | Write a string.
 string :: String -> Printer ()
 string =
@@ -704,7 +714,7 @@ exp (If _ if' then' else') =
             case expression of
                 Do _ _ -> do
                     space
-                    write "do"
+                    writeDo
 
                 _ ->
                     return ()
@@ -889,10 +899,20 @@ exp (Case _ e alts) = do
             |> map (withCaseContext True . pretty)
             |> doubleLined
             |> indentedBlock
-exp (Do _ stmts) =
-    depend (write "do ") (lined (map pretty stmts))
-exp (MDo _ stmts) =
-    depend (write "mdo ") (lined (map pretty stmts))
+exp (Do _ statements) = do
+    writeDo
+    newline
+    statements
+        |> map pretty
+        |> lined
+        |> indentedBlock
+exp (MDo _ statements) = do
+    writeMdo
+    newline
+    statements
+        |> map pretty
+        |> lined
+        |> indentedBlock
 exp (LeftSection _ e op) =
     parens
         (depend
@@ -2370,7 +2390,7 @@ rhs (UnGuardedRhs _ (Do _ dos)) = do
 
          else
              " = ")
-    swing (write "do") (lined (map pretty dos))
+    swing writeDo (lined (map pretty dos))
 rhs (UnGuardedRhs _ e) = do
     space
     rhsSeparator
@@ -2405,7 +2425,7 @@ guardedRhs (GuardedRhs _ stmts (Do _ dos)) = do
 
          else
              " = ")
-    swing (write "do") (lined (map pretty dos))
+    swing writeDo (lined (map pretty dos))
 guardedRhs (GuardedRhs _ stmts e) = do
     mst <- fitsOnOneLine printStmts
     case mst of
