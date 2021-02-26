@@ -46,6 +46,7 @@ newtype Printer a =
              , Alternative
              )
 
+
 -- | The state of the pretty printer.
 data PrintState =
     PrintState
@@ -69,6 +70,7 @@ data PrintState =
     -- the maximum column.
         , psEolComment :: !Bool
         }
+
 
 -- | Configurations shared among the different styles. Styles may pay
 -- attention to or completely disregard this configuration.
@@ -96,6 +98,7 @@ readExtension x =
         x' ->
             return x'
 
+
 instance FromJSON Config where
     parseJSON (Y.Object v) =
         Config <$>
@@ -118,6 +121,7 @@ instance FromJSON Config where
     parseJSON _ =
         fail "Expected Object for Config value"
 
+
 -- | Default style configuration.
 defaultConfig :: Config
 defaultConfig =
@@ -130,11 +134,13 @@ defaultConfig =
         , configExtensions = []
         }
 
+
 -- | Some comment to print.
 data SomeComment
     = EndOfLine String
     | MultiLine String
     deriving (Show, Ord, Eq)
+
 
 -- | Comment associated with a node.
 -- 'SrcSpan' is the original source span of the comment.
@@ -144,12 +150,14 @@ data NodeComment
     | CommentBeforeLine SrcSpan SomeComment
     deriving (Show, Ord, Eq)
 
+
 -- | Information for each node in the AST.
 data NodeInfo =
     NodeInfo
         { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
         , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
         }
+
 
 instance Show NodeInfo where
     show (NodeInfo _ []) =

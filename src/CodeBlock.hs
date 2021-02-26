@@ -19,6 +19,7 @@ data CodeBlock
     | CPPDirectives ByteString
     deriving (Show, Eq)
 
+
 -- | Break a Haskell code string into chunks, using CPP as a delimiter.
 -- Lines that start with '#if', '#end', or '#else' are their own chunks, and
 -- also act as chunk separators. For example, the code

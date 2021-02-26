@@ -204,12 +204,14 @@ reformat config mexts mfilepath =
                                   (f x)
                          else f x
 
+
 -- | Does the strict bytestring have a trailing newline?
 hasTrailingLine :: ByteString -> Bool
 hasTrailingLine xs =
     if S8.null xs
         then False
         else S8.last xs == '\n'
+
 
 -- | Print the module.
 prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Either a Builder
@@ -221,6 +223,7 @@ prettyPrint config m comments =
                 comments
     in
     Right (runPrinterStyle config (pretty ast))
+
 
 -- | Pretty print the given printable thing.
 runPrinterStyle :: Config -> Printer () -> Builder
@@ -242,6 +245,7 @@ runPrinterStyle config m =
     printState |> execStateT (runPrinter m) |> runMaybeT |> runIdentity |>
     maybe (error "Printer failed with mzero call.") psOutput
 
+
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
 parseMode =
@@ -255,21 +259,25 @@ parseMode =
         isDisabledExtension _ =
             True
 
+
 -- | Test the given file.
 testFile :: FilePath -> IO ()
 testFile fp =
     S.readFile fp >>= test
+
 
 -- | Test the given file.
 testFileAst :: FilePath -> IO ()
 testFileAst fp =
     S.readFile fp >>= print . testAst
 
+
 -- | Test with the given style, prints to stdout.
 test :: ByteString -> IO ()
 test =
     either error (L8.putStrLn . S.toLazyByteString) .
     reformat defaultConfig Nothing Nothing
+
 
 -- | Parse the source and annotate it with comments, yielding the resulting AST.
 testAst :: ByteString -> Either String (Module NodeInfo)
@@ -288,11 +296,13 @@ testAst x =
         ParseFailed _ e ->
             Left e
 
+
 -- | Default extensions.
 defaultExtensions :: [Extension]
 defaultExtensions =
     [e | e@EnableExtension {} <- knownExtensions] \\
     map EnableExtension badExtensions
+
 
 -- | Extensions which steal too much syntax.
 badExtensions :: [KnownExtension]
@@ -309,10 +319,12 @@ badExtensions =
     , TypeApplications -- since GHC 8 and haskell-src-exts-1.19
     ]
 
+
 s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
     | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
     | otherwise = Nothing
+
 
 --------------------------------------------------------------------------------
 -- Extensions stuff stolen from hlint
@@ -329,6 +341,7 @@ getExtensions =
             | Just x' <- readExtension x = x' : delete x' a
         f _ x =
             error $ "Unknown extension: " ++ x
+
 
 --------------------------------------------------------------------------------
 -- Comments
@@ -364,6 +377,7 @@ traverseInOrder cmp f ast = do
                               return x))
              ast)
         [0 ..]
+
 
 -- | Collect all comments in the module by traversing the tree. Read
 -- this from bottom to top.
@@ -433,6 +447,7 @@ collectAllComments =
                 then return v
                 else m v
 
+
 -- | Collect comments by satisfying the given predicate, to collect a
 -- comment means to remove it from the pool of available comments in
 -- the State. This allows for a multiple pass approach.
@@ -452,6 +467,7 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
                      comments)
     put others
     return $ addCommentsToNode cons mine nodeInfo
+
 
 -- | Reintroduce comments which were immediately above declarations in where clauses.
 -- Affects where clauses of top level declarations only.
@@ -520,6 +536,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             commentColStart == colStart && commentLnEnd + 1 == lnStart
 addCommentsToTopLevelWhereClauses other =
     return other
+
 
 addCommentsToNode ::
        (SrcSpan -> SomeComment -> NodeComment)

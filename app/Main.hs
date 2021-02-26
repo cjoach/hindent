@@ -41,9 +41,11 @@ data Action
     = Validate
     | Reformat
 
+
 data RunMode
     = ShowVersion
     | Run Config [Extension] Action [FilePath]
+
 
 -- | Main entry point.
 main :: IO ()
@@ -100,6 +102,7 @@ main = do
                                          IO.copyPermissions filepath fp
                                          IO.renameFile fp filepath `catch` exdev
 
+
 -- | Read config from a config file, or return 'defaultConfig'.
 getConfig :: IO Config
 getConfig = do
@@ -120,6 +123,7 @@ getConfig = do
                     error (show e)
                 Right config ->
                     return config
+
 
 -- | Program options.
 options :: Config -> Parser RunMode

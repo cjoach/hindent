@@ -25,6 +25,7 @@ findFileUp ::
 findFileUp =
     findPathUp snd
 
+
 -- | Find the location of a path matching the given predicate.
 findPathUp ::
        (MonadIO m, MonadThrow m)

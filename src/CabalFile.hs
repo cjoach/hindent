@@ -32,6 +32,7 @@ data Stanza =
         , stanzaIsSourceFilePath :: FilePath -> Bool
         }
 
+
 -- | Find the relative path of a child path in a parent, if it is a child
 toRelative :: FilePath -> FilePath -> Maybe FilePath
 toRelative parent child =
@@ -42,6 +43,7 @@ toRelative parent child =
     if rel == child
         then Nothing
         else Just rel
+
 
 -- | Create a Stanza from `BuildInfo` and names of modules and paths
 mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
@@ -60,6 +62,7 @@ mkStanza bi mnames fpaths =
                         any (equalFilePath relpath) fpaths
         in
         any inDir $ hsSourceDirs bi
+
 
 -- | Extract `Stanza`s from a package
 packageStanzas :: PackageDescription -> [Stanza]
@@ -108,6 +111,7 @@ packageStanzas pd =
         , fmap benchStanza $ benchmarks pd
         ]
 
+
 -- | Find cabal files that are "above" the source path
 findCabalFiles :: FilePath -> FilePath -> IO (Maybe ([FilePath], FilePath))
 findCabalFiles dir rel = do
@@ -121,6 +125,7 @@ findCabalFiles dir rel = do
             findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
         _ ->
             return $ Just (fmap (\n -> dir </> n) cabalnames, rel)
+
 
 getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
 #if MIN_VERSION_Cabal(2, 2, 0)
@@ -163,6 +168,7 @@ getCabalStanza srcpath = do
         Nothing ->
             return Nothing
 
+
 -- | Get (Cabal package) language and extensions from the cabal file for this source path
 getCabalExtensions :: FilePath -> IO (Language, [Extension])
 getCabalExtensions srcpath = do
@@ -174,9 +180,11 @@ getCabalExtensions srcpath = do
             Just (MkStanza bi _) -> do
                 (fromMaybe Haskell98 $ defaultLanguage bi, defaultExtensions bi)
 
+
 convertLanguage :: Language -> HSE.Language
 convertLanguage lang =
     read $ show lang
+
 
 convertKnownExtension :: KnownExtension -> Maybe HSE.KnownExtension
 convertKnownExtension ext =
@@ -186,6 +194,7 @@ convertKnownExtension ext =
         Right hext ->
             Just hext
 
+
 convertExtension :: Extension -> Maybe HSE.Extension
 convertExtension (EnableExtension ke) =
     fmap HSE.EnableExtension $ convertKnownExtension ke
@@ -193,6 +202,7 @@ convertExtension (DisableExtension ke) =
     fmap HSE.DisableExtension $ convertKnownExtension ke
 convertExtension (UnknownExtension s) =
     Just $ HSE.UnknownExtension s
+
 
 -- | Get extensions from the cabal file for this source path
 getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]
