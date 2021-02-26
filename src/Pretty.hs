@@ -702,7 +702,7 @@ exp (If _ if' then' else') =
 
         potentialDo expression =
             case expression of
-                Do _ stmts -> do
+                Do _ _ -> do
                     space
                     write "do"
 
@@ -2821,7 +2821,6 @@ fitsOnOneLine_ p = do
     st <- get
     put st {psFitOnOneLine = True}
     ok <- fmap (const True) p <|> return False
-    st' <- get
     put st
     guard $ ok || not (psFitOnOneLine st)
     return ok
