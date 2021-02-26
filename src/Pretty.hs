@@ -885,7 +885,9 @@ exp (Case _ e alts) = do
 
     else do
         newline
-        alts |> map (withCaseContext True . pretty) |> doubleLined
+        alts
+            |> map (withCaseContext True . pretty)
+            |> doubleLined
             |> indentedBlock
 exp (Do _ stmts) =
     depend (write "do ") (lined (map pretty stmts))
