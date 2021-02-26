@@ -68,8 +68,8 @@ pretty a = do
                -- write comment keeping original indentation
                     then do
                         let col' =
-                                fromIntegral $ srcSpanStartColumn spn - 1
-                        column col' $ writeComment c
+                                fromIntegral <| srcSpanStartColumn spn - 1
+                        column col' <| writeComment c
 
                     else do
                         space
@@ -79,8 +79,8 @@ pretty a = do
                     when (i == 0) newline
            -- write comment keeping original indentation
                     let col =
-                            fromIntegral $ srcSpanStartColumn spn - 1
-                    column col $ writeComment c
+                            fromIntegral <| srcSpanStartColumn spn - 1
+                    column col <| writeComment c
 
                 _ ->
                     return ())
@@ -281,7 +281,7 @@ depend maker dependent = do
 -- | Wrap.
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p =
-    depend (write open) $ p <* write close
+    depend (write open) <| p <* write close
 
 
 -- | Wrap in parens.
@@ -533,16 +533,16 @@ instance Pretty Pat where
                 let horVariant = do
                         pretty qname
                         space
-                        braces $ commas $ map pretty fields
+                        braces <| commas $ map pretty fields
 
                     verVariant =
-                        depend (pretty qname >> space) $ do
+                        depend (pretty qname >> space) <| do
                             case fields of
                                 [] ->
                                     write "{}"
 
                                 [field] ->
-                                    braces $ pretty field
+                                    braces <| pretty field
 
                                 _ -> do
                                     write "{"
@@ -692,11 +692,11 @@ exp (Lambda _ pats (Do l stmts)) = do
 -- | Space out tuples.
 exp (Tuple _ boxed exps) = do
     let horVariant =
-            parensHorB boxed $ inter (write ", ") (map pretty exps)
+            parensHorB boxed <| inter (write ", ") (map pretty exps)
 
         verVariant =
-            parensVerB boxed
-                $ prefixedLined "," (map (depend space . pretty) exps)
+            parensVerB boxed <|
+                prefixedLined "," (map (depend space . pretty) exps)
     mst <- fitsOnOneLine horVariant
     case mst of
         Nothing ->
@@ -717,12 +717,12 @@ exp (Tuple _ boxed exps) = do
 -- | Space out tuples.
 exp (TupleSection _ boxed mexps) = do
     let horVariant =
-            parensHorB boxed
-                $ inter (write ", ") (map (maybe (return ()) pretty) mexps)
+            parensHorB boxed <|
+                inter (write ", ") (map (maybe (return ()) pretty) mexps)
 
         verVariant =
-            parensVerB boxed
-                $ prefixedLined
+            parensVerB boxed <|
+                prefixedLined
                     ","
                     (map (maybe (return ()) (depend space . pretty)) mexps)
     mst <- fitsOnOneLine horVariant
@@ -876,34 +876,34 @@ exp (Let _ binds e) =
         afterIn
 exp (ListComp _ e qstmt) = do
     let horVariant =
-            brackets $ do
+            brackets <| do
                 pretty e
                 write " | "
-                commas $ map pretty qstmt
+                commas <| map pretty qstmt
 
         verVariant = do
             write "[ "
             pretty e
             newline
-            depend (write "| ") $ prefixedLined ", " $ map pretty qstmt
+            depend (write "| ") <| prefixedLined ", " $ map pretty qstmt
             newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
 exp (ParComp _ e qstmts) = do
     let horVariant =
-            brackets $ do
+            brackets <| do
                 pretty e
-                for_ qstmts
-                    $ \qstmt -> do
+                for_ qstmts <|
+                    \qstmt -> do
                         write " | "
-                        commas $ map pretty qstmt
+                        commas <| map pretty qstmt
 
         verVariant = do
-            depend (write "[ ") $ pretty e
+            depend (write "[ ") <| pretty e
             newline
-            for_ qstmts
-                $ \qstmt -> do
-                    depend (write "| ") $ prefixedLined ", " $ map pretty qstmt
+            for_ qstmts <|
+                \qstmt -> do
+                    depend (write "| ") <| prefixedLined ", " $ map pretty qstmt
                     newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -928,7 +928,7 @@ exp (Lambda _ ps e) = do
             pretty x
         | (i, x) <- zip [0 :: Int ..] ps
         ]
-    swing (write " ->") $ pretty e
+    swing (write " ->") <| pretty e
 exp (Paren _ e) =
     parens (pretty e)
 exp (Case _ e alts) = do
@@ -1224,8 +1224,8 @@ decl (TypeFamDecl _ declhead result injectivity) = do
 decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
     pretty declhead
-    for_ result
-        $ \r -> do
+    for_ result <|
+        \r -> do
             space
             let sep =
                     case r of
@@ -1237,8 +1237,8 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
             write sep
             space
             pretty r
-    for_ injectivity
-        $ \i -> do
+    for_ injectivity <|
+        \i -> do
             space
             pretty i
     space
@@ -1264,7 +1264,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                     xs ->
                         multiCons xs))
     indentSpaces <- getIndentSpaces
-    forM_ mderivs $ \deriv -> newline >> column indentSpaces (pretty deriv)
+    forM_ mderivs <| \deriv -> newline >> column indentSpaces (pretty deriv)
     where
         singleCons x = do
             write " ="
@@ -1298,7 +1298,7 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
                         write " :: "
                         pretty kind
                 write " where"))
-    indentedBlock $ do
+    indentedBlock <| do
         case condecls of
             [] ->
                 return ()
@@ -1306,10 +1306,10 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
             _ -> do
                 newline
                 lined (map pretty condecls)
-        forM_ mderivs $ \deriv -> newline >> pretty deriv
+        forM_ mderivs <| \deriv -> newline >> pretty deriv
 decl (InlineSig _ inline active name) = do
     write "{-# "
-    unless inline $ write "NO"
+    unless inline <| write "NO"
     write "INLINE "
     case active of
         Nothing ->
@@ -1323,8 +1323,8 @@ decl (InlineSig _ inline active name) = do
     pretty name
     write " #-}"
 decl (MinimalPragma _ (Just formula)) =
-    wrap "{-# " " #-}" $ do
-        depend (write "MINIMAL ") $ pretty formula
+    wrap "{-# " " #-}" <| do
+        depend (write "MINIMAL ") <| pretty formula
 decl (ForImp _ callconv maybeSafety maybeName name ty) = do
     string "foreign import "
     pretty' callconv >> space
@@ -1342,7 +1342,7 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
             return ()
     pretty' name
     tyline <-
-        fitsOnOneLine $ do
+        fitsOnOneLine <| do
             string " :: "
             pretty' ty
     case tyline of
@@ -1351,7 +1351,7 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) = do
 
         Nothing -> do
             newline
-            indentedBlock $ do
+            indentedBlock <| do
                 string ":: "
                 pretty' ty
 decl (ForExp _ callconv maybeName name ty) = do
@@ -1365,7 +1365,7 @@ decl (ForExp _ callconv maybeName name ty) = do
             return ()
     pretty' name
     tyline <-
-        fitsOnOneLine $ do
+        fitsOnOneLine <| do
             string " :: "
             pretty' ty
     case tyline of
@@ -1374,7 +1374,7 @@ decl (ForExp _ callconv maybeName name ty) = do
 
         Nothing -> do
             newline
-            indentedBlock $ do
+            indentedBlock <| do
                 string ":: "
                 pretty' ty
 decl x' =
@@ -1393,8 +1393,8 @@ classHead ctx dhead fundeps decls =
         shortHead =
             depend
                 (write "class ")
-                (withCtx ctx
-                    $ depend
+                (withCtx ctx <|
+                    depend
                         (pretty dhead)
                         (depend
                             (unless
@@ -1403,13 +1403,13 @@ classHead ctx dhead fundeps decls =
                             (unless (null (fromMaybe [] decls)) (write " where"))))
 
         longHead = do
-            depend (write "class ") (withCtx ctx $ pretty dhead)
+            depend (write "class ") (withCtx ctx <| pretty dhead)
             newline
-            indentedBlock $ do
-                unless (null fundeps) $ do
+            indentedBlock <| do
+                unless (null fundeps) <| do
                     depend
                         (write "| ")
-                        (prefixedLined ", " $ map pretty fundeps)
+                        (prefixedLined ", " <| map pretty fundeps)
                     newline
                 unless (null (fromMaybe [] decls)) (write "where")
 
@@ -1423,14 +1423,14 @@ instance Pretty TypeEqn where
 
 instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
-        depend (write "deriving" >> space >> writeStrategy) $ do
+        depend (write "deriving" >> space >> writeStrategy) <| do
             let heads' =
                     if length heads == 1 then
                         map stripParens heads
 
                     else
                         heads
-            maybeDerives <- fitsOnOneLine $ parens (commas (map pretty heads'))
+            maybeDerives <- fitsOnOneLine <| parens (commas (map pretty heads'))
             case maybeDerives of
                 Nothing ->
                     formatMultiLine heads'
@@ -1452,7 +1452,7 @@ instance Pretty Deriving where
                 x
 
             formatMultiLine derives = do
-                depend (write "( ") $ prefixedLined ", " (map pretty derives)
+                depend (write "( ") <| prefixedLined ", " (map pretty derives)
                 newline
                 write ")"
 
@@ -1721,19 +1721,19 @@ instance Pretty GadtDecl where
                         p
 
             horVar =
-                depend (pretty name >> write " :: ") $ do
+                depend (pretty name >> write " :: ") <| do
                     fields' (write " -> ")
                     declTy t
 
             verVar = do
                 pretty name
                 newline
-                indentedBlock
-                    $ depend (write ":: ") $ do
-                        fields' $ do
-                            newline
-                            indented (-3) (write "-> ")
-                        declTy t
+                indentedBlock <|
+                    depend (write ":: ") $ do
+                    fields' <| do
+                        newline
+                        indented (-3) (write "-> ")
+                    declTy t
 
 
 instance Pretty Rhs where
@@ -1754,7 +1754,7 @@ instance Pretty Splice where
 
 instance Pretty InstRule where
     prettyInternal (IParen _ rule) =
-        parens $ pretty rule
+        parens <| pretty rule
     prettyInternal (IRule _ mvarbinds mctx ihead) = do
         case mvarbinds of
             Nothing ->
@@ -1942,14 +1942,14 @@ formatImports =
             start2 - end1 <= 1
 
         formatImportGroup imps = do
-            shouldSortImports <- gets $ configSortImports . psConfig
+            shouldSortImports <- gets <| configSortImports . psConfig
             let imps1 =
                     if shouldSortImports then
                         sortImports imps
 
                     else
                         imps
-            sequence_ . intersperse newline $ map formatImport imps1
+            sequence_ . intersperse newline <| map formatImport imps1
 
         moduleVisibleName idecl =
             let
@@ -1962,7 +1962,7 @@ formatImports =
             pretty
 
         sortImports imps =
-            sortOn moduleVisibleName . map sortImportSpecsOnImport $ imps
+            sortOn moduleVisibleName . map sortImportSpecsOnImport <| imps
 
         sortImportSpecsOnImport imp =
             imp {importSpecs = fmap sortImportSpecs (importSpecs imp)}
@@ -1971,10 +1971,10 @@ formatImports =
             ImportSpecList l hiding sortedSpecs
             where
                 sortedSpecs =
-                    sortBy importSpecCompare . map sortCNames $ specs
+                    sortBy importSpecCompare . map sortCNames <| specs
 
                 sortCNames (IThingWith l2 name cNames) =
-                    IThingWith l2 name . sortBy cNameCompare $ cNames
+                    IThingWith l2 name . sortBy cNameCompare <| cNames
                 sortCNames is =
                     is
 
@@ -2163,7 +2163,7 @@ instance Pretty BooleanFormula where
     prettyInternal (VarFormula _ (Symbol _ s)) =
         write "(" >> string s >> write ")"
     prettyInternal (AndFormula _ fs) = do
-        maybeFormulas <- fitsOnOneLine $ inter (write ", ") $ map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write ", ") $ map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined ", " (map pretty fs)
@@ -2171,7 +2171,7 @@ instance Pretty BooleanFormula where
             Just formulas ->
                 put formulas
     prettyInternal (OrFormula _ fs) = do
-        maybeFormulas <- fitsOnOneLine $ inter (write " | ") $ map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write " | ") $ map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined "| " (map pretty fs)
@@ -2179,7 +2179,7 @@ instance Pretty BooleanFormula where
             Just formulas ->
                 put formulas
     prettyInternal (ParenFormula _ f) =
-        parens $ pretty f
+        parens <| pretty f
 
 
 --------------------------------------------------------------------------------
@@ -2331,9 +2331,9 @@ instance Pretty ModulePragma where
 instance Pretty ImportDecl where
     prettyInternal (ImportDecl _ name qualified source safe mpkg mas mspec) = do
         write "import"
-        when source $ write " {-# SOURCE #-}"
-        when safe $ write " safe"
-        when qualified $ write " qualified"
+        when source <| write " {-# SOURCE #-}"
+        when safe <| write " safe"
+        when qualified <| write " qualified"
         case mpkg of
             Nothing ->
                 return ()
@@ -2365,7 +2365,7 @@ instance Pretty ModuleName where
 
 instance Pretty ImportSpecList where
     prettyInternal (ImportSpecList _ hiding spec) = do
-        when hiding $ write " hiding"
+        when hiding <| write " hiding"
         let verVar = do
                 space
                 parens (commas (map pretty spec))
@@ -2555,7 +2555,7 @@ context ctx =
             pretty a
 
         CxTuple _ as -> do
-            depend (write "( ") $ prefixedLined ", " (map pretty as)
+            depend (write "( ") <| prefixedLined ", " (map pretty as)
             newline
             write ")"
 
@@ -2566,16 +2566,16 @@ context ctx =
 typ :: Type NodeInfo -> Printer ()
 typ (TyTuple _ Boxed types) = do
     let horVar =
-            parens $ inter (write ", ") (map pretty types)
+            parens <| inter (write ", ") (map pretty types)
     let verVar =
-            parens $ prefixedLined "," (map (depend space . pretty) types)
+            parens <| prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyTuple _ Unboxed types) = do
     let horVar =
-            wrap "(# " " #)" $ inter (write ", ") (map pretty types)
+            wrap "(# " " #)" <| inter (write ", ") (map pretty types)
     let verVar =
-            wrap "(#" " #)"
-                $ prefixedLined "," (map (depend space . pretty) types)
+            wrap "(#" " #)" <|
+                prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyForall _ mbinds ctx ty) =
     depend
@@ -2654,12 +2654,12 @@ typ (TyEquals _ left right) = do
     pretty right
 typ (TyPromoted _ (PromotedList _ _ ts)) = do
     write "'["
-    unless (null ts) $ write " "
+    unless (null ts) <| write " "
     commas (map pretty ts)
     write "]"
 typ (TyPromoted _ (PromotedTuple _ ts)) = do
     write "'("
-    unless (null ts) $ write " "
+    unless (null ts) <| write " "
     commas (map pretty ts)
     write ")"
 typ (TyPromoted _ (PromotedCon _ _ tname)) = do
@@ -2694,7 +2694,7 @@ prettyTopName :: Name NodeInfo -> Printer ()
 prettyTopName x@Ident {} =
     pretty x
 prettyTopName x@Symbol {} =
-    parens $ pretty x
+    parens <| pretty x
 
 
 -- | Specially format records. Indent where clauses only 2 spaces.
@@ -2736,9 +2736,9 @@ decl' (TypeSig _ names ty') = do
             length s + 2
 
         allNamesLength =
-            fromIntegral $ sum (map nameLength names) + 2 * (length names - 1)
+            fromIntegral <| sum (map nameLength names) + 2 * (length names - 1)
 decl' (PatBind _ pat rhs' mbinds) =
-    withCaseContext False $ do
+    withCaseContext False <| do
         pretty pat
         pretty rhs'
         for_ mbinds bindingGroup
@@ -2871,7 +2871,7 @@ conDecl (InfixConDecl _ a f b) =
 
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
 recUpdateExpr expWriter updates = do
-    ifFitsOnOneLineOrElse hor $ do
+    ifFitsOnOneLineOrElse hor <| do
         expWriter
         newline
         indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
@@ -2882,7 +2882,7 @@ recUpdateExpr expWriter updates = do
             updatesHor
 
         updatesHor =
-            braces $ commas $ map pretty updates
+            braces <| commas $ map pretty updates
 
         updatesVer = do
             write "{"
@@ -2945,7 +2945,7 @@ fitsOnOneLine_ p = do
     put st {psFitOnOneLine = True}
     ok <- fmap (const True) p <|> return False
     put st
-    guard $ ok || not (psFitOnOneLine st)
+    guard <| ok || not (psFitOnOneLine st)
     return ok
 
 
@@ -2957,7 +2957,7 @@ fitsOnOneLine p = do
     ok <- fmap (const True) p <|> return False
     st' <- get
     put st
-    guard $ ok || not (psFitOnOneLine st)
+    guard <| ok || not (psFitOnOneLine st)
     return
         (if ok then
             Just st' {psFitOnOneLine = psFitOnOneLine st}
@@ -2974,12 +2974,12 @@ ifFitsOnOneLineOrElse a b = do
     res <- fmap Just a <|> return Nothing
     case res of
         Just r -> do
-            modify $ \st -> st {psFitOnOneLine = psFitOnOneLine stOrig}
+            modify <| \st -> st {psFitOnOneLine = psFitOnOneLine stOrig}
             return r
 
         Nothing -> do
             put stOrig
-            guard $ not (psFitOnOneLine stOrig)
+            guard <| not (psFitOnOneLine stOrig)
             b
 
 
