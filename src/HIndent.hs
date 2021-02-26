@@ -390,14 +390,15 @@ traverseInOrder cmp f ast = do
     evalStateT
         (traverse
              (const
-                  (do i <- gets head
-                      modify tail
-                      case lookup i results of
-                          Nothing ->
-                              error "traverseInOrder"
+                  (do
+                       i <- gets head
+                       modify tail
+                       case lookup i results of
+                           Nothing ->
+                               error "traverseInOrder"
 
-                          Just x ->
-                              return x))
+                           Just x ->
+                               return x))
              ast)
         [0 ..]
 
