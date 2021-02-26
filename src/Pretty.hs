@@ -1095,12 +1095,13 @@ decl (ClassDecl _ ctx dhead fundeps decls) = do
         (do newline
             indentedBlock (lined (map pretty (fromMaybe [] decls))))
 decl (TypeDecl _ typehead typ') = do
-    write "type "
+    write "type"
+    space
     pretty typehead
-    ifFitsOnOneLineOrElse
-        (depend (write " = ") (pretty typ'))
-        (do newline
-            indentedBlock (depend (write " = ") (pretty typ')))
+    space
+    write "="
+    newline
+    indentedBlock (pretty typ')
 decl (TypeFamDecl _ declhead result injectivity) = do
     write "type family "
     pretty declhead
