@@ -20,10 +20,18 @@ case "${1-}" in
     ;;
 
   format )
-    #mapfile -t files < <(fdfind -c never -t f ".hs")
-
-    ## Archlinux with fd
-    mapfile -t files < <(fd -c never -t f ".hs")
+    if command -v fdfind > /dev/null
+    then
+      fd_="fdfind"
+    elif command -v fd > /dev/null
+    then
+      fd_="fdfind"
+    else
+      echo "please install fd"
+      echo "https://github.com/sharkdp/fd"
+      exit 1
+    fi
+    mapfile -t files < <("${fd_}" -c never -t f ".hs")
 
     hindent-elm "${files[@]}"
     ;;
