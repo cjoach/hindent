@@ -121,8 +121,11 @@ indented i p = do
 
 indentedBlock :: Printer a -> Printer a
 indentedBlock p = do
+    level <- gets psIndentLevel
     indentSpaces <- getIndentSpaces
-    indented indentSpaces p
+    let newIndent =
+            indentSpaces - (level `rem` indentSpaces)
+    indented newIndent p
 
 
 -- | Print all the printers separated by spaces.
