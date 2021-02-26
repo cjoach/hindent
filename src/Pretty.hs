@@ -691,14 +691,16 @@ exp e@(InfixApp _ a op b) =
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 exp (If _ if' then' else') =
     let
-        potentialDo expression =
+        printExpression expression =
             case expression of
                 Do _ stmts -> do
                     space
                     write "do"
+                    newline
+                    indentedBlock <| lined <| map pretty stmts
 
                 _ -> do
-                    return ()
+                    indentedBlock (pretty e)
 
         ifLine = do
             write "if"
@@ -719,17 +721,16 @@ exp (If _ if' then' else') =
         indentedBlock (pretty if')
         newline
         write "then"
-        potentialDo then'
+        printExpression then'
 
     newline
-    indentedBlock <| lined <| map pretty then'
+    printExpression then'
     -- map pretty then'
     --     |> lined
     --     |> indentedBlock
     oneEmptyLine
     write "else"
-    potentialDo else'
-    indentedBlock <| lined <| map pretty else'
+    printExpression else'
     -- map pretty else'
     --     |> lined
     --     |> indentedBlock
