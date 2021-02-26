@@ -2834,22 +2834,35 @@ infixApp e a op b =
                 | link <- flattenOpChain e
                 ]
 
-        vertical = do
-            pretty a
-            let beforeRhs =
-                    case a of
-                        Do _ _ -> do
-                            indentSpaces <- getIndentSpaces
-                            column
-                                (indentSpaces + 3)
-                                (newline >> pretty op) -- 3 = "do "
-                            space
+    in
+    ifFitsOnOneLineOrElse
+        horizontal
+        (verticalInfixApplication a op b)
 
-                        _ -> do
-                            newline
-                            indentedBlock <| do
-                                pretty op
-                                space
+
+verticalInfixApplication ::
+       Exp NodeInfo
+    -> QOp NodeInfo
+    -> Exp NodeInfo
+    -> Printer ()
+verticalInfixApplication a op b =
+    let
+        operator =
+            case a of
+                Do _ _ -> do
+                    indentSpaces <- getIndentSpaces
+                    column
+                        (indentSpaces + 3)
+                        (newline >> pretty op) -- 3 = "do "
+                    space
+
+                _ -> do
+                    newline
+                    indentedBlock <| do
+                        pretty op
+                        space
+
+        afterOperator =
             case b of
                 Lambda {} ->
                     space
@@ -2864,10 +2877,11 @@ infixApp e a op b =
                         $ lined (map pretty stmts)
 
                 _ -> do
-                    beforeRhs
                     pretty b
-    in
-    ifFitsOnOneLineOrElse horizontal vertical
+    in do
+    pretty a
+    operator
+    afterOperator
 
 
 -- | A link in a chain of operator applications.
