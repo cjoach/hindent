@@ -3168,6 +3168,17 @@ infixApp wholeExpression a op b =
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
+        bIsDoOrCase =
+            case b of
+                Do _ _ ->
+                    True
+
+                Case _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         srcSpan =
             ann wholeExpression
                 |> nodeInfoSpan
@@ -3177,6 +3188,9 @@ infixApp wholeExpression a op b =
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
         if isBreakFromFile && isBreakAfterFromConfig then
+            verticalAfter
+
+        else if bIsDoOrCase then
             verticalAfter
 
         else if isBreakFromFile then
