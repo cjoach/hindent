@@ -1311,7 +1311,15 @@ instance Pretty Alt where
         case x of
             Alt _ p galts mbinds -> do
                 pretty p
-                pretty galts
+                case galts of
+                    UnGuardedRhs _ _ -> do
+                        space
+                        write "->"
+
+                    GuardedRhss _ _ ->
+                        return ()
+                newline
+                indentedBlock (pretty galts)
                 case mbinds of
                     Nothing -> return ()
 
@@ -2124,24 +2132,16 @@ stmt x =
 -- | Handle do and case specially and also space out guards more.
 rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ e) =
-    case e of
-        Do _ _ -> do
-            space
-            rhsSeparator
-            space
-            pretty e
-
-        _ -> do
-            space
-            swing rhsSeparator (pretty e)
-rhs (GuardedRhss _ gas) = do
-    newline
+    pretty e
+rhs (GuardedRhss _ gas) =
+    let
+        line p = do
+            write "|"
+            pretty p
+    in
     gas
-        |> map (\p -> do
-                    write "|"
-                    pretty p)
+        |> map line
         |> lined
-        |> indentedBlock
 
 
 -- | Implement dangling right-hand-sides.
