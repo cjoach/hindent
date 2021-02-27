@@ -278,7 +278,24 @@ depend maker dependent = do
 -- | Wrap.
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p =
-    depend (write open) <| p <* write close
+    let
+        fullExpression =
+            do
+                write open
+                p
+                <* write close
+    in do
+        isOneLine <- fitsOnOneLine_ fullExpression
+        if isOneLine then
+            fullExpression
+
+        else
+            do
+                write open
+                space
+                indented 2 <| do
+                    p
+                    <* (newline >> (write close))
 
 
 -- | Wrap in parens.
