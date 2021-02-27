@@ -1312,19 +1312,19 @@ instance Pretty Alt where
             Alt _ p galts mbinds -> do
                 pretty p
                 case galts of
-                    UnGuardedRhs _ _ -> do
+                    GuardedRhss _ _ -> do
+                        newline
+                        indentedBlock <| pretty galts
+
+                    UnGuardedRhs _ (Do _ _) -> do
                         space
                         write "->"
-
-                    GuardedRhss _ _ ->
-                        return ()
-
-                case galts of
-                    UnGuardedRhs _ (Do _ _) -> do
                         space
                         pretty galts
 
                     _ -> do
+                        space
+                        write "->"
                         newline
                         indentedBlock (pretty galts)
                 case mbinds of
@@ -2221,14 +2221,20 @@ match (Match _ name pats rhs' mbinds) = do
         |> map pretty
         |> spaced
         |> indentedBlock
-    space
-    write "="
     case rhs' of
+        GuardedRhss _ _ -> do
+            newline
+            indentedBlock <| pretty rhs'
+
         UnGuardedRhs _ (Do _ _) -> do
+            space
+            write "="
             space
             pretty rhs'
 
         _ -> do
+            space
+            write "="
             newline
             indentedBlock <| pretty rhs'
     for_ mbinds bindingGroup
@@ -2413,14 +2419,20 @@ decl' (TypeSig _ names ty') = do
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat
-        space
-        write "="
         case rhs' of
+            GuardedRhss _ _ -> do
+                newline
+                indentedBlock <| pretty rhs'
+
             UnGuardedRhs _ (Do _ _) -> do
+                space
+                write "="
                 space
                 pretty rhs'
 
             _ -> do
+                space
+                write "="
                 newline
                 indentedBlock <| pretty rhs'
         for_ mbinds bindingGroup
