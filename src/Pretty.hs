@@ -2209,18 +2209,28 @@ guardedRhs (GuardedRhs _ stmts e) = do
 
 match :: Match NodeInfo -> Printer ()
 match (Match _ name pats rhs' mbinds) = do
-    depend
-        (do
-            case name of
-                Ident _ _ -> pretty name
+    case name of
+        Ident _ _ -> pretty name
 
-                Symbol _ _ -> do
-                    write "("
-                    pretty name
-                    write ")"
-            space)
-        (spaced (map pretty pats))
-    withCaseContext False (pretty rhs')
+        Symbol _ _ -> do
+            write "("
+            pretty name
+            write ")"
+    space
+    pats
+        |> map pretty
+        |> spaced
+        |> indentedBlock
+    space
+    write "="
+    case rhs' of
+        UnGuardedRhs _ (Do _ _) -> do
+            space
+            pretty rhs'
+
+        _ -> do
+            newline
+            indentedBlock <| pretty rhs'
     for_ mbinds bindingGroup
 match (InfixMatch _ pat1 name pats rhs' mbinds) = do
     depend
