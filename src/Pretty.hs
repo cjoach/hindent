@@ -2396,7 +2396,16 @@ decl' (TypeSig _ names ty') = do
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat
-        pretty rhs'
+        space
+        write "="
+        case rhs' of
+            UnGuardedRhs _ (Do _ _) -> do
+                space
+                pretty rhs'
+
+            _ -> do
+                newline
+                indentedBlock <| pretty rhs'
         for_ mbinds bindingGroup
 -- | Handle records specially for a prettier display (see guide).
 decl' e = decl e
