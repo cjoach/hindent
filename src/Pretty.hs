@@ -3168,12 +3168,15 @@ infixApp wholeExpression a op b =
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
-        bIsDoOrCase =
+        bIsAMultilineConstruct =
             case b of
                 Do _ _ ->
                     True
 
                 Case _ _ _ ->
+                    True
+
+                Lambda _ _ _ ->
                     True
 
                 _ ->
@@ -3190,7 +3193,7 @@ infixApp wholeExpression a op b =
         if isBreakFromFile && isBreakAfterFromConfig then
             verticalAfter
 
-        else if bIsDoOrCase then
+        else if bIsAMultilineConstruct then
             verticalAfter
 
         else if isBreakFromFile then
