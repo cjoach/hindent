@@ -3168,15 +3168,25 @@ infixApp wholeExpression a op b =
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
-        bIsAMultilineConstruct =
+        bIsCase =
             case b of
-                Do _ _ ->
-                    True
-
                 Case _ _ _ ->
                     True
 
+                _ ->
+                    False
+
+        bIsLambda =
+            case b of
                 Lambda _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        bIsDo =
+            case b of
+                Do _ _ ->
                     True
 
                 _ ->
@@ -3188,13 +3198,21 @@ infixApp wholeExpression a op b =
                 |> srcInfoSpan
     in do
         let symbolName = getSymbolNameOp op
+
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
+
         if isBreakFromFile && isBreakAfterFromConfig then
             verticalAfter
 
-        else if bIsAMultilineConstruct then
+        else if bIsCase then
             verticalAfter
+
+        else if bIsLambda then
+            ifFitsOnOneLineOrElse horizontal verticalAfter
+
+        else if bIsDo then
+            horizontal
 
         else if isBreakFromFile then
             verticalBefore
