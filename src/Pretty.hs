@@ -294,7 +294,7 @@ wrap open close p =
             space
             p' <- indented 2 p
             newline
-            write close
+            indented 2 (write close)
             return p'
 
 
