@@ -2443,9 +2443,9 @@ rhs (UnGuardedRhs _ e) =
 
         _ -> do
             space
-            rhsSeparator
-            newline
-            indentedBlock (pretty e)
+            swing
+                rhsSeparator
+                (pretty e)
 rhs (GuardedRhss _ gas) = do
     newline
     gas
