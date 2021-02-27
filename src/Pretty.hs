@@ -279,23 +279,23 @@ depend maker dependent = do
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p =
     let
-        fullExpression =
-            do
-                write open
-                p
-                <* write close
+        fullExpression = do
+            write open
+            p' <- p
+            write close
+            return p'
     in do
         isOneLine <- fitsOnOneLine_ fullExpression
         if isOneLine then
             fullExpression
 
-        else
-            do
-                write open
-                space
-                indented 2 <| do
-                    p
-                    <* (newline >> (write close))
+        else do
+            write open
+            space
+            p' <- indented 2 p
+            newline
+            write close
+            return p'
 
 
 -- | Wrap in parens.
