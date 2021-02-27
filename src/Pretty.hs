@@ -2131,7 +2131,12 @@ stmt x =
 
         Qualifier _ e -> pretty e
 
-        LetStmt _ binds -> depend (writeLet >> space) (pretty binds)
+        LetStmt _ binds -> do
+            modify (\s -> s {psInsideLetStatement = True})
+            writeLet
+            space
+            indentedBlock <| pretty binds
+            modify (\s -> s {psInsideLetStatement = False})
 
         RecStmt _ es -> depend (write "rec ") (lined (map pretty es))
 
@@ -2433,8 +2438,14 @@ decl' (PatBind _ pat rhs' mbinds) =
             _ -> do
                 space
                 write "="
-                newline
-                indentedBlock <| pretty rhs'
+                isInLetStatement <- gets psInsideLetStatement
+                if isInLetStatement then do
+                    space
+                    pretty rhs'
+
+                else do
+                    newline
+                    indentedBlock <| pretty rhs'
         for_ mbinds bindingGroup
 -- | Handle records specially for a prettier display (see guide).
 decl' e = decl e
