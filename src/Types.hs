@@ -96,9 +96,11 @@ readExtension x =
     case
         classifyExtension x -- Foo
         of
-        UnknownExtension _ -> fail ("Unknown extension: " ++ x)
+        UnknownExtension _ ->
+            fail ("Unknown extension: " ++ x)
 
-        x' -> return x'
+        x' ->
+            return x'
 
 
 instance FromJSON Config where
@@ -124,7 +126,8 @@ instance FromJSON Config where
                 (v Y..:? "line-breaks-after")
             <*> (traverse readExtension
                     =<< fmap (fromMaybe []) (v Y..:? "extensions"))
-    parseJSON _ = fail "Expected Object for Config value"
+    parseJSON _ =
+        fail "Expected Object for Config value"
 
 
 -- | Default style configuration.
@@ -166,5 +169,7 @@ data NodeInfo =
 
 
 instance Show NodeInfo where
-    show (NodeInfo _ []) = ""
-    show (NodeInfo _ s) = "{- " ++ show s ++ " -}"
+    show (NodeInfo _ []) =
+        ""
+    show (NodeInfo _ s) =
+        "{- " ++ show s ++ " -}"

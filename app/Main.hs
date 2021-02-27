@@ -57,7 +57,8 @@ main = do
                 (options config <**> helper)
                 (header "hindent - Reformat Haskell source code"))
     case runMode of
-        ShowVersion -> putStrLn ("hindent " ++ showVersion version)
+        ShowVersion ->
+            putStrLn ("hindent " ++ showVersion version)
 
         Run style exts action paths ->
             if null paths then
@@ -77,7 +78,8 @@ main = do
                                 (Just filepath)
                                 text
                             of
-                            Left e -> error e
+                            Left e ->
+                                error e
 
                             Right out ->
                                 unless
@@ -130,14 +132,17 @@ getConfig = do
             ((== ".hindent.yaml") . toFilePath . filename)
             (Just homeDir)
     case mfile of
-        Nothing -> return defaultConfig
+        Nothing ->
+            return defaultConfig
 
         Just file -> do
             result <- Y.decodeFileEither (toFilePath file)
             case result of
-                Left e -> error (show e)
+                Left e ->
+                    error (show e)
 
-                Right config -> return config
+                Right config ->
+                    return config
 
 
 -- | Program options.
@@ -218,4 +223,5 @@ options config =
                 , configSortImports = fromMaybe (configSortImports s) imports
                 }
 
-        files = many (strArgument (metavar "FILENAMES"))
+        files =
+            many (strArgument (metavar "FILENAMES"))

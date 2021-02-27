@@ -22,7 +22,8 @@ findFileUp ::
     -> (Path Abs File -> Bool) -- ^ Predicate to match the file.
     -> Maybe (Path Abs Dir) -- ^ Do not ascend above this directory.
     -> m (Maybe (Path Abs File)) -- ^ Absolute file path.
-findFileUp = findPathUp snd
+findFileUp =
+    findPathUp snd
 
 
 -- | Find the location of a path matching the given predicate.
@@ -37,7 +38,8 @@ findPathUp ::
 findPathUp pathType dir p upperBound = do
     entries <- listDir dir
     case find p (pathType entries) of
-        Just path -> return (Just path)
+        Just path ->
+            return (Just path)
 
         Nothing
             | Just dir == upperBound -> return Nothing
