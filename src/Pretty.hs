@@ -1318,8 +1318,15 @@ instance Pretty Alt where
 
                     GuardedRhss _ _ ->
                         return ()
-                newline
-                indentedBlock (pretty galts)
+
+                case galts of
+                    UnGuardedRhs _ (Do _ _) -> do
+                        space
+                        pretty galts
+
+                    _ -> do
+                        newline
+                        indentedBlock (pretty galts)
                 case mbinds of
                     Nothing -> return ()
 
