@@ -965,10 +965,9 @@ exp (Case _ e alts) = do
         Nothing -> do
             write "case"
             newline
-            indentedBlock <| do
-                (pretty e)
-                newline
-                write "of"
+            indentedBlock (pretty e)
+            newline
+            write "of"
     if null alts then
         write " {}"
 
