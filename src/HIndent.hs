@@ -209,12 +209,12 @@ reformat config mexts mfilepath =
             else if hasTrailingLine x || configTrailingNewline config then
                 fmap
                     (\x' ->
-                         if
+                        if
                             hasTrailingLine (L.toStrict (S.toLazyByteString x'))
-                         then
+                        then
                             x'
 
-                         else
+                        else
                             x' <> "\n")
                     (f x)
 
@@ -385,8 +385,8 @@ traverseInOrder cmp f ast = do
     results <-
         mapM
             (\(i, m) -> do
-                 v <- f m
-                 return (i, v))
+                v <- f m
+                return (i, v))
             sorted
     evalStateT
         (traverse
@@ -414,7 +414,7 @@ collectAllComments =
             (collectCommentsBy
                 CommentAfterLine
                 (\nodeSpan commentSpan ->
-                     fst (srcSpanStart commentSpan)
+                    fst (srcSpanStart commentSpan)
                         >= fst (srcSpanEnd nodeSpan))))
         <=< shortCircuit addCommentsToTopLevelWhereClauses
             <=< shortCircuit
@@ -425,7 +425,7 @@ collectAllComments =
                   (collectCommentsBy
                     CommentSameLine
                     (\nodeSpan commentSpan ->
-                         fst (srcSpanStart commentSpan)
+                        fst (srcSpanStart commentSpan)
                             == fst (srcSpanEnd nodeSpan))))
                 <=< shortCircuit
                     (traverseBackwards
@@ -435,7 +435,7 @@ collectAllComments =
                         (collectCommentsBy
                             CommentSameLine
                             (\nodeSpan commentSpan ->
-                                 fst (srcSpanStart commentSpan)
+                                fst (srcSpanStart commentSpan)
                                     == fst (srcSpanStart nodeSpan)
                                     && fst (srcSpanStart commentSpan)
                                         == fst (srcSpanEnd nodeSpan))))
@@ -446,7 +446,7 @@ collectAllComments =
                             (collectCommentsBy
                                 CommentBeforeLine
                                 (\nodeSpan commentSpan ->
-                                     (snd (srcSpanStart nodeSpan) == 1
+                                    (snd (srcSpanStart nodeSpan) == 1
                                         && snd (srcSpanStart commentSpan)
                                             == 1)
                                         && fst (srcSpanStart commentSpan)
@@ -460,7 +460,7 @@ collectAllComments =
         traverseBackwards =
             traverseInOrder
                 (\x y ->
-                     on
+                    on
                         (flip compare)
                         (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
                         x
@@ -489,10 +489,10 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
     let (others, mine) =
             partitionEithers
                 (map (\comment@(Comment _ commentSpan _) ->
-                          if predicate nodeSpan commentSpan then
+                        if predicate nodeSpan commentSpan then
                             Right comment
 
-                          else
+                        else
                             Left comment)
                     comments)
     put others
@@ -544,10 +544,10 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             fst
                 $ foldr'
                     (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
-                         if comment `isAbove` lastSpan then
+                        if comment `isAbove` lastSpan then
                             ((ls, comment : rs), commentSpan)
 
-                         else
+                        else
                             ((comment : ls, rs), lastSpan))
                     (([], []), nodeSpan)
                     cs

@@ -44,7 +44,7 @@ pretty :: (Pretty ast, Show (ast NodeInfo)) => ast NodeInfo -> Printer ()
 pretty a = do
     mapM_
         (\c' -> do
-             case c' of
+            case c' of
                 CommentBeforeLine _ c -> do
                     case c of
                         EndOfLine s ->
@@ -60,7 +60,7 @@ pretty a = do
     prettyInternal a
     mapM_
         (\(i, c') -> do
-             case c' of
+            case c' of
                 CommentSameLine spn c -> do
                     col <- gets psColumn
                     if
@@ -145,7 +145,7 @@ inter :: Printer () -> [Printer ()] -> Printer ()
 inter sep ps =
     foldr
         (\(i, p) next ->
-             depend
+            depend
                 (do
                     p
                     if i < length ps then
@@ -188,8 +188,8 @@ prefixedLined pref ps' =
                 (fromIntegral (length pref * (-1)))
                 (mapM_
                     (\p' -> do
-                         newline
-                         depend (write pref) p')
+                        newline
+                        depend (write pref) p')
                     ps)
 
 
@@ -205,9 +205,9 @@ prefixedLined_ pref ps' =
             p
             mapM_
                 (\p' -> do
-                     newline
-                     write pref
-                     p')
+                    newline
+                    write pref
+                    p')
                 ps
 
 
@@ -354,7 +354,7 @@ write x = do
                 && (psColumn' <= configMaxColumns (psConfig state))))
     modify
         (\s ->
-             s
+            s
                 { psOutput = psOutput state <> S.stringUtf8 out
                 , psNewline = False
                 , psLine = psLine state + fromIntegral additionalLines
@@ -434,22 +434,18 @@ maybeOverlap =
 -- | Swing the second printer below and indented
 swing :: Printer () -> Printer b -> Printer ()
 swing a b = do
-    orig <- gets psIndentLevel
     a
     mst <-
-        fitsOnOneLine
-            (do
-                space
-                b)
+        fitsOnOneLine <| do
+            space
+            b
     case mst of
         Just st ->
             put st
 
         Nothing -> do
             newline
-            indentedBlock b
-            -- indentSpaces <- getIndentSpaces
-            -- _ <- column (orig + indentSpaces) b
+            _ <- indentedBlock b
             return ()
 
 
@@ -1049,8 +1045,8 @@ exp (MultiIf _ alts) =
             (write "if ")
             (lined
                 (map (\p -> do
-                          write "| "
-                          prettyG p)
+                        write "| "
+                        prettyG p)
                     alts)))
     where
         prettyG (GuardedRhs _ stmts e) = do
@@ -1059,9 +1055,9 @@ exp (MultiIf _ alts) =
                 (do
                     (lined
                         (map (\(i, p) -> do
-                                  unless (i == 1) space
-                                  pretty p
-                                  unless (i == length stmts) (write ","))
+                                unless (i == 1) space
+                                pretty p
+                                unless (i == length stmts) (write ","))
                             (zip [1 ..] stmts))))
             swing (write " " >> rhsSeparator) (pretty e)
 exp (Lit _ lit) =
@@ -1880,10 +1876,10 @@ instance Pretty Module where
                     twoEmptyLines
                     (mapMaybe
                         (\(isNull, r) ->
-                             if isNull then
+                            if isNull then
                                 Nothing
 
-                             else
+                            else
                                 Just r)
                         [ (null pragmas, inter newline (map pretty pragmas))
                         , (case mayModHead of
@@ -2318,8 +2314,8 @@ instance Pretty ModuleHead where
         maybe
             (return ())
             (\exports -> do
-                 newline
-                 indentedBlock (pretty exports))
+                newline
+                indentedBlock (pretty exports))
             mexports
         write " where"
 
@@ -2470,8 +2466,8 @@ guardedRhs (GuardedRhs _ stmts (Do _ dos)) = do
             prefixedLined
                 ","
                 (map (\p -> do
-                          space
-                          pretty p)
+                        space
+                        pretty p)
                     stmts))
     inCase <- gets psInsideCase
     write
@@ -2511,8 +2507,8 @@ guardedRhs (GuardedRhs _ stmts e) = do
                     prefixedLined
                         ","
                         (map (\p -> do
-                                  space
-                                  pretty p)
+                                space
+                                pretty p)
                             stmts))
 
         swingIt =

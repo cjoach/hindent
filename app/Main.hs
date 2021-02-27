@@ -108,7 +108,7 @@ main = do
                                                         ioe_errno e
                                                             == Just
                                                                 ((\(Errno a) ->
-                                                                      a)
+                                                                    a)
                                                                     eXDEV)
                                                     then
                                                         IO.copyFile fp filepath
