@@ -431,7 +431,7 @@ maybeOverlap =
     maybe (return ()) (\p -> pretty p >> space)
 
 
--- | Swing the second printer below and indented with respect to the first.
+-- | Swing the second printer below and indented
 swing :: Printer () -> Printer b -> Printer ()
 swing a b = do
     orig <- gets psIndentLevel
@@ -447,8 +447,9 @@ swing a b = do
 
         Nothing -> do
             newline
-            indentSpaces <- getIndentSpaces
-            _ <- column (orig + indentSpaces) b
+            indentedBlock b
+            -- indentSpaces <- getIndentSpaces
+            -- _ <- column (orig + indentSpaces) b
             return ()
 
 
