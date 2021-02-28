@@ -256,6 +256,15 @@ withCaseContext bool pr = do
     return result
 
 
+withLetStatementContext :: Bool -> Printer a -> Printer a
+withLetStatementContext bool pr = do
+    original <- gets psInsideLetStatement
+    modify (\s -> s {psInsideLetStatement = bool})
+    result <- pr
+    modify (\s -> s {psInsideLetStatement = original})
+    return result
+
+
 -- | Get the current RHS separator, either = or -> .
 rhsSeparator :: Printer ()
 rhsSeparator = do
@@ -2525,12 +2534,11 @@ stmt x =
         Qualifier _ e ->
             pretty e
 
-        LetStmt _ binds -> do
-            modify (\s -> s {psInsideLetStatement = True})
-            writeLet
-            space
-            indentedBlock <| pretty binds
-            modify (\s -> s {psInsideLetStatement = False})
+        LetStmt _ binds ->
+            withLetStatementContext True <| do
+                writeLet
+                space
+                indentedBlock <| pretty binds
 
         RecStmt _ es ->
             depend (write "rec ") (lined (map pretty es))
