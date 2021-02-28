@@ -78,6 +78,7 @@ data PrintState =
 data Config =
     Config
         { configMaxColumns :: !Int64 -- ^ Maximum columns to fit code into ideally.
+        , configMaxCodeColumns :: !Int64
         , configIndentSpaces :: !Int64 -- ^ How many spaces to indent?
         , configTrailingNewline :: !Bool -- ^ End with a newline.
         , configSortImports :: !Bool -- ^ Sort imports in groups.
@@ -110,6 +111,9 @@ instance FromJSON Config where
                 (fromMaybe (configMaxColumns defaultConfig))
                 (v Y..:? "line-length")
             <*> fmap
+                (fromMaybe (configMaxCodeColumns defaultConfig))
+                (v Y..:? "code-length")
+            <*> fmap
                 (fromMaybe (configIndentSpaces defaultConfig))
                 (v Y..:? "indent-size" <|> v Y..:? "tab-size")
             <*> fmap
@@ -136,6 +140,7 @@ defaultConfig :: Config
 defaultConfig =
     Config
         { configMaxColumns = 80
+        , configMaxCodeColumns = 80
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True

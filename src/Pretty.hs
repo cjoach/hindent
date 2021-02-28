@@ -354,6 +354,7 @@ int =
 write :: String -> Printer ()
 write x = do
     eol <- gets psEolComment
+    indentLevel <- gets psIndentLevel
     hardFail <- gets psFitOnOneLine
     let addingNewline = eol && x /= "\n"
     when addingNewline newline
@@ -380,6 +381,7 @@ write x = do
         ( guard
             ( additionalLines == 0
                 && (psColumn' <= configMaxColumns (psConfig state))
+                && ((psColumn' - indentLevel) <= configMaxCodeColumns (psConfig state))
             )
         )
     modify
