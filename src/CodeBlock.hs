@@ -9,6 +9,7 @@ module CodeBlock
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
+import Flow ((<|))
 
 
 -- | A block of code.
@@ -36,8 +37,8 @@ data CodeBlock
 cppSplitBlocks :: ByteString -> [CodeBlock]
 cppSplitBlocks inp =
     modifyLast (inBlock (<> trailing))
-        . groupLines . classifyLines . zip [0 ..] . S8.lines
-        $ inp
+        . groupLines . classifyLines . zip [0 ..] . S8.lines <|
+        inp
     where
         groupLines :: [CodeBlock] -> [CodeBlock]
 
@@ -56,12 +57,12 @@ cppSplitBlocks inp =
         mergeLines :: CodeBlock -> CodeBlock -> Maybe CodeBlock
 
         mergeLines (CPPDirectives src1) (CPPDirectives src2) =
-            Just $ CPPDirectives (src1 <> "\n" <> src2)
+            Just <| CPPDirectives (src1 <> "\n" <> src2)
         mergeLines (Shebang src1) (Shebang src2) =
-            Just $ Shebang (src1 <> "\n" <> src2)
+            Just <| Shebang (src1 <> "\n" <> src2)
         mergeLines (HaskellSource lineNumber1 src1) ( HaskellSource _lineNumber2 src2
                                                       ) =
-            Just $ HaskellSource lineNumber1 (src1 <> "\n" <> src2)
+            Just <| HaskellSource lineNumber1 (src1 <> "\n" <> src2)
         mergeLines _ _ =
             Nothing
 

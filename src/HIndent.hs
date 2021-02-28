@@ -66,9 +66,9 @@ reformat config mexts mfilepath =
         processBlock :: CodeBlock -> Either String Builder
 
         processBlock (Shebang text) =
-            Right $ S.byteString text
+            Right <| S.byteString text
         processBlock (CPPDirectives text) =
-            Right $ S.byteString text
+            Right <| S.byteString text
         processBlock (HaskellSource line text) =
             let
                 ls =
@@ -138,8 +138,8 @@ reformat config mexts mfilepath =
 
             else
                 fromMaybe (error "Missing expected prefix")
-                    . s8_stripPrefix prefix
-                    $ line
+                    . s8_stripPrefix prefix <|
+                    line
 
         findPrefix :: [ByteString] -> ByteString
 
@@ -371,7 +371,7 @@ getExtensions =
         f a x
             | Just x' <- readExtension x = x' : delete x' a
         f _ x =
-            error $ "Unknown extension: " ++ x
+            error <| "Unknown extension: " ++ x
 
 
 --------------------------------------------------------------------------------
@@ -521,7 +521,7 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
                 comments
               )
     put others
-    return $ addCommentsToNode cons mine nodeInfo
+    return <| addCommentsToNode cons mine nodeInfo
 
 
 -- | Reintroduce comments which were immediately above declarations in where clauses.
@@ -539,7 +539,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                                                        )
               ) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
-            return $ PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
+            return <| PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
         addCommentsToWhereClauses other =
             return other
 
@@ -550,8 +550,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                                                   ) x' x''
               ) = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
-            return
-                $ PatBind
+            return <|
+                PatBind
                     bindInfoWithComments
                     (PVar x (Ident declNodeInfo declString))
                     x'
@@ -565,14 +565,14 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             comments <- get
             let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
             put notAbove
-            return $ addCommentsToNode CommentBeforeLine above nodeInfo
+            return <| addCommentsToNode CommentBeforeLine above nodeInfo
 
         partitionAboveNotAbove ::
                [Comment] -> NodeInfo -> ([Comment], [Comment])
 
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
-            fst
-                $ foldr'
+            fst <|
+                foldr'
                     ( \comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
                         if comment `isAbove` lastSpan then
                             ((ls, comment : rs), commentSpan)

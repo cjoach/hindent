@@ -20,6 +20,7 @@ import Data.Maybe
 import Data.Version (showVersion)
 import qualified Data.Yaml as Y
 import Find (findFileUp)
+import Flow ((<|))
 import Foreign.C.Error
 import GHC.IO.Exception
 import HIndent
@@ -69,14 +70,14 @@ main = do
                       )
 
             else
-                forM_ paths $
+                forM_ paths <|
                     \filepath -> do
                         cabalexts <- getCabalExtensionsForSourcePath filepath
                         text <- S.readFile filepath
                         ( case
                             reformat
                                 style
-                                (Just $ cabalexts ++ exts)
+                                (Just <| cabalexts ++ exts)
                                 (Just filepath)
                                 text
                           of
@@ -87,11 +88,11 @@ main = do
                                 unless
                                     ( L8.fromStrict text
                                         == S.toLazyByteString out
-                                      ) $
+                                      ) <|
                                     case action of
                                         Validate -> do
-                                            IO.putStrLn
-                                                $ filepath
+                                            IO.putStrLn <|
+                                                filepath
                                                     ++ " is not formatted"
                                             exitWith (ExitFailure 1)
 

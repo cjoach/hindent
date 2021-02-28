@@ -22,7 +22,7 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Flow
+import Flow ((<|), (|>))
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
@@ -559,7 +559,7 @@ instance Pretty Pat where
                 let horVariant = do
                         pretty qname
                         space
-                        braces <| commas $ map pretty fields
+                        braces <| commas <| map pretty fields
 
                     verVariant = depend (pretty qname >> space) <| do
                         case fields of
@@ -907,7 +907,7 @@ exp (ListComp _ e qstmt) = do
             write "[ "
             pretty e
             newline
-            depend (write "| ") <| prefixedLined ", " $ map pretty qstmt
+            depend (write "| ") <| prefixedLined ", " <| map pretty qstmt
             newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -924,7 +924,8 @@ exp (ParComp _ e qstmts) = do
             newline
             for_ qstmts <|
                 \qstmt -> do
-                    depend (write "| ") <| prefixedLined ", " $ map pretty qstmt
+                    depend (write "| ") <|
+                        prefixedLined ", " <| map pretty qstmt
                     newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -1815,11 +1816,11 @@ instance Pretty GadtDecl where
                 pretty name
                 newline
                 indentedBlock <|
-                    depend (write ":: ") $ do
-                    fields' <| do
-                        newline
-                        indented (-3) (write "-> ")
-                    declTy t
+                    depend (write ":: ") <| do
+                        fields' <| do
+                            newline
+                            indented (-3) (write "-> ")
+                        declTy t
 
 
 instance Pretty Rhs where
@@ -2258,7 +2259,7 @@ instance Pretty BooleanFormula where
     prettyInternal (VarFormula _ (Symbol _ s)) =
         write "(" >> string s >> write ")"
     prettyInternal (AndFormula _ fs) = do
-        maybeFormulas <- fitsOnOneLine <| inter (write ", ") $ map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write ", ") <| map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined ", " (map pretty fs)
@@ -2266,7 +2267,7 @@ instance Pretty BooleanFormula where
             Just formulas ->
                 put formulas
     prettyInternal (OrFormula _ fs) = do
-        maybeFormulas <- fitsOnOneLine <| inter (write " | ") $ map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write " | ") <| map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined "| " (map pretty fs)
@@ -3035,7 +3036,7 @@ recUpdateExpr expWriter updates = do
             updatesHor
 
         updatesHor =
-            braces <| commas $ map pretty updates
+            braces <| commas <| map pretty updates
 
         updatesVer = do
             write "{"
