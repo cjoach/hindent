@@ -69,17 +69,17 @@ main = do
                       )
 
             else
-                forM_ paths
-                    $ \filepath -> do
+                forM_ paths $
+                    \filepath -> do
                         cabalexts <- getCabalExtensionsForSourcePath filepath
                         text <- S.readFile filepath
-                        case
+                        ( case
                             reformat
                                 style
                                 (Just $ cabalexts ++ exts)
                                 (Just filepath)
                                 text
-                            of
+                          of
                             Left e ->
                                 error e
 
@@ -87,8 +87,8 @@ main = do
                                 unless
                                     ( L8.fromStrict text
                                         == S.toLazyByteString out
-                                      )
-                                    $ case action of
+                                      ) $
+                                    case action of
                                         Validate -> do
                                             IO.putStrLn
                                                 $ filepath
@@ -123,6 +123,7 @@ main = do
                                             IO.copyPermissions filepath fp
                                             IO.renameFile fp filepath
                                                 `catch` exdev
+                          )
 
 
 -- | Read config from a config file, or return 'defaultConfig'.

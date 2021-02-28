@@ -95,7 +95,7 @@ readExtension :: Monad m => String -> m Extension
 readExtension x =
     case
         classifyExtension x -- Foo
-        of
+    of
         UnknownExtension _ ->
             fail ("Unknown extension: " ++ x)
 

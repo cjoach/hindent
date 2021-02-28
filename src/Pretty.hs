@@ -1877,8 +1877,8 @@ instance Pretty InstHead where
     prettyInternal x =
         case
             x
-      -- Base cases
-            of
+        -- Base cases
+        of
             IHCon _ name ->
                 pretty name
 
@@ -1889,7 +1889,7 @@ instance Pretty InstHead where
                         space
                         prettyInfixOp name
                       )
-      -- Recursive application
+        -- Recursive application
 
             IHApp _ ihead typ' ->
                 depend
@@ -1898,7 +1898,7 @@ instance Pretty InstHead where
                         space
                         pretty typ'
                       )
-      -- Wrapping in parens
+        -- Wrapping in parens
 
             IHParen _ h ->
                 parens (pretty h)
@@ -3198,10 +3198,8 @@ infixApp wholeExpression a op b =
                 |> srcInfoSpan
     in do
         let symbolName = getSymbolNameOp op
-
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
-
         if isBreakFromFile && isBreakAfterFromConfig then
             verticalAfter
 
