@@ -510,16 +510,17 @@ collectCommentsBy ::
     -> State [Comment] NodeInfo
 collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) = do
     comments <- get
-    let (others, mine) = partitionEithers
-            ( map ( \comment@(Comment _ commentSpan _) ->
-                    if predicate nodeSpan commentSpan then
-                        Right comment
+    let (others, mine) =
+            partitionEithers
+                ( map ( \comment@(Comment _ commentSpan _) ->
+                        if predicate nodeSpan commentSpan then
+                            Right comment
 
-                    else
-                        Left comment
+                        else
+                            Left comment
+                    )
+                    comments
                 )
-                comments
-            )
     put others
     return <| addCommentsToNode cons mine nodeInfo
 

@@ -362,17 +362,19 @@ write x = do
 
         out :: String
 
-        out = if psNewline state && not writingNewline then
-            (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
+        out =
+            if psNewline state && not writingNewline then
+                (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
 
-        else
-            x
+            else
+                x
 
-        psColumn' = if additionalLines > 0 then
-            fromIntegral (length (concat (take 1 (reverse srclines))))
+        psColumn' =
+            if additionalLines > 0 then
+                fromIntegral (length (concat (take 1 (reverse srclines))))
 
-        else
-            psColumn state + fromIntegral (length out)
+            else
+                psColumn state + fromIntegral (length out)
     when
         hardFail
         ( guard
@@ -570,22 +572,23 @@ instance Pretty Pat where
                         space
                         braces <| commas <| map pretty fields
 
-                    verVariant = depend (pretty qname >> space) <| do
-                        case fields of
-                            [] ->
-                                write "{}"
+                    verVariant =
+                        depend (pretty qname >> space) <| do
+                            case fields of
+                                [] ->
+                                    write "{}"
 
-                            [field] ->
-                                braces <| pretty field
+                                [field] ->
+                                    braces <| pretty field
 
-                            _ -> do
-                                write "{"
-                                space
-                                fields
-                                    |> map pretty
-                                    |> prefixedLined_ ", "
-                                newline
-                                write "}"
+                                _ -> do
+                                    write "{"
+                                    space
+                                    fields
+                                        |> map pretty
+                                        |> prefixedLined_ ", "
+                                    newline
+                                    write "}"
                 horVariant `ifFitsOnOneLineOrElse` verVariant
 
             PAsPat _ n p ->
@@ -732,10 +735,11 @@ exp (Lambda _ pats (Do l stmts)) = do
 exp (Tuple _ boxed exps) = do
     let horVariant = parensHorB boxed <| inter (write ", ") (map pretty exps)
 
-        verVariant = exps
-            |> map pretty
-            |> prefixedLined ", "
-            |> parensVerB boxed
+        verVariant =
+            exps
+                |> map pretty
+                |> prefixedLined ", "
+                |> parensVerB boxed
             -- parensVerB boxed <|
             -- prefixedLined "," (map (depend space . pretty) exps)
     mst <- fitsOnOneLine horVariant
@@ -757,13 +761,15 @@ exp (Tuple _ boxed exps) = do
             wrap "(#" "#)"
 -- | Space out tuples.
 exp (TupleSection _ boxed mexps) = do
-    let horVariant = parensHorB boxed <|
-            inter (write ", ") (map (maybe (return ()) pretty) mexps)
+    let horVariant =
+            parensHorB boxed <|
+                inter (write ", ") (map (maybe (return ()) pretty) mexps)
 
-        verVariant = parensVerB boxed <|
-            prefixedLined
-                ","
-                (map (maybe (return ()) (depend space . pretty)) mexps)
+        verVariant =
+            parensVerB boxed <|
+                prefixedLined
+                    ","
+                    (map (maybe (return ()) (depend space . pretty)) mexps)
     mst <- fitsOnOneLine horVariant
     case mst of
         Nothing ->
@@ -846,12 +852,13 @@ exp (App _ op arg) = do
             spaces <- getIndentSpaces
             pretty f
             col' <- gets psColumn
-            let diff = col' - col
-                    - if col == 0 then
-                        spaces
+            let diff =
+                    col' - col
+                        - if col == 0 then
+                            spaces
 
-                    else
-                        0
+                        else
+                            0
             if diff + 1 <= spaces then
                 space
 
@@ -911,10 +918,11 @@ exp (Let _ binds e) =
         writeIn
         afterIn
 exp (ListComp _ e qstmt) = do
-    let horVariant = brackets <| do
-            pretty e
-            write " | "
-            commas <| map pretty qstmt
+    let horVariant =
+            brackets <| do
+                pretty e
+                write " | "
+                commas <| map pretty qstmt
 
         verVariant = do
             write "[ "
@@ -925,12 +933,13 @@ exp (ListComp _ e qstmt) = do
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
 exp (ParComp _ e qstmts) = do
-    let horVariant = brackets <| do
-            pretty e
-            for_ qstmts <|
-                \qstmt -> do
-                    write " | "
-                    commas <| map pretty qstmt
+    let horVariant =
+            brackets <| do
+                pretty e
+                for_ qstmts <|
+                    \qstmt -> do
+                        write " | "
+                        commas <| map pretty qstmt
 
         verVariant = do
             depend (write "[ ") <| pretty e
@@ -1263,12 +1272,13 @@ decl (TypeFamDecl _ declhead result injectivity) = do
     case result of
         Just r -> do
             space
-            let sep = case r of
-                    KindSig _ _ ->
-                        "::"
+            let sep =
+                    case r of
+                        KindSig _ _ ->
+                            "::"
 
-                    TyVarSig _ _ ->
-                        "="
+                        TyVarSig _ _ ->
+                            "="
             write sep
             space
             pretty r
@@ -1288,12 +1298,13 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     for_ result <|
         \r -> do
             space
-            let sep = case r of
-                    KindSig _ _ ->
-                        "::"
+            let sep =
+                    case r of
+                        KindSig _ _ ->
+                            "::"
 
-                    TyVarSig _ _ ->
-                        "="
+                        TyVarSig _ _ ->
+                            "="
             write sep
             space
             pretty r
@@ -1497,11 +1508,12 @@ instance Pretty TypeEqn where
 instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
         depend (write "deriving" >> space >> writeStrategy) <| do
-            let heads' = if length heads == 1 then
-                    map stripParens heads
+            let heads' =
+                    if length heads == 1 then
+                        map stripParens heads
 
-                else
-                    heads
+                    else
+                        heads
             maybeDerives <- fitsOnOneLine <| parens (commas (map pretty heads'))
             case maybeDerives of
                 Nothing ->
@@ -2047,11 +2059,12 @@ formatImports =
 
         formatImportGroup imps = do
             shouldSortImports <- gets <| configSortImports . psConfig
-            let imps1 = if shouldSortImports then
-                    sortImports imps
+            let imps1 =
+                    if shouldSortImports then
+                        sortImports imps
 
-                else
-                    imps
+                    else
+                        imps
             sequence_ . intersperse newline <| map formatImport imps1
 
         moduleVisibleName idecl =
@@ -2694,8 +2707,9 @@ typ (TyTuple _ Boxed types) = do
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyTuple _ Unboxed types) = do
     let horVar = wrap "(# " " #)" <| inter (write ", ") (map pretty types)
-    let verVar = wrap "(#" " #)" <|
-            prefixedLined "," (map (depend space . pretty) types)
+    let verVar =
+            wrap "(#" " #)" <|
+                prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyForall _ mbinds ctx ty) =
     depend
@@ -2881,7 +2895,9 @@ decl' (PatBind _ pat rhs' mbinds) =
                 space
                 write "="
                 isInLetStatement <- gets psInsideLetStatement
-                if isInLetStatement then do
+                let expression = pretty rhs'
+                isOneLine <- fitsOnOneLine_ expression
+                if isInLetStatement && isOneLine then do
                     space
                     pretty rhs'
 
