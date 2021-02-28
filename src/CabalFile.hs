@@ -96,14 +96,14 @@ packageStanzas pd =
 
                     _ ->
                         []
-                  )
+                )
                 ( case testInterface ts of
                     TestSuiteExeV10 _ path ->
                         [path]
 
                     _ ->
                         []
-                  )
+                )
 
         benchStanza :: Benchmark -> Stanza
 
@@ -201,10 +201,15 @@ getCabalExtensions srcpath = do
             Nothing ->
                 (Haskell98, [])
 
-            Just (MkStanza bi _) -> do
-                (  fromMaybe Haskell98 <| defaultLanguage bi
-                 , defaultExtensions bi
-                  )
+            Just (MkStanza bi _) ->
+                let
+                    language =
+                        fromMaybe Haskell98 <| defaultLanguage bi
+
+                    extensions =
+                        defaultExtensions bi
+                in do
+                    (language, extensions)
 
 
 convertLanguage :: Language -> HSE.Language

@@ -61,7 +61,7 @@ cppSplitBlocks inp =
         mergeLines (Shebang src1) (Shebang src2) =
             Just <| Shebang (src1 <> "\n" <> src2)
         mergeLines (HaskellSource lineNumber1 src1) ( HaskellSource _lineNumber2 src2
-                                                      ) =
+                                                    ) =
             Just <| HaskellSource lineNumber1 (src1 <> "\n" <> src2)
         mergeLines _ _ =
             Nothing

@@ -126,7 +126,7 @@ instance FromJSON Config where
                 (v Y..:? "line-breaks-after")
             <*> ( traverse readExtension
                 =<< fmap (fromMaybe []) (v Y..:? "extensions")
-              )
+            )
     parseJSON _ =
         fail "Expected Object for Config value"
 

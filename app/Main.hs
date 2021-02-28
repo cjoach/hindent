@@ -57,7 +57,7 @@ main = do
             ( info
                 (options config <**> helper)
                 (header "hindent - Reformat Haskell source code")
-              )
+            )
     case runMode of
         ShowVersion ->
             putStrLn ("hindent " ++ showVersion version)
@@ -67,64 +67,75 @@ main = do
                 L8.interact
                     ( either error S.toLazyByteString
                         . reformat style (Just exts) Nothing . L8.toStrict
-                      )
+                    )
 
             else
                 forM_ paths <|
-                    \filepath -> do
-                        cabalexts <- getCabalExtensionsForSourcePath filepath
-                        text <- S.readFile filepath
-                        ( case
-                            reformat
-                                style
-                                (Just <| cabalexts ++ exts)
-                                (Just filepath)
-                                text
-                          of
-                            Left e ->
-                                error e
+                    \filepath ->
+                        let
+                            fn cabalexts' text' =
+                                case
+                                    reformat
+                                        style
+                                        (Just <| cabalexts' ++ exts)
+                                        (Just filepath)
+                                        text'
+                                of
+                                    Left e ->
+                                        error e
 
-                            Right out ->
-                                unless
-                                    ( L8.fromStrict text
-                                        == S.toLazyByteString out
-                                      ) <|
-                                    case action of
-                                        Validate -> do
-                                            IO.putStrLn <|
-                                                filepath
-                                                    ++ " is not formatted"
-                                            exitWith (ExitFailure 1)
+                                    Right out ->
+                                        unless
+                                            ( L8.fromStrict text'
+                                                == S.toLazyByteString out
+                                            ) <|
+                                            case action of
+                                                Validate -> do
+                                                    IO.putStrLn <|
+                                                        filepath
+                                                            ++ " is not formatted"
+                                                    exitWith (ExitFailure 1)
 
-                                        Reformat -> do
-                                            tmpDir <- IO.getTemporaryDirectory
-                                            (fp, h) <-
-                                                IO.openTempFile
-                                                    tmpDir
-                                                    "hindent.hs"
-                                            L8.hPutStr
-                                                h
-                                                (S.toLazyByteString out)
-                                            IO.hFlush h
-                                            IO.hClose h
-                                            let exdev e =
-                                                    if
-                                                        ioe_errno e
-                                                            == Just
-                                                                ( ( \(Errno a) ->
-                                                                        a
-                                                                    ) eXDEV
-                                                                  )
-                                                    then
-                                                        IO.copyFile fp filepath
-                                                            >> IO.removeFile fp
+                                                Reformat -> do
+                                                    tmpDir <-
+                                                        IO.getTemporaryDirectory
+                                                    (fp, h) <-
+                                                        IO.openTempFile
+                                                            tmpDir
+                                                            "hindent.hs"
+                                                    L8.hPutStr
+                                                        h
+                                                        (S.toLazyByteString out)
+                                                    IO.hFlush h
+                                                    IO.hClose h
+                                                    let exdev e =
+                                                            if
+                                                                ioe_errno e
+                                                                    == Just
+                                                                        ( ( \( Errno a
+                                                                            ) ->
+                                                                                a
+                                                                          ) eXDEV
+                                                                        )
+                                                            then
+                                                                IO.copyFile
+                                                                    fp
+                                                                    filepath
+                                                                    >> IO.removeFile
+                                                                        fp
 
-                                                    else
-                                                        throw e
-                                            IO.copyPermissions filepath fp
-                                            IO.renameFile fp filepath
-                                                `catch` exdev
-                          )
+                                                            else
+                                                                throw e
+                                                    IO.copyPermissions
+                                                        filepath
+                                                        fp
+                                                    IO.renameFile fp filepath
+                                                        `catch` exdev
+                        in do
+                            cabalexts <-
+                                getCabalExtensionsForSourcePath filepath
+                            text <- S.readFile filepath
+                            fn cabalexts text
 
 
 -- | Read config from a config file, or return 'defaultConfig'.
@@ -160,15 +171,15 @@ options config =
         style =
             ( makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline
                 <*> sortImports
-              )
+            )
                 <* optional
                     ( strOption
                         ( long "style"
                             <> help
                                 "Style to print with (historical, now ignored)"
                                 <> metavar "STYLE"
-                          ) :: Parser String
-                      )
+                        ) :: Parser String
+                    )
 
         exts =
             fmap
@@ -179,9 +190,9 @@ options config =
                             ( short 'X'
                                 <> help "Language extension"
                                     <> metavar "GHCEXT"
-                              )
-                      )
-                  )
+                            )
+                    )
+                )
 
         indentSpaces =
             option
@@ -189,12 +200,12 @@ options config =
                 ( long "indent-size"
                     <> help "Indentation size in spaces"
                         <> value (configIndentSpaces config) <> showDefault
-                  )
+                )
                 <|> option
                     auto
                     ( long "tab-size"
                         <> help "Same as --indent-size, for compatibility"
-                      )
+                    )
 
         lineLen =
             option
@@ -202,7 +213,7 @@ options config =
                 ( long "line-length"
                     <> help "Desired length of lines"
                         <> value (configMaxColumns config) <> showDefault
-                  )
+                )
 
         trailingNewline =
             not
@@ -211,7 +222,7 @@ options config =
                     (configTrailingNewline config)
                     ( long "no-force-newline"
                         <> help "Don't force a trailing newline" <> showDefault
-                      )
+                    )
 
         sortImports =
             flag
@@ -219,7 +230,7 @@ options config =
                 (Just True)
                 ( long "sort-imports"
                     <> help "Sort imports in groups" <> showDefault
-                  )
+                )
                 <|> flag
                     Nothing
                     (Just False)
@@ -231,7 +242,7 @@ options config =
                 Validate
                 ( long "validate"
                     <> help "Check if files are formatted without changing them"
-                  )
+                )
 
         makeStyle s mlen tabs trailing imports =
             s
