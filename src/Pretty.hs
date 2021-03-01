@@ -3195,22 +3195,6 @@ infixApp wholeExpression a op b =
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
-        bIsCase =
-            case b of
-                Case _ _ _ ->
-                    True
-
-                _ ->
-                    False
-
-        bIsLambda =
-            case b of
-                Lambda _ _ _ ->
-                    True
-
-                _ ->
-                    False
-
         bIsDo =
             case b of
                 Do _ _ ->
@@ -3227,7 +3211,6 @@ infixApp wholeExpression a op b =
         let symbolName = getSymbolNameOp op
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
-        bIsOnOneLine <- fitsOnOneLine_ (pretty b)
         if bIsDo then
             horizontal
 
@@ -3239,27 +3222,6 @@ infixApp wholeExpression a op b =
 
         else
             ifFitsOnOneLineOrElse horizontal verticalBefore
-
-        -- else if isBreakFromFile && isBreakAfterFromConfig then
-        --     verticalAfter
-
-        -- else if bIsCase then
-        --     verticalAfter
-
-        -- else if bIsLambda then
-        --     ifFitsOnOneLineOrElse horizontal verticalAfter
-
-        -- else if isBreakFromFile then
-        --     verticalBefore
-
-        -- else if isBreakBeforeFromConfig then
-        --     verticalBefore
-
-        -- else if isBreakAfterFromConfig then
-        --     ifFitsOnOneLineOrElse horizontal verticalAfter
-
-        -- else
-        --     ifFitsOnOneLineOrElse horizontal verticalBefore
 
 
 verticalInfixApplicationBefore ::

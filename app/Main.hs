@@ -188,8 +188,7 @@ options config =
                     ( T.pack
                         <$> strOption
                             ( short 'X'
-                                <> help "Language extension"
-                                    <> metavar "GHCEXT"
+                                <> help "Language extension" <> metavar "GHCEXT"
                             )
                     )
                 )

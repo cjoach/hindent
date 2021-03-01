@@ -425,8 +425,7 @@ collectAllComments =
             ( collectCommentsBy
                 CommentAfterLine
                 ( \nodeSpan commentSpan ->
-                    fst (srcSpanStart commentSpan)
-                        >= fst (srcSpanEnd nodeSpan)
+                    fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan)
                 )
             )
         )
@@ -467,8 +466,7 @@ collectAllComments =
                                 CommentBeforeLine
                                 ( \nodeSpan commentSpan ->
                                     ( snd (srcSpanStart nodeSpan) == 1
-                                        && snd (srcSpanStart commentSpan)
-                                            == 1
+                                        && snd (srcSpanStart commentSpan) == 1
                                     )
                                         && fst (srcSpanStart commentSpan)
                                             < fst (srcSpanStart nodeSpan)
