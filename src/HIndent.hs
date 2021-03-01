@@ -108,13 +108,15 @@ reformat config mexts mfilepath =
                 ParseOk (m, comments) ->
                     fmap
                         (S.lazyByteString
-                            . addPrefix prefix . S.toLazyByteString)
+                            . addPrefix prefix . S.toLazyByteString
+                        )
                         (prettyPrint config m comments)
 
                 ParseFailed loc e ->
                     Left
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line})
-                            ++ ": " ++ e)
+                            ++ ": " ++ e
+                        )
 
         unlines' =
             S.concat . intersperse "\n"
@@ -208,7 +210,8 @@ reformat config mexts mfilepath =
                             x'
 
                         else
-                            x' <> "\n")
+                            x' <> "\n"
+                    )
                     (f x)
 
             else
@@ -231,7 +234,8 @@ prettyPrint config m comments =
     let
         ast =
             evalState
-                (collectAllComments (fromMaybe m (applyFixities baseFixities m)))
+                (collectAllComments (fromMaybe m (applyFixities baseFixities m))
+                )
                 comments
     in
     Right (runPrinterStyle config (pretty ast))
@@ -305,10 +309,12 @@ testAst x =
                     ast =
                         evalState
                             (collectAllComments
-                                (fromMaybe m (applyFixities baseFixities m)))
+                                (fromMaybe m (applyFixities baseFixities m))
+                            )
                             comments
-                in
-                ast)
+                 in
+                 ast
+                )
 
         ParseFailed _ e ->
             Left e
@@ -379,7 +385,8 @@ traverseInOrder cmp f ast = do
         mapM
             (\(i, m) -> do
                 v <- f m
-                return (i, v))
+                return (i, v)
+            )
             sorted
     evalStateT
         (traverse
@@ -392,8 +399,11 @@ traverseInOrder cmp f ast = do
                             error "traverseInOrder"
 
                         Just x ->
-                            return x))
-            ast)
+                            return x
+                )
+            )
+            ast
+        )
         [0 ..]
 
 
@@ -407,18 +417,24 @@ collectAllComments =
             (collectCommentsBy
                 CommentAfterLine
                 (\nodeSpan commentSpan ->
-                    fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan))))
+                    fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan)
+                )
+            )
+        )
         <=< shortCircuit addCommentsToTopLevelWhereClauses
             <=< shortCircuit
                 (traverse
      -- Collect forwards comments which start at the end line of a
      -- node: Does the start line of the comment match the end-line
      -- of the node?
-                 (collectCommentsBy
+                  (collectCommentsBy
                         CommentSameLine
                         (\nodeSpan commentSpan ->
                             fst (srcSpanStart commentSpan)
-                                == fst (srcSpanEnd nodeSpan))))
+                                == fst (srcSpanEnd nodeSpan)
+                        )
+                    )
+                )
                 <=< shortCircuit
                     (traverseBackwards
      -- Collect backwards comments which are on the same line as a
@@ -430,7 +446,10 @@ collectAllComments =
                                 fst (srcSpanStart commentSpan)
                                     == fst (srcSpanStart nodeSpan)
                                     && fst (srcSpanStart commentSpan)
-                                        == fst (srcSpanEnd nodeSpan))))
+                                        == fst (srcSpanEnd nodeSpan)
+                            )
+                        )
+                    )
                     <=< shortCircuit
                         (traverse
      -- First, collect forwards comments for declarations which both
@@ -439,9 +458,13 @@ collectAllComments =
                                 CommentBeforeLine
                                 (\nodeSpan commentSpan ->
                                     (snd (srcSpanStart nodeSpan) == 1
-                                        && snd (srcSpanStart commentSpan) == 1)
+                                        && snd (srcSpanStart commentSpan) == 1
+                                    )
                                         && fst (srcSpanStart commentSpan)
-                                            < fst (srcSpanStart nodeSpan))))
+                                            < fst (srcSpanStart nodeSpan)
+                                )
+                            )
+                        )
                         . fmap nodify
     where
         nodify s =
@@ -484,8 +507,10 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) 
                             Right comment
 
                         else
-                            Left comment)
-                    comments)
+                            Left comment
+                    )
+                    comments
+                )
     put others
     return <| addCommentsToNode cons mine nodeInfo
 
@@ -499,14 +524,20 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
     where
         addCommentsToWhereClauses ::
                Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-        addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
+        addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls
+                                                          )
+                                                    )
+            ) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
             return <| PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
         addCommentsToWhereClauses other =
             return other
 
         addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-        addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
+        addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString
+                                                       )
+                                               ) x' x''
+            ) = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
             return <|
                 PatBind
@@ -534,7 +565,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                             ((ls, comment : rs), commentSpan)
 
                         else
-                            ((comment : ls, rs), lastSpan))
+                            ((comment : ls, rs), lastSpan)
+                    )
                     (([], []), nodeSpan)
                     cs
 
@@ -560,7 +592,8 @@ addCommentsToNode ::
     -> [Comment]
     -> NodeInfo
     -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments) =
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments
+                                                     ) =
     nodeInfo
         { nodeInfoComments =
             existingComments <> map mkBeforeNodeComment newComments
@@ -573,6 +606,7 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
                 ((if multiLine then
                     MultiLine
 
-                else
-                    EndOfLine)
-                    commentString)
+                  else
+                    EndOfLine
+                 ) commentString
+                )

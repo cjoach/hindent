@@ -92,13 +92,15 @@ packageStanzas pd =
                         [mname]
 
                     _ ->
-                        [])
+                        []
+                )
                 (case testInterface ts of
                     TestSuiteExeV10 _ path ->
                         [path]
 
                     _ ->
-                        [])
+                        []
+                )
 
         benchStanza :: Benchmark -> Stanza
         benchStanza bn =
