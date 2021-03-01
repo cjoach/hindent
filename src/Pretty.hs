@@ -3227,29 +3227,39 @@ infixApp wholeExpression a op b =
         let symbolName = getSymbolNameOp op
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
+        bIsOnOneLine <- fitsOnOneLine_ (pretty b)
         if bIsDo then
             horizontal
-
-        else if isBreakFromFile && isBreakAfterFromConfig then
-            verticalAfter
-
-        else if bIsCase then
-            verticalAfter
-
-        else if bIsLambda then
-            ifFitsOnOneLineOrElse horizontal verticalAfter
-
-        else if isBreakFromFile then
-            verticalBefore
 
         else if isBreakBeforeFromConfig then
             verticalBefore
 
-        else if isBreakAfterFromConfig then
-            ifFitsOnOneLineOrElse horizontal verticalAfter
+        else if isBreakFromFile && isBreakAfterFromConfig then
+            verticalAfter
 
         else
             ifFitsOnOneLineOrElse horizontal verticalBefore
+
+        -- else if isBreakFromFile && isBreakAfterFromConfig then
+        --     verticalAfter
+
+        -- else if bIsCase then
+        --     verticalAfter
+
+        -- else if bIsLambda then
+        --     ifFitsOnOneLineOrElse horizontal verticalAfter
+
+        -- else if isBreakFromFile then
+        --     verticalBefore
+
+        -- else if isBreakBeforeFromConfig then
+        --     verticalBefore
+
+        -- else if isBreakAfterFromConfig then
+        --     ifFitsOnOneLineOrElse horizontal verticalAfter
+
+        -- else
+        --     ifFitsOnOneLineOrElse horizontal verticalBefore
 
 
 verticalInfixApplicationBefore ::
