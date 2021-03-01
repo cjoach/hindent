@@ -3245,13 +3245,6 @@ verticalInfixApplicationAfter a op b = do
     indentedBlock (pretty b)
 
 
--- | A link in a chain of operator applications.
-data OpChainLink l
-    = OpChainExp (Exp l)
-    | OpChainLink (QOp l)
-    deriving (Show)
-
-
 -- | Write a Template Haskell quotation or a quasi-quotation.
 --
 -- >>> quotation "t" (string "Foo")
