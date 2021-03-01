@@ -381,7 +381,9 @@ write x = do
         ( guard
             ( additionalLines == 0
                 && (psColumn' <= configMaxColumns (psConfig state))
-                && ((psColumn' - indentLevel) <= configMaxCodeColumns (psConfig state))
+                    && ( (psColumn' - indentLevel)
+                        <= configMaxCodeColumns (psConfig state)
+                    )
             )
         )
     modify
