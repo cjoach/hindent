@@ -3227,7 +3227,10 @@ infixApp wholeExpression a op b =
         let symbolName = getSymbolNameOp op
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
-        if isBreakFromFile && isBreakAfterFromConfig then
+        if bIsDo then
+            horizontal
+
+        else if isBreakFromFile && isBreakAfterFromConfig then
             verticalAfter
 
         else if bIsCase then
@@ -3235,9 +3238,6 @@ infixApp wholeExpression a op b =
 
         else if bIsLambda then
             ifFitsOnOneLineOrElse horizontal verticalAfter
-
-        else if bIsDo then
-            horizontal
 
         else if isBreakFromFile then
             verticalBefore
@@ -3254,41 +3254,23 @@ infixApp wholeExpression a op b =
 
 verticalInfixApplicationBefore ::
        Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
-verticalInfixApplicationBefore a op b =
-    case b of
-        Do _ _ -> do
-            pretty a
-            space
-            pretty op
-            space
-            pretty b
-
-        _ -> do
-            pretty a
-            newline
-            indentedBlock <| do
-                pretty op
-                space
-                pretty b
+verticalInfixApplicationBefore a op b = do
+    pretty a
+    newline
+    indentedBlock <| do
+        pretty op
+        space
+        pretty b
 
 
 verticalInfixApplicationAfter ::
        Exp NodeInfo -> QOp NodeInfo -> Exp NodeInfo -> Printer ()
-verticalInfixApplicationAfter a op b =
-    case b of
-        Do _ _ -> do
-            pretty a
-            space
-            pretty op
-            space
-            pretty b
-
-        _ -> do
-            pretty a
-            space
-            pretty op
-            newline
-            indentedBlock (pretty b)
+verticalInfixApplicationAfter a op b = do
+    pretty a
+    space
+    pretty op
+    newline
+    indentedBlock (pretty b)
 
 
 -- | A link in a chain of operator applications.
