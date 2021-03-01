@@ -3211,6 +3211,14 @@ infixApp wholeExpression a op b =
                 _ ->
                     False
 
+        bIsCase =
+            case b of
+                Case _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         srcSpan =
             ann wholeExpression
                 |> nodeInfoSpan
@@ -3221,6 +3229,9 @@ infixApp wholeExpression a op b =
         isBreakAfterFromConfig <- isLineBreakAfter symbolName
         if bIsDo then
             horizontal
+
+        else if bIsCase then
+            verticalAfter
 
         else if isBreakBeforeFromConfig then
             verticalBefore
