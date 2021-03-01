@@ -41,7 +41,6 @@ cppSplitBlocks inp =
         inp
     where
         groupLines :: [CodeBlock] -> [CodeBlock]
-
         groupLines (line1:line2:remainingLines) =
             case mergeLines line1 line2 of
                 Just line1And2 ->
@@ -55,7 +54,6 @@ cppSplitBlocks inp =
             xs
 
         mergeLines :: CodeBlock -> CodeBlock -> Maybe CodeBlock
-
         mergeLines (CPPDirectives src1) (CPPDirectives src2) =
             Just <| CPPDirectives (src1 <> "\n" <> src2)
         mergeLines (Shebang src1) (Shebang src2) =
@@ -66,12 +64,10 @@ cppSplitBlocks inp =
             Nothing
 
         shebangLine :: ByteString -> Bool
-
         shebangLine =
             S8.isPrefixOf "#!"
 
         cppLine :: ByteString -> Bool
-
         cppLine src =
             any
                 (`S8.isPrefixOf` src)
@@ -88,12 +84,10 @@ cppSplitBlocks inp =
         -- Note: #ifdef and #ifndef are handled by #if
 
         hasEscapedTrailingNewline :: ByteString -> Bool
-
         hasEscapedTrailingNewline src =
             "\\" `S8.isSuffixOf` src
 
         classifyLines :: [(Int, ByteString)] -> [CodeBlock]
-
         classifyLines allLines@((lineIndex, src):nextLines)
             | cppLine src =
                 let
@@ -109,7 +103,6 @@ cppSplitBlocks inp =
 
         spanCPPLines ::
                [(Int, ByteString)] -> ([(Int, ByteString)], [(Int, ByteString)])
-
         spanCPPLines (line@(_, src):nextLines)
             | hasEscapedTrailingNewline src =
                 let
@@ -125,7 +118,6 @@ cppSplitBlocks inp =
     -- the trailing newline in the code block if it existed.
 
         trailing :: ByteString
-
         trailing =
             if S8.isSuffixOf "\n" inp then
                 "\n"
@@ -134,7 +126,6 @@ cppSplitBlocks inp =
                 ""
 
         modifyLast :: (a -> a) -> [a] -> [a]
-
         modifyLast _ [] =
             []
         modifyLast f [x] =
@@ -143,7 +134,6 @@ cppSplitBlocks inp =
             x : modifyLast f xs
 
         inBlock :: (ByteString -> ByteString) -> CodeBlock -> CodeBlock
-
         inBlock f (HaskellSource line txt) =
             HaskellSource line (f txt)
         inBlock _ dir =

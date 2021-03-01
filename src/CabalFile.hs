@@ -76,17 +76,14 @@ packageStanzas :: PackageDescription -> [Stanza]
 packageStanzas pd =
     let
         libStanza :: Library -> Stanza
-
         libStanza lib =
             mkStanza (libBuildInfo lib) (exposedModules lib) []
 
         exeStanza :: Executable -> Stanza
-
         exeStanza exe =
             mkStanza (buildInfo exe) [] [modulePath exe]
 
         testStanza :: TestSuite -> Stanza
-
         testStanza ts =
             mkStanza
                 (testBuildInfo ts)
@@ -104,7 +101,6 @@ packageStanzas pd =
                         [])
 
         benchStanza :: Benchmark -> Stanza
-
         benchStanza bn =
             mkStanza (benchmarkBuildInfo bn) [] <|
                 case benchmarkInterface bn of

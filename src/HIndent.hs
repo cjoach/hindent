@@ -64,7 +64,6 @@ reformat config mexts mfilepath =
         (fmap (mconcat . intersperse "\n") . mapM processBlock . cppSplitBlocks)
     where
         processBlock :: CodeBlock -> Either String Builder
-
         processBlock (Shebang text) =
             Right <| S.byteString text
         processBlock (CPPDirectives text) =
@@ -124,12 +123,10 @@ reformat config mexts mfilepath =
             L.concat . intersperse "\n"
 
         addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
-
         addPrefix prefix =
             unlines'' . map (L8.fromStrict prefix <>) . L8.lines
 
         stripPrefix :: ByteString -> ByteString -> ByteString
-
         stripPrefix prefix line =
             if S.null (S8.dropWhile (== '\n') line) then
                 line
@@ -140,17 +137,14 @@ reformat config mexts mfilepath =
                     line
 
         findPrefix :: [ByteString] -> ByteString
-
         findPrefix =
             takePrefix False . findSmallestPrefix . dropNewlines
 
         dropNewlines :: [ByteString] -> [ByteString]
-
         dropNewlines =
             filter (not . S.null . S8.dropWhile (== '\n'))
 
         takePrefix :: Bool -> ByteString -> ByteString
-
         takePrefix bracketUsed txt =
             case S8.uncons txt of
                 Nothing ->
@@ -171,7 +165,6 @@ reformat config mexts mfilepath =
                         ""
 
         findSmallestPrefix :: [ByteString] -> ByteString
-
         findSmallestPrefix [] =
             ""
         findSmallestPrefix ("":_) =
@@ -506,7 +499,6 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
     where
         addCommentsToWhereClauses ::
                Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-
         addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
             return <| PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
@@ -514,7 +506,6 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             return other
 
         addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-
         addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
             return <|
@@ -527,7 +518,6 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             return other
 
         addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
-
         addCommentsBeforeNode nodeInfo = do
             comments <- get
             let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
@@ -536,7 +526,6 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
 
         partitionAboveNotAbove ::
                [Comment] -> NodeInfo -> ([Comment], [Comment])
-
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
             fst <|
                 foldr'
@@ -550,7 +539,6 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                     cs
 
         isAbove :: Comment -> SrcSpan -> Bool
-
         isAbove (Comment _ commentSpan _) span =
             let
                 (_, commentColStart) =
@@ -579,7 +567,6 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
         }
     where
         mkBeforeNodeComment :: Comment -> NodeComment
-
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
             mkNodeComment
                 commentSpan
