@@ -1570,10 +1570,27 @@ instance Pretty Binds where
     prettyInternal x =
         case x of
             BDecls _ ds ->
-                doubleLined (map pretty ds)
+                formatBDecls ds
 
             IPBinds _ i ->
                 lined (map pretty i)
+
+
+formatBDecls :: [Decl NodeInfo] -> Printer ()
+formatBDecls [x] =
+    pretty x
+formatBDecls (x:xs) =
+    case x of
+        TypeSig _ _ _ -> do
+            pretty x
+            newline
+            formatBDecls xs
+
+        _ -> do
+            pretty x
+            newline
+            newline
+            formatBDecls xs
 
 
 instance Pretty ClassDecl where
