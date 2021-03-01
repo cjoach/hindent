@@ -1579,17 +1579,18 @@ formatBDecls :: [Decl NodeInfo] -> Printer ()
 formatBDecls [x] =
     pretty x
 formatBDecls (x:xs) =
-    case x of
-        TypeSig _ _ _ -> do
-            pretty x
-            newline
-            formatBDecls xs
+    let
+        separator =
+            case x of
+                TypeSig _ _ _ ->
+                    newline
 
-        _ -> do
-            pretty x
-            newline
-            newline
-            formatBDecls xs
+                _ ->
+                    (newline >> newline)
+    in do
+        pretty x
+        separator
+        formatBDecls xs
 
 
 instance Pretty ClassDecl where
