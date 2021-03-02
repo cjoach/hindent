@@ -448,7 +448,7 @@ collectAllComments =
      -- Collect forwards comments which start at the end line of a
      -- node: Does the start line of the comment match the end-line
      -- of the node?
-                  (collectCommentsBy
+                    (collectCommentsBy
                         CommentSameLine
                         (\nodeSpan commentSpan ->
                             fst (srcSpanStart commentSpan)
@@ -525,7 +525,8 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _
     comments <- get
     let (others, mine) =
             partitionEithers
-                (map (\comment@(Comment _ commentSpan _) ->
+                (map
+                    (\comment@(Comment _ commentSpan _) ->
                         if predicate nodeSpan commentSpan then
                             Right comment
 
@@ -640,5 +641,6 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _
 
                   else
                     EndOfLine
-                 ) commentString
+                 )
+                    commentString
                 )

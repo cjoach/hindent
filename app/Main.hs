@@ -114,7 +114,8 @@ main = do
                                                                     == Just
                                                                         ((\(Errno a
                                                                           ) -> a
-                                                                         ) eXDEV
+                                                                         )
+                                                                            eXDEV
                                                                         )
                                                             then
                                                                 IO.copyFile

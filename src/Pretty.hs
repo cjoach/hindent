@@ -893,22 +893,8 @@ exp (App _ op arg) =
 
         multiline = do
             let (f:args) = flattened
-            -- col <- gets psColumn
-            -- spaces <- getIndentSpaces
             pretty f
-            -- col' <- gets psColumn
-            -- let diff =
-            --         col' - col
-            --             - if col == 0 then
-            --                 spaces
-
-            --             else
-            --                 0
-            -- if diff + 1 <= spaces then
-            --     space
-
-            -- else
-            --     newline
+            newline
             indentedBlock (lined (map pretty args))
     in
     ifFitsOnOneLineOrElse oneLine multiline
@@ -1156,7 +1142,8 @@ exp (MultiIf _ alts) =
         (depend
             (write "if ")
             (lined
-                (map (\p -> do
+                (map
+                    (\p -> do
                         write "| "
                         prettyG p
                     )
@@ -2063,7 +2050,8 @@ instance Pretty Module where
                         , (null decls
                          , interOf
                             newline
-                            (map (\case
+                            (map
+                                (\case
                                     r@TypeSig {} ->
                                         (1, pretty r)
                                     r@InlineSig {} ->
@@ -2739,7 +2727,8 @@ guardedRhs (GuardedRhs _ stmts (Do _ dos)) = do
         (do
             prefixedLined
                 ","
-                (map (\p -> do
+                (map
+                    (\p -> do
                         space
                         pretty p
                     )
@@ -2785,7 +2774,8 @@ guardedRhs (GuardedRhs _ stmts e) = do
                 (do
                     prefixedLined
                         ","
-                        (map (\p -> do
+                        (map
+                            (\p -> do
                                 space
                                 pretty p
                             )
