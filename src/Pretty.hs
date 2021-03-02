@@ -350,11 +350,6 @@ int =
     write . show
 
 
-stripStart :: String -> String
-stripStart =
-    dropWhile isSpace
-
-
 -- | Write out a string, updating the current position information.
 write :: String -> Printer ()
 write x = do
@@ -383,7 +378,7 @@ write x = do
         codeLength =
             if additionalLines == 0 then
                 out
-                    |> stripStart
+                    |> dropWhile isSpace
                     |> length
                     |> fromIntegral
 
