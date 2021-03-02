@@ -164,11 +164,14 @@ getConfig = do
 -- | Program options.
 options :: Config -> Parser RunMode
 options config =
-    flag' ShowVersion (long "version" <> help "Print the version")
+    flag'
+        ShowVersion
+        (long "version" <> help "Print the version")
         <|> (Run <$> style <*> exts <*> action <*> files)
     where
         style =
-            (makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline
+            (makeStyle config <$> lineLen <*> indentSpaces
+                <*> trailingNewline
                 <*> sortImports
             )
                 <* optional
@@ -247,7 +250,8 @@ options config =
                 { configMaxColumns = mlen
                 , configIndentSpaces = tabs
                 , configTrailingNewline = trailing
-                , configSortImports = fromMaybe (configSortImports s) imports
+                , configSortImports =
+                    fromMaybe (configSortImports s) imports
                 }
 
         files =

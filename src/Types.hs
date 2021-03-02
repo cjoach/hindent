@@ -30,7 +30,13 @@ import Data.Int (Int64)
 import Data.Maybe
 import Data.Yaml (FromJSON(..))
 import qualified Data.Yaml as Y
-import Language.Haskell.Exts hiding (Pretty, Style, parse, prettyPrint, style)
+import Language.Haskell.Exts hiding
+    ( Pretty
+    , Style
+    , parse
+    , prettyPrint
+    , style
+    )
 
 
 -- | A pretty printing monad.
@@ -90,7 +96,8 @@ data Config =
         }
 -- | Parse an extension.
 #if __GLASGOW_HASKELL__ >= 808
-readExtension :: (Monad m, MonadFail m) => String -> m Extension
+readExtension ::
+       (Monad m, MonadFail m) => String -> m Extension
 #else
 readExtension :: Monad m => String -> m Extension
 #endif
@@ -141,7 +148,7 @@ defaultConfig :: Config
 defaultConfig =
     Config
         { configMaxColumns = 80
-        , configMaxCodeColumns = 80
+        , configMaxCodeColumns = 60
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True
