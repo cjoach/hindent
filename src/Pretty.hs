@@ -384,29 +384,10 @@ write x = do
                     |> fromIntegral
                     |> (+) (psColumn state)
 
-        codeLength =
-            if additionalLines > 0 then
-                x
-                    |> lines
-                    |> reverse
-                    |> take 1
-                    |> concat
-                    |> dropWhile isSpace
-                    |> length
-                    |> fromIntegral
-
-            else
-                out
-                    |> dropWhile isSpace
-                    |> length
-                    |> fromIntegral
-
         noAdditionalLines = additionalLines == 0
+
         notOverMaxColumn = psColumn' <= configMaxColumns (psConfig state)
-        notOverMaxCodeColumn = codeLength <= configMaxCodeColumns (psConfig state)
-    when
-        hardFail
-        (guard ((noAdditionalLines && notOverMaxColumn) || notOverMaxCodeColumn))
+    when hardFail (guard (noAdditionalLines && notOverMaxColumn))
     modify
         (\s ->
             s
