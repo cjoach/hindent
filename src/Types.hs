@@ -51,6 +51,7 @@ newtype Printer a =
 data PrintState =
     PrintState
         { psIndentLevel :: !Int64
+        , psColumnStart :: !Int64
     -- ^ Current indentation level, i.e. every time there's a
     -- new-line, output this many spaces.
         , psOutput :: !Builder
@@ -140,7 +141,7 @@ defaultConfig :: Config
 defaultConfig =
     Config
         { configMaxColumns = 80
-        , configMaxCodeColumns = 50
+        , configMaxCodeColumns = 60
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True

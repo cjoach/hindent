@@ -17,7 +17,6 @@ module Pretty
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
 import qualified Data.ByteString.Builder as S
-import Data.Char (isSpace)
 import Data.Foldable (for_, traverse_)
 import Data.Int
 import Data.List
@@ -29,7 +28,6 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
-import Debug.Trace (trace)
 
 
 --------------------------------------------------------------------------------
@@ -353,8 +351,7 @@ int =
 
 -- | Write out a string, updating the current position information.
 write :: String -> Printer ()
-write x' = do
-    let x = trace (show x') x'
+write x = do
     let additionalLines =
             length (filter (== '\n') x)
     eol <- gets psEolComment
@@ -363,6 +360,12 @@ write x' = do
     when addingNewline newline
     state <- get
     let writingNewline = x == "\n"
+        psColumnStart' =
+            if psNewline state && not writingNewline then
+                psIndentLevel state
+
+            else
+                psColumnStart state
 
         out :: String
         out =
@@ -391,7 +394,8 @@ write x' = do
         noAdditionalLines = additionalLines == 0
 
         notOverMaxColumn = psColumn' <= configMaxColumns (psConfig state)
-    when hardFail (guard (noAdditionalLines && notOverMaxColumn))
+        notOverMaxCodeColumn = (psColumn' - psColumnStart') <= configMaxCodeColumns (psConfig state)
+    when hardFail (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
         (\s ->
             s
@@ -400,6 +404,7 @@ write x' = do
                 , psLine = psLine state + fromIntegral additionalLines
                 , psEolComment = False
                 , psColumn = psColumn'
+                , psColumnStart = psColumnStart'
                 }
         )
 

@@ -248,6 +248,7 @@ runPrinterStyle config m =
         printState =
             PrintState
                 { psIndentLevel = 0
+                , psColumnStart = 0
                 , psOutput = mempty
                 , psNewline = False
                 , psColumn = 0
