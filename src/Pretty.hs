@@ -29,6 +29,7 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+import Debug.Trace (trace)
 
 
 --------------------------------------------------------------------------------
@@ -352,7 +353,10 @@ int =
 
 -- | Write out a string, updating the current position information.
 write :: String -> Printer ()
-write x = do
+write x' = do
+    let x = trace (show x') x'
+    let additionalLines =
+            length (filter (== '\n') x)
     eol <- gets psEolComment
     hardFail <- gets psFitOnOneLine
     let addingNewline = eol && x /= "\n"
@@ -398,9 +402,6 @@ write x = do
                 , psColumn = psColumn'
                 }
         )
-    where
-        additionalLines =
-            length (filter (== '\n') x)
 
 
 writeDo :: Printer ()
