@@ -2612,9 +2612,21 @@ instance Pretty ImportDecl where
                 return ()
 
             Just asName -> do
-                space
-                write "as "
-                pretty asName
+                let asExpression = do
+                        space
+                        write "as"
+                        space
+                        pretty asName
+                fitsOnLine <- fitsOnOneLine_ asExpression
+                if fitsOnLine then
+                    asExpression
+
+                else do
+                    newline
+                    indentedBlock <| do
+                        write "as"
+                        space
+                        pretty asName
         case mspec of
             Nothing ->
                 return ()
