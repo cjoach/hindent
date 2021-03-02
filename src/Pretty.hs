@@ -400,14 +400,13 @@ write x = do
                     |> dropWhile isSpace
                     |> length
                     |> fromIntegral
+
+        noAdditionalLines = additionalLines == 0
+        notOverMaxColumn = psColumn' <= configMaxColumns (psConfig state)
+        notOverMaxCodeColumn = codeLength <= configMaxCodeColumns (psConfig state)
     when
         hardFail
-        (guard
-            (additionalLines == 0
-                && (psColumn' <= configMaxColumns (psConfig state))
-                    && (codeLength <= configMaxCodeColumns (psConfig state))
-            )
-        )
+        (guard ((noAdditionalLines && notOverMaxColumn) || notOverMaxCodeColumn))
     modify
         (\s ->
             s
