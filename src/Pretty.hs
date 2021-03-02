@@ -370,7 +370,13 @@ write x = do
 
         psColumn' =
             if additionalLines > 0 then
-                fromIntegral (length (concat (take 1 (reverse srclines))))
+                x
+                    |> lines
+                    |> reverse
+                    |> take 1
+                    |> concat
+                    |> length
+                    |> fromIntegral
 
             else
                 psColumn state + fromIntegral (length out)
@@ -403,9 +409,6 @@ write x = do
                 }
         )
     where
-        srclines =
-            lines x
-
         additionalLines =
             length (filter (== '\n') x)
 
