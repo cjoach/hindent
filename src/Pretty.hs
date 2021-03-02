@@ -352,14 +352,14 @@ int =
 -- | Write out a string, updating the current position information.
 write :: String -> Printer ()
 write x = do
-    let additionalLines =
-            length (filter (== '\n') x)
+    let additionalLines = length (filter (== '\n') x)
     eol <- gets psEolComment
     hardFail <- gets psFitOnOneLine
     let addingNewline = eol && x /= "\n"
     when addingNewline newline
     state <- get
     let writingNewline = x == "\n"
+
         psColumnStart' =
             if psNewline state && not writingNewline then
                 psIndentLevel state
@@ -394,8 +394,13 @@ write x = do
         noAdditionalLines = additionalLines == 0
 
         notOverMaxColumn = psColumn' <= configMaxColumns (psConfig state)
-        notOverMaxCodeColumn = (psColumn' - psColumnStart') <= configMaxCodeColumns (psConfig state)
-    when hardFail (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
+
+        notOverMaxCodeColumn =
+            (psColumn' - psColumnStart')
+                <= configMaxCodeColumns (psConfig state)
+    when
+        hardFail
+        (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
         (\s ->
             s
@@ -942,7 +947,8 @@ exp (ListComp _ e qstmt) = do
             write "[ "
             pretty e
             newline
-            depend (write "| ") <| prefixedLined ", " <| map pretty qstmt
+            depend (write "| ") <|
+                prefixedLined ", " <| map pretty qstmt
             newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -1352,7 +1358,8 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
             )
         )
     indentSpaces <- getIndentSpaces
-    forM_ mderivs <| \deriv -> newline >> column indentSpaces (pretty deriv)
+    forM_ mderivs <|
+        \deriv -> newline >> column indentSpaces (pretty deriv)
     where
         singleCons x = do
             write " ="
@@ -1548,7 +1555,8 @@ instance Pretty Deriving where
                 x
 
             formatMultiLine derives = do
-                depend (write "( ") <| prefixedLined ", " (map pretty derives)
+                depend (write "( ") <|
+                    prefixedLined ", " (map pretty derives)
                 newline
                 write ")"
 
@@ -2108,7 +2116,8 @@ formatImports =
             pretty
 
         sortImports imps =
-            sortOn moduleVisibleName . map sortImportSpecsOnImport <| imps
+            sortOn moduleVisibleName . map sortImportSpecsOnImport <|
+                imps
 
         sortImportSpecsOnImport imp =
             imp {importSpecs = fmap sortImportSpecs (importSpecs imp)}
@@ -2733,7 +2742,9 @@ context ctx =
 typ :: Type NodeInfo -> Printer ()
 typ (TyTuple _ Boxed types) = do
     let horVar = parens <| inter (write ", ") (map pretty types)
-    let verVar = parens <| prefixedLined "," (map (depend space . pretty) types)
+    let verVar =
+            parens <|
+                prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyTuple _ Unboxed types) = do
     let horVar = wrap "(# " " #)" <| inter (write ", ") (map pretty types)
@@ -2906,7 +2917,8 @@ decl' (TypeSig _ names ty') = do
             length s + 2
 
         allNamesLength =
-            fromIntegral <| sum (map nameLength names) + 2 * (length names - 1)
+            fromIntegral <|
+                sum (map nameLength names) + 2 * (length names - 1)
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat

@@ -530,7 +530,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                                                     )
             ) = do
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
-            return <| PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
+            return <|
+                PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
         addCommentsToWhereClauses other =
             return other
 

@@ -3,7 +3,6 @@ version: "0.1.0"
 ghc-options:
 - -Wall
 - -Wno-incomplete-patterns
-- -Wmissing-import-lists
 dependencies:
 - Cabal
 - base
