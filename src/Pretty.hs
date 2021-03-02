@@ -17,6 +17,7 @@ module Pretty
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
 import qualified Data.ByteString.Builder as S
+import Data.Char (isSpace)
 import Data.Foldable (for_, traverse_)
 import Data.Int
 import Data.List
@@ -28,7 +29,6 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
-import Data.Char (isSpace)
 
 
 --------------------------------------------------------------------------------
@@ -351,8 +351,8 @@ int =
 
 
 stripStart :: String -> String
-stripStart = f . f
-   where f = reverse . dropWhile isSpace
+stripStart =
+    dropWhile isSpace
 
 
 -- | Write out a string, updating the current position information.
@@ -381,18 +381,20 @@ write x = do
                 psColumn state + fromIntegral (length out)
 
         codeLength =
-            out
-                |> stripStart
-                |> length
-                |> fromIntegral
-                |> (+) (psColumn state)
+            if additionalLines == 0 then
+                out
+                    |> stripStart
+                    |> length
+                    |> fromIntegral
+
+            else
+                0
     when
         hardFail
         (guard
             (additionalLines == 0
                 && (psColumn' <= configMaxColumns (psConfig state))
-                    && (codeLength <= configMaxCodeColumns (psConfig state)
-                    )
+                    && (codeLength <= configMaxCodeColumns (psConfig state))
             )
         )
     modify
