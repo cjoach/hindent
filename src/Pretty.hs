@@ -379,17 +379,27 @@ write x = do
                     |> fromIntegral
 
             else
-                psColumn state + fromIntegral (length out)
+                out
+                    |> length
+                    |> fromIntegral
+                    |> (+) (psColumn state)
 
         codeLength =
-            if additionalLines == 0 then
-                out
+            if additionalLines > 0 then
+                x
+                    |> lines
+                    |> reverse
+                    |> take 1
+                    |> concat
                     |> dropWhile isSpace
                     |> length
                     |> fromIntegral
 
             else
-                0
+                out
+                    |> dropWhile isSpace
+                    |> length
+                    |> fromIntegral
     when
         hardFail
         (guard
