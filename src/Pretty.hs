@@ -893,22 +893,22 @@ exp (App _ op arg) =
 
         multiline = do
             let (f:args) = flattened
-            col <- gets psColumn
-            spaces <- getIndentSpaces
+            -- col <- gets psColumn
+            -- spaces <- getIndentSpaces
             pretty f
-            col' <- gets psColumn
-            let diff =
-                    col' - col
-                        - if col == 0 then
-                            spaces
+            -- col' <- gets psColumn
+            -- let diff =
+            --         col' - col
+            --             - if col == 0 then
+            --                 spaces
 
-                        else
-                            0
-            if diff + 1 <= spaces then
-                space
+            --             else
+            --                 0
+            -- if diff + 1 <= spaces then
+            --     space
 
-            else
-                newline
+            -- else
+            --     newline
             indentedBlock (lined (map pretty args))
     in
     ifFitsOnOneLineOrElse oneLine multiline
