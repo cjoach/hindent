@@ -844,11 +844,28 @@ exp (If _ if' then' else') =
         printExpression else'
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
-exp (App _ op arg) = do
-    let flattened = flatten op ++ [arg]
-    mst <- fitsOnOneLine (spaced (map pretty flattened))
-    case mst of
-        Nothing -> do
+exp (App _ op arg) =
+    let
+        flatten (App label' op' arg') =
+            flatten op' ++ [amap (addComments label') arg']
+        flatten x =
+            [x]
+
+        addComments n1 n2 =
+            n2
+                { nodeInfoComments =
+                    nub (nodeInfoComments n2 ++ nodeInfoComments n1)
+                }
+
+        flattened =
+            flatten op ++ [arg]
+
+        oneLine = do
+            flattened
+                |> map pretty
+                |> spaced
+
+        multiline = do
             let (f:args) = flattened
             col <- gets psColumn
             spaces <- getIndentSpaces
@@ -867,20 +884,8 @@ exp (App _ op arg) = do
             else
                 newline
             indentedBlock (lined (map pretty args))
-
-        Just st ->
-            put st
-    where
-        flatten (App label' op' arg') =
-            flatten op' ++ [amap (addComments label') arg']
-        flatten x =
-            [x]
-
-        addComments n1 n2 =
-            n2
-                { nodeInfoComments =
-                    nub (nodeInfoComments n2 ++ nodeInfoComments n1)
-                }
+    in
+    ifFitsOnOneLineOrElse oneLine multiline
 -- | Space out commas in list.
 exp (List _ es) = do
     mst <- fitsOnOneLine p
@@ -3156,18 +3161,12 @@ fitsOnOneLine p = do
 -- | If first printer fits, use it, else use the second one.
 ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
 ifFitsOnOneLineOrElse a b = do
-    stOrig <- get
-    put stOrig {psFitOnOneLine = True}
-    res <- fmap Just a <|> return Nothing
-    case res of
-        Just r -> do
-            modify <| \st -> st {psFitOnOneLine = psFitOnOneLine stOrig}
-            return r
+    aIsOneLine <- fitsOnOneLine_ a
+    if aIsOneLine then
+        a
 
-        Nothing -> do
-            put stOrig
-            guard <| not (psFitOnOneLine stOrig)
-            b
+    else
+        b
 
 
 bindingGroup :: Binds NodeInfo -> Printer ()
