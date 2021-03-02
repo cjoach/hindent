@@ -366,14 +366,12 @@ write x = do
     when addingNewline newline
     state <- get
     let writingNewline = x == "\n"
-
         psColumnStart' =
             if psNewline state && not writingNewline then
                 psIndentLevel state
 
             else
                 psColumnStart state
-
         out :: String
         out =
             if psNewline state && not writingNewline then
@@ -381,7 +379,6 @@ write x = do
 
             else
                 x
-
         psColumn' =
             if additionalLines > 0 then
                 x
@@ -397,12 +394,9 @@ write x = do
                     |> length
                     |> fromIntegral
                     |> (+) (psColumn state)
-
         noAdditionalLines = additionalLines == 0
-
         notOverMaxColumn =
             psColumn' <= configMaxColumns (psConfig state)
-
         notOverMaxCodeColumn =
             (psColumn' - psColumnStart')
                 <= configMaxCodeColumns (psConfig state)
@@ -598,7 +592,6 @@ instance Pretty Pat where
                         pretty qname
                         space
                         braces <| commas <| map pretty fields
-
                     verVariant =
                         depend (pretty qname >> space) <| do
                             case fields of
@@ -762,7 +755,6 @@ exp (Lambda _ pats (Do l stmts)) = do
 exp (Tuple _ boxed exps) = do
     let horVariant =
             parensHorB boxed <| inter (write ", ") (map pretty exps)
-
         verVariant =
             exps
                 |> map pretty
@@ -792,7 +784,6 @@ exp (TupleSection _ boxed mexps) = do
     let horVariant =
             parensHorB boxed <|
                 inter (write ", ") (map (maybe (return ()) pretty) mexps)
-
         verVariant =
             parensVerB boxed <|
                 prefixedLined
@@ -942,7 +933,6 @@ exp (ListComp _ e qstmt) = do
                 pretty e
                 write " | "
                 commas <| map pretty qstmt
-
         verVariant = do
             write "[ "
             pretty e
@@ -960,7 +950,6 @@ exp (ParComp _ e qstmts) = do
                     \qstmt -> do
                         write " | "
                         commas <| map pretty qstmt
-
         verVariant = do
             depend (write "[ ") <| pretty e
             newline
@@ -1666,8 +1655,14 @@ formatBDecls (x:xs) =
                 TypeSig _ _ _ ->
                     newline
 
-                _ ->
-                    (newline >> newline)
+                _ -> do
+                    isInLetStatement <- gets psInsideLetStatement
+                    if isInLetStatement then
+                        newline
+
+                    else do
+                        newline
+                        newline
     in do
         pretty x
         separator
@@ -2918,7 +2913,6 @@ typ (TyInfix _ a promotedop b)
   -- Apply special rules to line-break operators.
  = do
     let symbolName = getSymbolNameTy promotedop
-
         prettyInfixOp' op =
             case op of
                 PromotedName _ op' ->
