@@ -28,6 +28,7 @@ import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+import Data.Char (isSpace)
 
 
 --------------------------------------------------------------------------------
@@ -349,11 +350,15 @@ int =
     write . show
 
 
+stripStart :: String -> String
+stripStart = f . f
+   where f = reverse . dropWhile isSpace
+
+
 -- | Write out a string, updating the current position information.
 write :: String -> Printer ()
 write x = do
     eol <- gets psEolComment
-    indentLevel <- gets psIndentLevel
     hardFail <- gets psFitOnOneLine
     let addingNewline = eol && x /= "\n"
     when addingNewline newline
@@ -374,13 +379,19 @@ write x = do
 
             else
                 psColumn state + fromIntegral (length out)
+
+        codeLength =
+            out
+                |> stripStart
+                |> length
+                |> fromIntegral
+                |> (+) (psColumn state)
     when
         hardFail
         (guard
             (additionalLines == 0
                 && (psColumn' <= configMaxColumns (psConfig state))
-                    && ((psColumn' - indentLevel)
-                        <= configMaxCodeColumns (psConfig state)
+                    && (codeLength <= configMaxCodeColumns (psConfig state)
                     )
             )
         )

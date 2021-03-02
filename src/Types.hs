@@ -140,7 +140,7 @@ defaultConfig :: Config
 defaultConfig =
     Config
         { configMaxColumns = 80
-        , configMaxCodeColumns = 80
+        , configMaxCodeColumns = 50
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True
