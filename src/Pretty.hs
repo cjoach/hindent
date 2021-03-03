@@ -430,10 +430,9 @@ exp (Tuple _ boxed exps) = do
         verVariant =
             exps
                 |> map pretty
-                |> prefixedLined ", "
+                |> map (\x -> space >> x)
+                |> prefixedLined ","
                 |> parensVerB boxed
-            -- parensVerB boxed <|
-            -- prefixedLined "," (map (depend space . pretty) exps)
     mst <- fitsOnOneLine horVariant
     case mst of
         Nothing ->
@@ -1714,8 +1713,8 @@ instance Pretty Module where
                                 (False, pretty modHead)
                           )
                         , (null imps, formatImports imps)
-                        , (null decls
-                         , interOf
+                        , ( null decls
+                          , interOf
                             newline
                             (map
                                 (\case
