@@ -1,7 +1,9 @@
-module Utils.Fits (ifFitsOnOneLineOrElse
-, fitsOnOneLine
-, fitsOnOneLine_
-) where
+module Utils.Fits
+    ( ifFitsOnOneLineOrElse
+    , fitsOnOneLine
+    , fitsOnOneLine_
+    ) where
+
 
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
@@ -11,12 +13,13 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Utils.Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+import Utils.Flow
+
 
 ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
 ifFitsOnOneLineOrElse a b = do
@@ -26,6 +29,7 @@ ifFitsOnOneLineOrElse a b = do
 
     else
         b
+
 
 fitsOnOneLine_ :: Printer a -> Printer Bool
 fitsOnOneLine_ p = do
@@ -52,5 +56,3 @@ fitsOnOneLine p = do
          else
             Nothing
         )
-
-

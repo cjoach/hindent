@@ -1,28 +1,27 @@
 module Utils.Write
-( writeDo
-, writeMdo
-, writeLet
-, writeIn
-, rightArrow
-, leftArrow
-, rightFatArrow
-, nothing
-, space
-, comma
-, int
-, write
-, string
-, writeForall
-, newline
-, oneEmptyLine
-, twoEmptyLines
-) where
+    ( writeDo
+    , writeMdo
+    , writeLet
+    , writeIn
+    , rightArrow
+    , leftArrow
+    , rightFatArrow
+    , nothing
+    , space
+    , comma
+    , int
+    , write
+    , string
+    , writeForall
+    , newline
+    , oneEmptyLine
+    , twoEmptyLines
+    ) where
 
-import Data.ByteString.Builder as S
-import Types
-import Utils.Flow
+
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
+import Data.ByteString.Builder as S
 import Data.Foldable (for_, traverse_)
 import Data.Int
 import Data.List
@@ -32,7 +31,10 @@ import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
+import Types
 import Utils.Fits
+import Utils.Flow
+
 
 write :: String -> Printer ()
 write x = do
@@ -96,6 +98,7 @@ write x = do
                 }
         )
 
+
 newline :: Printer ()
 newline = do
     write "\n"
@@ -114,9 +117,11 @@ twoEmptyLines = do
     newline
     newline
 
+
 writeForall :: Printer ()
 writeForall =
     write "forall"
+
 
 writeDo :: Printer ()
 writeDo =
@@ -137,13 +142,16 @@ writeIn :: Printer ()
 writeIn =
     write "in"
 
+
 rightArrow :: Printer ()
 rightArrow =
     write "->"
 
+
 leftArrow :: Printer ()
 leftArrow =
     write "<-"
+
 
 rightFatArrow :: Printer ()
 rightFatArrow =
@@ -164,11 +172,12 @@ int :: Integer -> Printer ()
 int =
     write . show
 
+
 string :: String -> Printer ()
 string =
     write
 
+
 nothing :: Printer ()
 nothing =
     return ()
-

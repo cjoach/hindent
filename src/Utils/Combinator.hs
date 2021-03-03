@@ -1,23 +1,24 @@
-module Utils.Combinator (
-indented
-, indentedBlock
-, spaced
-, commas
-, inter
-, lined
-, doubleLined
-, prefixedLined
-, prefixedLined_
-, column
-, withCaseContext
-, withLetStatementContext
-, wrap
-, parens
-, braces
-, brackets
-, getIndentSpaces
-, depend
-        ) where
+module Utils.Combinator
+    ( indented
+    , indentedBlock
+    , spaced
+    , commas
+    , inter
+    , lined
+    , doubleLined
+    , prefixedLined
+    , prefixedLined_
+    , column
+    , withCaseContext
+    , withLetStatementContext
+    , wrap
+    , parens
+    , braces
+    , brackets
+    , getIndentSpaces
+    , depend
+    ) where
+
 
 import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
@@ -27,14 +28,15 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Utils.Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
-import Utils.Write
 import Utils.Fits
+import Utils.Flow
+import Utils.Write
+
 
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p =
@@ -56,6 +58,7 @@ wrap open close p =
             write close
             return p'
 
+
 parens :: Printer a -> Printer a
 parens =
     wrap "(" ")"
@@ -71,10 +74,10 @@ brackets =
     wrap "[" "]"
 
 
-
 getIndentSpaces :: Printer Int64
 getIndentSpaces =
     gets (configIndentSpaces . psConfig)
+
 
 -- | Increase indentation level by n spaces for the given printer.
 indented :: Int64 -> Printer a -> Printer a
@@ -211,8 +214,6 @@ column i p = do
 
 
 -- | Output a newline.
-
-
 -- | Set the context to a case context, where RHS is printed with -> .
 withCaseContext :: Bool -> Printer a -> Printer a
 withCaseContext bool pr = do

@@ -22,15 +22,15 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Utils.Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
-import Utils.Write
-import Utils.Fits
 import Utils.Combinator
+import Utils.Fits
+import Utils.Flow
+import Utils.Write
 
 
 --------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ class (Annotated ast, Typeable ast) =>
 pretty ::
     (Pretty ast, Show (ast NodeInfo))
     => ast NodeInfo
-       -> Printer ()
+    -> Printer ()
 pretty a = do
     mapM_
         (\c' -> do
@@ -110,11 +110,9 @@ pretty a = do
 pretty' ::
     (Pretty ast, P.Pretty (ast SrcSpanInfo))
     => ast NodeInfo
-       -> Printer ()
+    -> Printer ()
 pretty' =
     write . P.prettyPrint . fmap nodeInfoSpan
-
-
 
 
 -- | Get the current RHS separator, either = or -> .
@@ -126,7 +124,6 @@ rhsSeparator = do
 
     else
         write "="
-
 
 
 -- -- | Play with a printer and then restore the state to what it was
@@ -142,8 +139,8 @@ rhsSeparator = do
 withCtx ::
     (Pretty ast, Show (ast NodeInfo))
     => Maybe (ast NodeInfo)
-       -> Printer b
-       -> Printer b
+    -> Printer b
+    -> Printer b
 withCtx Nothing m =
     m
 withCtx (Just ctx) m = do
@@ -2744,7 +2741,6 @@ declTy breakLine dty =
             prettyTyForall breakLine dty
             prettyTy breakLine ty
 
-
         _ ->
             prettyTy breakLine dty
 
@@ -2782,10 +2778,9 @@ prettyTyForall breakLine (TyForall _ mbinds mctx _) =
 
                 Nothing ->
                     nothing
-
     in do
-    writeMBinds
-    writeMCtx
+        writeMBinds
+        writeMCtx
 
 
 prettyTy :: Bool -> Type NodeInfo -> Printer ()
@@ -2919,7 +2914,6 @@ isLineBreakAfter (UnQual _ (Symbol _ s)) = do
     return isInConfig
 isLineBreakAfter _ =
     return False
-
 
 
 bindingGroup :: Binds NodeInfo -> Printer ()

@@ -19,12 +19,12 @@ import Distribution.PackageDescription.Parsec
 #else
 import Distribution.PackageDescription.Parse
 #endif
-import Utils.Flow
 import Language.Haskell.Extension
 import qualified Language.Haskell.Exts.Extension as HSE
 import System.Directory
 import System.FilePath
 import Text.Read
+import Utils.Flow
 
 
 data Stanza =

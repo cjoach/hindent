@@ -44,7 +44,6 @@ import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Traversable hiding (mapM)
-import Utils.Flow
 import qualified Language.Haskell.Exts as Exts
 import Language.Haskell.Exts hiding
     ( Pretty
@@ -56,6 +55,7 @@ import Language.Haskell.Exts hiding
 import Prelude
 import Pretty
 import Types
+import Utils.Flow
 
 
 -- | Format the given source.
@@ -394,9 +394,9 @@ getExtensions =
 traverseInOrder ::
     (Monad m, Traversable t, Functor m)
     => (b -> b -> Ordering)
-       -> (b -> m b)
-       -> t b
-       -> m (t b)
+    -> (b -> m b)
+    -> t b
+    -> m (t b)
 traverseInOrder cmp f ast = do
     indexed <-
         fmap

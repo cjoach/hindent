@@ -20,7 +20,6 @@ import Data.Maybe
 import Data.Version (showVersion)
 import qualified Data.Yaml as Y
 import Find (findFileUp)
-import Utils.Flow
 import Foreign.C.Error
 import GHC.IO.Exception
 import HIndent
@@ -33,6 +32,7 @@ import qualified System.Directory as IO
 import System.Exit (exitWith)
 import qualified System.IO as IO
 import Types
+import Utils.Flow
 
 -- import           Data.Monoid ((<>))
 import qualified Data.Text as T
