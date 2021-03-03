@@ -655,31 +655,39 @@ exp (Lambda _ ps e) = do
     swing (write " ->") <| pretty e
 exp (Paren _ e) =
     parens (pretty e)
-exp (Case _ e alts) = do
-    msg <-
-        fitsOnOneLine <| do
-            write "case "
+exp (Case _ e alts) =
+    let
+        onelineExpression = do
+            writeCase
+            space
             pretty e
-            write " of"
-    case msg of
-        Just st ->
-            put st
+            space
+            writeOf
 
-        Nothing -> do
-            write "case"
+        multilineExpression = do
+            writeCase
             newline
-            indentedBlock (pretty e)
+            indentedBlock <| pretty e
             newline
-            write "of"
-    if null alts then
-        write " {}"
+            writeOf
 
-    else do
-        newline
-        alts
-            |> map (withCaseContext True . pretty)
-            |> doubleLined
-            |> indentedBlock
+        emptyAlternatives = do
+            space
+            emptyBraces
+
+        nonEmptyAlternatives = do
+            newline
+            alts
+                |> map (withCaseContext True . pretty)
+                |> doubleLined
+                |> indentedBlock
+    in do
+        ifFitsOnOneLineOrElse onelineExpression multilineExpression
+        if null alts then
+            emptyAlternatives
+
+        else
+            nonEmptyAlternatives
 exp (Do _ statements) = do
     writeDo
     newline

@@ -3,12 +3,15 @@ module Utils.Write
     , writeMdo
     , writeLet
     , writeIn
+    , writeCase
+    , writeOf
     , rightArrow
     , leftArrow
     , rightFatArrow
     , nothing
     , space
     , comma
+    , emptyBraces
     , int
     , write
     , string
@@ -134,6 +137,16 @@ writeIn =
     write "in"
 
 
+writeCase :: Printer ()
+writeCase =
+    write "case"
+
+
+writeOf :: Printer ()
+writeOf =
+    write "of"
+
+
 rightArrow :: Printer ()
 rightArrow =
     write "->"
@@ -157,6 +170,11 @@ space =
 comma :: Printer ()
 comma =
     write ","
+
+
+emptyBraces :: Printer ()
+emptyBraces =
+    write "{}"
 
 
 int :: Integer -> Printer ()
