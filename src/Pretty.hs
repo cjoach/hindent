@@ -41,9 +41,9 @@ class (Annotated ast, Typeable ast) =>
 
 -- | Pretty print including comments.
 pretty ::
-       (Pretty ast, Show (ast NodeInfo))
+    (Pretty ast, Show (ast NodeInfo))
     => ast NodeInfo
-    -> Printer ()
+       -> Printer ()
 pretty a = do
     mapM_
         (\c' -> do
@@ -105,9 +105,9 @@ pretty a = do
 -- | Pretty print using HSE's own printer. The 'P.Pretty' class here
 -- is HSE's.
 pretty' ::
-       (Pretty ast, P.Pretty (ast SrcSpanInfo))
+    (Pretty ast, P.Pretty (ast SrcSpanInfo))
     => ast NodeInfo
-    -> Printer ()
+       -> Printer ()
 pretty' =
     write . P.prettyPrint . fmap nodeInfoSpan
 
@@ -439,6 +439,14 @@ writeIn :: Printer ()
 writeIn =
     write "in"
 
+writeArrow :: Printer ()
+writeArrow =
+    write "->"
+
+writeFatArrow :: Printer ()
+writeFatArrow =
+    write "=>"
+
 
 -- | Write a string.
 string :: String -> Printer ()
@@ -463,10 +471,10 @@ getIndentSpaces =
 --     return (a, new)
 -- | Render a type with a context, or not.
 withCtx ::
-       (Pretty ast, Show (ast NodeInfo))
+    (Pretty ast, Show (ast NodeInfo))
     => Maybe (ast NodeInfo)
-    -> Printer b
-    -> Printer b
+       -> Printer b
+       -> Printer b
 withCtx Nothing m =
     m
 withCtx (Just ctx) m = do
@@ -1474,7 +1482,7 @@ decl x' =
 
 
 classHead ::
-       Maybe (Context NodeInfo)
+    Maybe (Context NodeInfo)
     -> DeclHead NodeInfo
     -> [FunDep NodeInfo]
     -> Maybe [ClassDecl NodeInfo]
@@ -2161,7 +2169,9 @@ spanAdjacentBy adj (x:xs@(y:_))
 
 
 importSpecCompare ::
-       ImportSpec l -> ImportSpec l -> Ordering
+    ImportSpec l
+    -> ImportSpec l
+    -> Ordering
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IAbs _ _ (Ident _ s2
                                                     )
                                           ) =
@@ -3061,8 +3071,15 @@ decl' e =
 declTy :: Bool -> Type NodeInfo -> Printer ()
 declTy breakLine dty =
     case dty of
-        TyForall _ _ _ _ ->
+        TyForall _ _ _ ty -> do
             prettyTyForall breakLine dty
+            if breakLine then
+                newline
+
+            else
+                space
+            prettyTy breakLine ty
+
 
         _ ->
             prettyTy breakLine dty
@@ -3078,18 +3095,15 @@ prettyTyForall breakLine (TyForall _ mbinds mctx ty) =
 
                 Just ctx -> do
                     mst <-
-                        fitsOnOneLine
-                            (do
-                                pretty ctx
-                                depend
-                                    (write " => ")
-                                    (prettyTy False ty)
-                            )
+                        fitsOnOneLine <| do
+                            pretty ctx
+                            space
+                            writeFatArrow
                     case mst of
                         Nothing -> do
                             pretty ctx
                             newline
-                            depend (write "=> ") (prettyTy True ty)
+                            writeFatArrow
 
                         Just st ->
                             put st
@@ -3116,12 +3130,12 @@ prettyTyForall breakLine (TyForall _ mbinds mctx ty) =
                             newline
                             pretty ctx
                             newline
-                            depend (write "=> ") (prettyTy True ty)
+                            writeFatArrow
 
                         Just st -> do
                             put st
                             newline
-                            depend (write "=> ") (prettyTy True ty)
+                            writeFatArrow
 
 
 prettyTy :: Bool -> Type NodeInfo -> Printer ()
@@ -3145,12 +3159,12 @@ prettyTy breakLine ty =
                         |> map pretty
                         |> prefixedLined_ "-> "
     in do
-    isOneLine <- fitsOnOneLine_ oneline
-    if breakLine || (not isOneLine) then
-        multiline
+        isOneLine <- fitsOnOneLine_ oneline
+        if breakLine || (not isOneLine) then
+            multiline
 
-    else
-        oneline
+        else
+            oneline
 
 
 -- | Fields are preceded with a space.
@@ -3185,7 +3199,9 @@ conDecl (InfixConDecl _ a f b) =
 
 
 recUpdateExpr ::
-       Printer () -> [FieldUpdate NodeInfo] -> Printer ()
+    Printer ()
+    -> [FieldUpdate NodeInfo]
+    -> Printer ()
 recUpdateExpr expWriter updates = do
     ifFitsOnOneLineOrElse hor <| do
         expWriter
@@ -3213,7 +3229,8 @@ recUpdateExpr expWriter updates = do
 
 --------------------------------------------------------------------------------
 getSymbolNameTy ::
-       MaybePromotedName NodeInfo -> QName NodeInfo
+    MaybePromotedName NodeInfo
+    -> QName NodeInfo
 getSymbolNameTy symbol =
     case symbol of
         PromotedName _ symbolName ->
@@ -3304,7 +3321,7 @@ bindingGroup binds = do
 
 
 infixApp ::
-       Exp NodeInfo
+    Exp NodeInfo
     -> Exp NodeInfo
     -> QOp NodeInfo
     -> Exp NodeInfo
@@ -3371,7 +3388,7 @@ infixApp wholeExpression a op b =
 
 
 verticalInfixApplicationBefore ::
-       Exp NodeInfo
+    Exp NodeInfo
     -> QOp NodeInfo
     -> Exp NodeInfo
     -> Printer ()
@@ -3385,7 +3402,7 @@ verticalInfixApplicationBefore a op b = do
 
 
 verticalInfixApplicationAfter ::
-       Exp NodeInfo
+    Exp NodeInfo
     -> QOp NodeInfo
     -> Exp NodeInfo
     -> Printer ()

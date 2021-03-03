@@ -60,7 +60,7 @@ import Types
 
 -- | Format the given source.
 reformat ::
-       Config
+    Config
     -> Maybe [Extension]
     -> Maybe FilePath
     -> ByteString
@@ -242,7 +242,7 @@ hasTrailingLine xs =
 
 -- | Print the module.
 prettyPrint ::
-       Config
+    Config
     -> Module SrcSpanInfo
     -> [Comment]
     -> Either a Builder
@@ -363,7 +363,9 @@ badExtensions =
 
 
 s8_stripPrefix ::
-       ByteString -> ByteString -> Maybe ByteString
+    ByteString
+    -> ByteString
+    -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
     | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
     | otherwise = Nothing
@@ -390,11 +392,11 @@ getExtensions =
 -- Comments
 -- | Traverse the structure backwards.
 traverseInOrder ::
-       (Monad m, Traversable t, Functor m)
+    (Monad m, Traversable t, Functor m)
     => (b -> b -> Ordering)
-    -> (b -> m b)
-    -> t b
-    -> m (t b)
+       -> (b -> m b)
+       -> t b
+       -> m (t b)
 traverseInOrder cmp f ast = do
     indexed <-
         fmap
@@ -430,7 +432,8 @@ traverseInOrder cmp f ast = do
 -- | Collect all comments in the module by traversing the tree. Read
 -- this from bottom to top.
 collectAllComments ::
-       Module SrcSpanInfo -> State [Comment] (Module NodeInfo)
+    Module SrcSpanInfo
+    -> State [Comment] (Module NodeInfo)
 collectAllComments =
     shortCircuit
         (traverseBackwards
@@ -515,7 +518,7 @@ collectAllComments =
 -- comment means to remove it from the pool of available comments in
 -- the State. This allows for a multiple pass approach.
 collectCommentsBy ::
-       (SrcSpan -> SomeComment -> NodeComment)
+    (SrcSpan -> SomeComment -> NodeComment)
     -> (SrcSpan -> SrcSpan -> Bool)
     -> NodeInfo
     -> State [Comment] NodeInfo
@@ -542,14 +545,16 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _
 -- | Reintroduce comments which were immediately above declarations in where clauses.
 -- Affects where clauses of top level declarations only.
 addCommentsToTopLevelWhereClauses ::
-       Module NodeInfo -> State [Comment] (Module NodeInfo)
+    Module NodeInfo
+    -> State [Comment] (Module NodeInfo)
 addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
     ) =
     Module x x' x'' x'''
         <$> traverse addCommentsToWhereClauses topLevelDecls
     where
         addCommentsToWhereClauses ::
-               Decl NodeInfo -> State [Comment] (Decl NodeInfo)
+            Decl NodeInfo
+            -> State [Comment] (Decl NodeInfo)
         addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls
                                                           )
                                                     )
@@ -561,7 +566,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
             return other
 
         addCommentsToPatBind ::
-               Decl NodeInfo -> State [Comment] (Decl NodeInfo)
+            Decl NodeInfo
+            -> State [Comment] (Decl NodeInfo)
         addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString
                                                        )
                                                ) x' x''
@@ -577,7 +583,8 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
             return other
 
         addCommentsBeforeNode ::
-               NodeInfo -> State [Comment] NodeInfo
+            NodeInfo
+            -> State [Comment] NodeInfo
         addCommentsBeforeNode nodeInfo = do
             comments <- get
             let (notAbove, above) =
@@ -586,7 +593,9 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
             return <| addCommentsToNode CommentBeforeLine above nodeInfo
 
         partitionAboveNotAbove ::
-               [Comment] -> NodeInfo -> ([Comment], [Comment])
+            [Comment]
+            -> NodeInfo
+            -> ([Comment], [Comment])
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _
                                   ) =
             fst <|
@@ -619,7 +628,7 @@ addCommentsToTopLevelWhereClauses other =
 
 
 addCommentsToNode ::
-       (SrcSpan -> SomeComment -> NodeComment)
+    (SrcSpan -> SomeComment -> NodeComment)
     -> [Comment]
     -> NodeInfo
     -> NodeInfo

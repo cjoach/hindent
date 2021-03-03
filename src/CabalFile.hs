@@ -50,7 +50,10 @@ toRelative parent child =
 
 -- | Create a Stanza from `BuildInfo` and names of modules and paths
 mkStanza ::
-       BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
+    BuildInfo
+    -> [ModuleName]
+    -> [FilePath]
+    -> Stanza
 mkStanza bi mnames fpaths =
     MkStanza bi <|
         \path ->
@@ -123,7 +126,9 @@ packageStanzas pd =
 
 -- | Find cabal files that are "above" the source path
 findCabalFiles ::
-       FilePath -> FilePath -> IO (Maybe ([FilePath], FilePath))
+    FilePath
+    -> FilePath
+    -> IO (Maybe ([FilePath], FilePath))
 findCabalFiles dir rel = do
     names <- getDirectoryContents dir
     cabalnames <-
@@ -143,7 +148,8 @@ findCabalFiles dir rel = do
 
 
 getGenericPackageDescription ::
-       FilePath -> IO (Maybe GenericPackageDescription)
+    FilePath
+    -> IO (Maybe GenericPackageDescription)
 #if MIN_VERSION_Cabal(2, 2, 0)
 getGenericPackageDescription cabalPath = do
     cabaltext <- BS.readFile cabalPath
@@ -222,7 +228,8 @@ convertLanguage lang =
 
 
 convertKnownExtension ::
-       KnownExtension -> Maybe HSE.KnownExtension
+    KnownExtension
+    -> Maybe HSE.KnownExtension
 convertKnownExtension ext =
     case readEither <| show ext of
         Left _ ->
@@ -243,7 +250,8 @@ convertExtension (UnknownExtension s) =
 
 -- | Get extensions from the cabal file for this source path
 getCabalExtensionsForSourcePath ::
-       FilePath -> IO [HSE.Extension]
+    FilePath
+    -> IO [HSE.Extension]
 getCabalExtensionsForSourcePath srcpath = do
     (lang, exts) <- getCabalExtensions srcpath
     return <|

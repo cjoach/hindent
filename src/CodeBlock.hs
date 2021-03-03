@@ -104,7 +104,7 @@ cppSplitBlocks inp =
             []
 
         spanCPPLines ::
-               [(Int, ByteString)]
+            [(Int, ByteString)]
             -> ([(Int, ByteString)], [(Int, ByteString)])
         spanCPPLines (line@(_, src):nextLines)
             | hasEscapedTrailingNewline src =
@@ -137,7 +137,9 @@ cppSplitBlocks inp =
             x : modifyLast f xs
 
         inBlock ::
-               (ByteString -> ByteString) -> CodeBlock -> CodeBlock
+            (ByteString -> ByteString)
+            -> CodeBlock
+            -> CodeBlock
         inBlock f (HaskellSource line txt) =
             HaskellSource line (f txt)
         inBlock _ dir =
