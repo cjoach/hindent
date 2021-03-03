@@ -1867,7 +1867,7 @@ instance Pretty GadtDecl where
             horVar =
                 depend (pretty name >> write " :: ") <| do
                     fields' (write " -> ")
-                    declTy t
+                    declTy False t
 
             verVar = do
                 pretty name
@@ -1876,8 +1876,8 @@ instance Pretty GadtDecl where
                     depend (write ":: ") <| do
                         fields' <| do
                             newline
-                            indented (-3) (write "-> ")
-                        declTy t
+                            write "-> "
+                        declTy True t
 
 
 instance Pretty Rhs where
@@ -3004,39 +3004,27 @@ decl' :: Decl NodeInfo -> Printer ()
 --     -> (Char -> X -> Y)
 --     -> IO ()
 --
-decl' (TypeSig _ names ty') = do
-    mst <-
-        fitsOnOneLine
-            (depend
-                (do
-                    commas (map prettyTopName names)
-                    write " :: "
-                )
-                (declTy ty')
-            )
-    case mst of
-        Nothing -> do
-            commas (map prettyTopName names)
-            indentSpaces <- getIndentSpaces
-            if allNamesLength >= indentSpaces then do
-                write " ::"
-                newline
-                indented indentSpaces (depend (write "   ") (declTy ty'))
+decl' (TypeSig _ names ty') =
+    let
+        firstPart = do
+            names
+                |> map prettyTopName
+                |> commas
+            space
+            write "::"
 
-            else
-                (depend (write " :: ") (declTy ty'))
+        oneline = do
+            firstPart
+            space
+            declTy False ty'
 
-        Just st ->
-            put st
-    where
-        nameLength (Ident _ s) =
-            length s
-        nameLength (Symbol _ s) =
-            length s + 2
-
-        allNamesLength =
-            fromIntegral <|
-                sum (map nameLength names) + 2 * (length names - 1)
+        multiline = do
+            firstPart
+            newline
+            indentedBlock <| do
+                declTy True ty'
+    in do
+        ifFitsOnOneLineOrElse oneline multiline
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat
@@ -3070,102 +3058,99 @@ decl' e =
     decl e
 
 
-declTy :: Type NodeInfo -> Printer ()
-declTy dty =
+declTy :: Bool -> Type NodeInfo -> Printer ()
+declTy breakLine dty =
     case dty of
-        TyForall _ mbinds mctx ty ->
-            case mbinds of
-                Nothing -> do
-                    case mctx of
-                        Nothing ->
-                            prettyTy False ty
-
-                        Just ctx -> do
-                            mst <-
-                                fitsOnOneLine
-                                    (do
-                                        pretty ctx
-                                        depend
-                                            (write " => ")
-                                            (prettyTy False ty)
-                                    )
-                            case mst of
-                                Nothing -> do
-                                    pretty ctx
-                                    newline
-                                    indented
-                                        (-3)
-                                        (depend (write "=> ") (prettyTy True ty)
-                                        )
-
-                                Just st ->
-                                    put st
-
-                Just ts -> do
-                    write "forall "
-                    spaced (map pretty ts)
-                    write "."
-                    case mctx of
-                        Nothing -> do
-                            mst <- fitsOnOneLine (space >> prettyTy False ty)
-                            case mst of
-                                Nothing -> do
-                                    newline
-                                    prettyTy True ty
-
-                                Just st ->
-                                    put st
-
-                        Just ctx -> do
-                            mst <- fitsOnOneLine (space >> pretty ctx)
-                            case mst of
-                                Nothing -> do
-                                    newline
-                                    pretty ctx
-                                    newline
-                                    indented
-                                        (-3)
-                                        (depend (write "=> ") (prettyTy True ty)
-                                        )
-
-                                Just st -> do
-                                    put st
-                                    newline
-                                    indented
-                                        (-3)
-                                        (depend (write "=> ") (prettyTy True ty)
-                                        )
+        TyForall _ _ _ _ ->
+            prettyTyForall breakLine dty
 
         _ ->
-            prettyTy False dty
-    where
+            prettyTy breakLine dty
+
+
+prettyTyForall :: Bool -> Type NodeInfo -> Printer ()
+prettyTyForall breakLine (TyForall _ mbinds mctx ty) =
+    case mbinds of
+        Nothing -> do
+            case mctx of
+                Nothing ->
+                    prettyTy False ty
+
+                Just ctx -> do
+                    mst <-
+                        fitsOnOneLine
+                            (do
+                                pretty ctx
+                                depend
+                                    (write " => ")
+                                    (prettyTy False ty)
+                            )
+                    case mst of
+                        Nothing -> do
+                            pretty ctx
+                            newline
+                            depend (write "=> ") (prettyTy True ty)
+
+                        Just st ->
+                            put st
+
+        Just ts -> do
+            write "forall "
+            spaced (map pretty ts)
+            write "."
+            case mctx of
+                Nothing -> do
+                    mst <- fitsOnOneLine (space >> prettyTy False ty)
+                    case mst of
+                        Nothing -> do
+                            newline
+                            prettyTy True ty
+
+                        Just st ->
+                            put st
+
+                Just ctx -> do
+                    mst <- fitsOnOneLine (space >> pretty ctx)
+                    case mst of
+                        Nothing -> do
+                            newline
+                            pretty ctx
+                            newline
+                            depend (write "=> ") (prettyTy True ty)
+
+                        Just st -> do
+                            put st
+                            newline
+                            depend (write "=> ") (prettyTy True ty)
+
+
+prettyTy :: Bool -> Type NodeInfo -> Printer ()
+prettyTy breakLine ty =
+    let
         collapseFaps (TyFun _ arg result) =
             arg : collapseFaps result
         collapseFaps e =
             [e]
 
-        prettyTy breakLine ty = do
-            if breakLine then
-                case collapseFaps ty of
-                    [] ->
-                        pretty ty
+        oneline =
+            pretty ty
 
-                    tys ->
-                        prefixedLined "-> " (map pretty tys)
+        multiline =
+            case collapseFaps ty of
+                [] ->
+                    pretty ty
 
-            else do
-                mst <- fitsOnOneLine (pretty ty)
-                case mst of
-                    Nothing ->
-                        case collapseFaps ty of
-                            [] ->
-                                pretty ty
+                tys -> do
+                    tys
+                        |> map pretty
+                        |> prefixedLined_ "-> "
+    in do
+    isOneLine <- fitsOnOneLine_ oneline
+    if breakLine || (not isOneLine) then
+        multiline
 
-                            tys ->
-                                prefixedLined "-> " (map pretty tys)
-
-                    Just st ->
-                        put st
+    else
+        oneline
 
 
 -- | Fields are preceded with a space.
