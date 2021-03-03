@@ -14,9 +14,7 @@ module Pretty
     ) where
 
 
-import Control.Applicative
 import Control.Monad.State.Strict hiding (state)
-import qualified Data.ByteString.Builder as S
 import Data.Foldable (for_, traverse_)
 import Data.Int
 import Data.List
