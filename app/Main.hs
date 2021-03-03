@@ -20,7 +20,7 @@ import Data.Maybe
 import Data.Version (showVersion)
 import qualified Data.Yaml as Y
 import Find (findFileUp)
-import Flow ((<|))
+import Utils.Flow
 import Foreign.C.Error
 import GHC.IO.Exception
 import HIndent

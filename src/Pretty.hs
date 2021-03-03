@@ -22,12 +22,15 @@ import Data.Int
 import Data.List
 import Data.Maybe
 import Data.Typeable
-import Flow ((<|), (|>))
+import Utils.Flow
 import qualified Language.Haskell.Exts as P
 import Language.Haskell.Exts.SrcLoc
 import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
+import Utils.Write
+import Utils.Fits
+import Utils.Combinator
 
 
 --------------------------------------------------------------------------------
@@ -112,162 +115,6 @@ pretty' =
     write . P.prettyPrint . fmap nodeInfoSpan
 
 
---------------------------------------------------------------------------------
--- * Combinators
--- | Increase indentation level by n spaces for the given printer.
-indented :: Int64 -> Printer a -> Printer a
-indented i p = do
-    level <- gets psIndentLevel
-    modify (\s -> s {psIndentLevel = level + i})
-    m <- p
-    modify (\s -> s {psIndentLevel = level})
-    return m
-
-
-indentedBlock :: Printer a -> Printer a
-indentedBlock p = do
-    level <- gets psIndentLevel
-    indentSpaces <- getIndentSpaces
-    let newIndent = indentSpaces - (level `rem` indentSpaces)
-    indented newIndent p
-
-
--- | Print all the printers separated by spaces.
-spaced :: [Printer ()] -> Printer ()
-spaced =
-    inter space
-
-
--- | Print all the printers separated by commas.
-commas :: [Printer ()] -> Printer ()
-commas =
-    inter (write ", ")
-
-
--- | Print all the printers separated by sep.
-inter :: Printer () -> [Printer ()] -> Printer ()
-inter sep ps =
-    foldr
-        (\(i, p) next ->
-            depend
-                (do
-                    p
-                    if i < length ps then
-                        sep
-
-                    else
-                        return ()
-                )
-                next
-        )
-        (return ())
-        (zip [1 ..] ps)
-
-
--- | Print all the printers separated by newlines.
-lined :: [Printer ()] -> Printer ()
-lined ps =
-    ps
-        |> intersperse newline
-        |> sequence_
-
-
--- | Print all the printers separated by newlines.
-doubleLined :: [Printer ()] -> Printer ()
-doubleLined ps =
-    ps
-        |> intersperse (newline >> newline)
-        |> sequence_
-
-
--- | Print all the printers separated newlines and optionally a line
--- prefix.
-prefixedLined :: String -> [Printer ()] -> Printer ()
-prefixedLined pref ps' =
-    case ps' of
-        [] ->
-            return ()
-
-        (p:ps) -> do
-            p
-            indented
-                (fromIntegral (length pref * (-1)))
-                (mapM_
-                    (\p' -> do
-                        newline
-                        depend (write pref) p'
-                    )
-                    ps
-                )
-
-
--- | Print all the printers separated newlines and optionally a line
--- prefix.
-prefixedLined_ :: String -> [Printer ()] -> Printer ()
-prefixedLined_ pref ps' =
-    case ps' of
-        [] ->
-            return ()
-
-        (p:ps) -> do
-            p
-            mapM_
-                (\p' -> do
-                    newline
-                    write pref
-                    p'
-                )
-                ps
-
-
--- | Set the (newline-) indent level to the given column for the given
--- printer.
-column :: Int64 -> Printer a -> Printer a
-column i p = do
-    level <- gets psIndentLevel
-    modify (\s -> s {psIndentLevel = i})
-    m <- p
-    modify (\s -> s {psIndentLevel = level})
-    return m
-
-
--- | Output a newline.
-newline :: Printer ()
-newline = do
-    write "\n"
-    modify (\s -> s {psNewline = True})
-
-
-oneEmptyLine :: Printer ()
-oneEmptyLine = do
-    newline
-    newline
-
-
-twoEmptyLines :: Printer ()
-twoEmptyLines = do
-    newline
-    newline
-    newline
-
-
--- | Set the context to a case context, where RHS is printed with -> .
-withCaseContext :: Bool -> Printer a -> Printer a
-withCaseContext bool pr = do
-    original <- gets psInsideCase
-    modify (\s -> s {psInsideCase = bool})
-    result <- pr
-    modify (\s -> s {psInsideCase = original})
-    return result
-
-
-withLetStatementContext :: Bool -> Printer a -> Printer a
-withLetStatementContext bool pr = do
-    original <- gets psInsideLetStatement
-    modify (\s -> s {psInsideLetStatement = bool})
-    result <- pr
-    modify (\s -> s {psInsideLetStatement = original})
-    return result
 
 
 -- | Get the current RHS separator, either = or -> .
@@ -280,184 +127,6 @@ rhsSeparator = do
     else
         write "="
 
-
--- | Make the latter's indentation depend upon the end column of the
--- former.
-depend :: Printer () -> Printer b -> Printer b
-depend maker dependent = do
-    state' <- get
-    maker
-    st <- get
-    col <- gets psColumn
-    if
-        psLine state' /= psLine st || psColumn state' /= psColumn st
-    then
-        column col dependent
-
-    else
-        dependent
-
-
--- | Wrap.
-wrap :: String -> String -> Printer a -> Printer a
-wrap open close p =
-    let
-        fullExpression = do
-            write open
-            p' <- p
-            write close
-            return p'
-    in do
-        isOneLine <- fitsOnOneLine_ fullExpression
-        if isOneLine then
-            fullExpression
-
-        else do
-            write open
-            p' <- indented 1 p
-            newline
-            write close
-            return p'
-
-
--- | Wrap in parens.
-parens :: Printer a -> Printer a
-parens =
-    wrap "(" ")"
-
-
--- | Wrap in braces.
-braces :: Printer a -> Printer a
-braces =
-    wrap "{" "}"
-
-
--- | Wrap in brackets.
-brackets :: Printer a -> Printer a
-brackets =
-    wrap "[" "]"
-
-
--- | Write a space.
-space :: Printer ()
-space =
-    write " "
-
-
--- | Write a comma.
-comma :: Printer ()
-comma =
-    write ","
-
-
--- | Write an integral.
-int :: Integer -> Printer ()
-int =
-    write . show
-
-
--- | Write out a string, updating the current position information.
-write :: String -> Printer ()
-write x = do
-    let additionalLines = length (filter (== '\n') x)
-    eol <- gets psEolComment
-    hardFail <- gets psFitOnOneLine
-    let addingNewline = eol && x /= "\n"
-    when addingNewline newline
-    state <- get
-    let writingNewline = x == "\n"
-        psColumnStart' =
-            if psNewline state && not writingNewline then
-                psIndentLevel state
-
-            else
-                psColumnStart state
-        out :: String
-        out =
-            if psNewline state && not writingNewline then
-                (replicate (fromIntegral (psIndentLevel state)) ' ') <> x
-
-            else
-                x
-        psColumn' =
-            if additionalLines > 0 then
-                x
-                    |> lines
-                    |> reverse
-                    |> take 1
-                    |> concat
-                    |> length
-                    |> fromIntegral
-
-            else
-                out
-                    |> length
-                    |> fromIntegral
-                    |> (+) (psColumn state)
-        noAdditionalLines = additionalLines == 0
-        notOverMaxColumn =
-            psColumn' <= configMaxColumns (psConfig state)
-        notOverMaxCodeColumn =
-            (psColumn' - psColumnStart')
-                <= configMaxCodeColumns (psConfig state)
-    when
-        hardFail
-        (guard
-            (noAdditionalLines
-                && notOverMaxColumn && notOverMaxCodeColumn
-            )
-        )
-    modify
-        (\s ->
-            s
-                { psOutput = psOutput state <> S.stringUtf8 out
-                , psNewline = False
-                , psLine = psLine state + fromIntegral additionalLines
-                , psEolComment = False
-                , psColumn = psColumn'
-                , psColumnStart = psColumnStart'
-                }
-        )
-
-
-writeDo :: Printer ()
-writeDo =
-    write "do"
-
-
-writeMdo :: Printer ()
-writeMdo =
-    write "mdo"
-
-
-writeLet :: Printer ()
-writeLet =
-    write "let"
-
-
-writeIn :: Printer ()
-writeIn =
-    write "in"
-
-writeArrow :: Printer ()
-writeArrow =
-    write "->"
-
-writeFatArrow :: Printer ()
-writeFatArrow =
-    write "=>"
-
-
--- | Write a string.
-string :: String -> Printer ()
-string =
-    write
-
-
--- | Indent spaces, e.g. 2.
-getIndentSpaces :: Printer Int64
-getIndentSpaces =
-    gets (configIndentSpaces . psConfig)
 
 
 -- -- | Play with a printer and then restore the state to what it was
@@ -3073,11 +2742,6 @@ declTy breakLine dty =
     case dty of
         TyForall _ _ _ ty -> do
             prettyTyForall breakLine dty
-            if breakLine then
-                newline
-
-            else
-                space
             prettyTy breakLine ty
 
 
@@ -3086,56 +2750,42 @@ declTy breakLine dty =
 
 
 prettyTyForall :: Bool -> Type NodeInfo -> Printer ()
-prettyTyForall breakLine (TyForall _ mbinds mctx ty) =
-    case mbinds of
-        Nothing -> do
-            case mctx of
+prettyTyForall breakLine (TyForall _ mbinds mctx _) =
+    let
+        ifBreak breakPrinter noBreakPrinter =
+            if breakLine then
+                breakPrinter
+
+            else
+                noBreakPrinter
+
+        writeMBinds =
+            case mbinds of
+                Just binds -> do
+                    writeForall
+                    binds
+                        |> map pretty
+                        |> spaced
+                    write "."
+                    ifBreak nothing space
+
                 Nothing ->
-                    prettyTy False ty
+                    nothing
 
-                Just ctx -> do
-                    mst <-
-                        fitsOnOneLine <| do
-                            pretty ctx
-                            space
-                            writeFatArrow
-                    case mst of
-                        Nothing -> do
-                            pretty ctx
-                            newline
-                            writeFatArrow
-
-                        Just st ->
-                            put st
-
-        Just ts -> do
-            write "forall "
-            spaced (map pretty ts)
-            write "."
+        writeMCtx =
             case mctx of
-                Nothing -> do
-                    mst <- fitsOnOneLine (space >> prettyTy False ty)
-                    case mst of
-                        Nothing -> do
-                            newline
-                            prettyTy True ty
-
-                        Just st ->
-                            put st
-
                 Just ctx -> do
-                    mst <- fitsOnOneLine (space >> pretty ctx)
-                    case mst of
-                        Nothing -> do
-                            newline
-                            pretty ctx
-                            newline
-                            writeFatArrow
+                    pretty ctx
+                    ifBreak newline space
+                    rightFatArrow
+                    space
 
-                        Just st -> do
-                            put st
-                            newline
-                            writeFatArrow
+                Nothing ->
+                    nothing
+
+    in do
+    writeMBinds
+    writeMCtx
 
 
 prettyTy :: Bool -> Type NodeInfo -> Printer ()
@@ -3270,45 +2920,6 @@ isLineBreakAfter (UnQual _ (Symbol _ s)) = do
 isLineBreakAfter _ =
     return False
 
-
--- | Does printing the given thing overflow column limit? (e.g. 80)
-fitsOnOneLine_ :: Printer a -> Printer Bool
-fitsOnOneLine_ p = do
-    st <- get
-    put st {psFitOnOneLine = True}
-    ok <- fmap (const True) p <|> return False
-    put st
-    guard <| ok || not (psFitOnOneLine st)
-    return ok
-
-
--- | Does printing the given thing overflow column limit? (e.g. 80)
-fitsOnOneLine :: Printer a -> Printer (Maybe PrintState)
-fitsOnOneLine p = do
-    st <- get
-    put st {psFitOnOneLine = True}
-    ok <- fmap (const True) p <|> return False
-    st' <- get
-    put st
-    guard <| ok || not (psFitOnOneLine st)
-    return
-        (if ok then
-            Just st' {psFitOnOneLine = psFitOnOneLine st}
-
-         else
-            Nothing
-        )
-
-
--- | If first printer fits, use it, else use the second one.
-ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
-ifFitsOnOneLineOrElse a b = do
-    aIsOneLine <- fitsOnOneLine_ a
-    if aIsOneLine then
-        a
-
-    else
-        b
 
 
 bindingGroup :: Binds NodeInfo -> Printer ()

@@ -1,4 +1,4 @@
-module Flow
+module Utils.Flow
     ( (|>)
     , (<|)
     ) where
