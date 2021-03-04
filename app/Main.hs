@@ -146,7 +146,7 @@ getConfig = do
     mfile <-
         findFileUp
             cur
-            ((== ".hindent.yaml") . toFilePath . filename)
+            ((== ".hindent-elm.yaml") . toFilePath . filename)
             (Just homeDir)
     case mfile of
         Nothing ->
