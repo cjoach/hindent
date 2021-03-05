@@ -6,7 +6,7 @@ case "${1-}" in
     ;;
 
   build )
-    stack build
+    stack -j 8 build
     ;;
 
   clean )
@@ -14,6 +14,7 @@ case "${1-}" in
     ;;
 
   distclean )
+    stack clean
     rm -rf .stack-work
     rm -rf hindent-elm.cabal
     rm -rf stack.yaml.lock
