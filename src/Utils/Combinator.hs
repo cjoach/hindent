@@ -15,6 +15,7 @@ module Utils.Combinator
     , parens
     , braces
     , brackets
+    , quotation
     , getIndentSpaces
     , depend
     ) where
@@ -63,6 +64,24 @@ braces =
 brackets :: Printer a -> Printer a
 brackets =
     wrap "[" "]"
+
+
+-- | Write a Template Haskell quotation or a quasi-quotation.
+--
+-- >>> quotation "t" (string "Foo")
+-- > [t|Foo|]
+quotation :: String -> Printer () -> Printer ()
+quotation quoter body =
+    brackets <|
+        depend
+            (do
+                string quoter
+                write "|"
+            )
+            (do
+                body
+                write "|"
+            )
 
 
 getIndentSpaces :: Printer Int64

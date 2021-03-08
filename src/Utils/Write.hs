@@ -5,6 +5,7 @@ module Utils.Write
     , writeIn
     , writeCase
     , writeOf
+    , writeWhere
     , rightArrow
     , leftArrow
     , rightFatArrow
@@ -145,6 +146,11 @@ writeCase =
 writeOf :: Printer ()
 writeOf =
     write "of"
+
+
+writeWhere :: Printer ()
+writeWhere =
+    write "where"
 
 
 rightArrow :: Printer ()

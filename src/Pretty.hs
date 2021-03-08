@@ -67,23 +67,12 @@ pretty a = do
         (\(i, c') -> do
             case c' of
                 CommentSameLine spn c -> do
-                    col <- gets psColumn
-                    if
-                        col == 0
-               -- write comment keeping original indentation
-                    then do
-                        let col' = fromIntegral <| srcSpanStartColumn spn - 1
-                        column col' <| writeComment c
-
-                    else do
-                        space
-                        writeComment c
+                    space
+                    writeComment c
 
                 CommentAfterLine spn c -> do
                     when (i == 0) newline
-           -- write comment keeping original indentation
-                    let col = fromIntegral <| srcSpanStartColumn spn - 1
-                    column col <| writeComment c
+                    writeComment c
 
                 _ ->
                     return ()
@@ -3022,22 +3011,3 @@ verticalInfixApplicationAfter a op b = do
     pretty op
     newline
     indentedBlock (pretty b)
-
-
--- | Write a Template Haskell quotation or a quasi-quotation.
---
--- >>> quotation "t" (string "Foo")
--- > [t|Foo|]
-quotation :: String -> Printer () -> Printer ()
-quotation quoter body =
-    brackets
-        (depend
-            (do
-                string quoter
-                write "|"
-            )
-            (do
-                body
-                write "|"
-            )
-        )
