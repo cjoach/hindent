@@ -66,11 +66,11 @@ pretty a = do
     mapM_
         (\(i, c') -> do
             case c' of
-                CommentSameLine spn c -> do
+                CommentSameLine _ c -> do
                     space
                     writeComment c
 
-                CommentAfterLine spn c -> do
+                CommentAfterLine _ c -> do
                     when (i == 0) newline
                     writeComment c
 
