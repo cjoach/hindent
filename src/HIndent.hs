@@ -6,7 +6,6 @@
 
 -- | Haskell indenter.
 module HIndent
--- * Formatting functions.
     ( reformat
     , prettyPrint
     , parseMode
@@ -20,6 +19,7 @@ module HIndent
     ) where
 
 
+-- * Formatting functions.
 import CodeBlock
 import Control.Monad.State.Strict
 import Control.Monad.Trans.Maybe
