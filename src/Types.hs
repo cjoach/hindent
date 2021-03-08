@@ -58,24 +58,24 @@ data PrintState =
     PrintState
         { psIndentLevel :: !Int64
         , psColumnStart :: !Int64
-    -- ^ Current indentation level, i.e. every time there's a
-    -- new-line, output this many spaces.
+        -- ^ Current indentation level, i.e. every time there's a
+        -- new-line, output this many spaces.
         , psOutput :: !Builder
-    -- ^ The current output bytestring builder.
+        -- ^ The current output bytestring builder.
         , psNewline :: !Bool
-    -- ^ Just outputted a newline?
+        -- ^ Just outputted a newline?
         , psColumn :: !Int64
-    -- ^ Current column.
+        -- ^ Current column.
         , psLine :: !Int64
-    -- ^ Current line number.
+        -- ^ Current line number.
         , psConfig :: !Config
-    -- ^ Configuration of max colums and indentation style.
+        -- ^ Configuration of max colums and indentation style.
         , psInsideCase :: !Bool
         , psInsideLetStatement :: !Bool
-    -- ^ Whether we're in a case statement, used for Rhs printing.
+        -- ^ Whether we're in a case statement, used for Rhs printing.
         , psFitOnOneLine :: !Bool
-    -- ^ Bail out if we need to print beyond the current line or
-    -- the maximum column.
+        -- ^ Bail out if we need to print beyond the current line or
+        -- the maximum column.
         , psEolComment :: !Bool
         }
 
@@ -92,9 +92,9 @@ data Config =
         , configLineBreaksBefore :: [String] -- ^ Break line when meets these operators.
         , configLineBreaksAfter :: [String] -- ^ Break line when meets these operators.
         , configExtensions :: [Extension]
-      -- ^ Extra language extensions enabled by default.
+        -- ^ Extra language extensions enabled by default.
         }
--- | Parse an extension.
+ -- | Parse an extension.
 #if __GLASGOW_HASKELL__ >= 808
 readExtension ::
     (Monad m, MonadFail m)

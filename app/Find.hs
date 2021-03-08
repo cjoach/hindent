@@ -30,7 +30,7 @@ findFileUp =
 findPathUp ::
     (MonadIO m, MonadThrow m)
     => (([Path Abs Dir], [Path Abs File]) -> [Path Abs t])
-              -- ^ Choose path type from pair.
+    -- ^ Choose path type from pair.
     -> Path Abs Dir -- ^ Start here.
     -> (Path Abs t -> Bool) -- ^ Predicate to match the path.
     -> Maybe (Path Abs Dir) -- ^ Do not ascend above this directory.

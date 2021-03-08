@@ -16,7 +16,7 @@ import Utils.Flow
 data CodeBlock
     = Shebang ByteString
     | HaskellSource Int ByteString
-    -- ^ Includes the starting line (indexed from 0) for error reporting
+      -- ^ Includes the starting line (indexed from 0) for error reporting
     | CPPDirectives ByteString
     deriving (Show, Eq)
 
@@ -116,9 +116,9 @@ cppSplitBlocks inp =
             | otherwise = ([line], nextLines)
         spanCPPLines [] =
             ([], [])
-    -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
-    -- need to have a newline following them in order to parse properly, so we include
-    -- the trailing newline in the code block if it existed.
+        -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
+        -- need to have a newline following them in order to parse properly, so we include
+        -- the trailing newline in the code block if it existed.
 
         trailing :: ByteString
         trailing =

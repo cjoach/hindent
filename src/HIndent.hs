@@ -6,11 +6,11 @@
 
 -- | Haskell indenter.
 module HIndent
-   -- * Formatting functions.
+-- * Formatting functions.
     ( reformat
     , prettyPrint
     , parseMode
-  -- * Testing
+     -- * Testing
     , test
     , testFile
     , testAst
@@ -354,7 +354,7 @@ badExtensions =
     , XmlSyntax
     , RegularPatterns -- steals a-b
     , UnboxedTuples -- breaks (#) lens operator
-    -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
+      -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
     , PatternSynonyms -- steals the pattern keyword
     , RecursiveDo -- steals the rec keyword
     , DoRec -- same
@@ -437,7 +437,7 @@ collectAllComments ::
 collectAllComments =
     shortCircuit
         (traverseBackwards
-     -- Finally, collect backwards comments which come after each node.
+         -- Finally, collect backwards comments which come after each node.
             (collectCommentsBy
                 CommentAfterLine
                 (\nodeSpan commentSpan ->
@@ -448,9 +448,9 @@ collectAllComments =
         <=< shortCircuit addCommentsToTopLevelWhereClauses
             <=< shortCircuit
                 (traverse
-     -- Collect forwards comments which start at the end line of a
-     -- node: Does the start line of the comment match the end-line
-     -- of the node?
+                 -- Collect forwards comments which start at the end line of a
+                 -- node: Does the start line of the comment match the end-line
+                 -- of the node?
                     (collectCommentsBy
                         CommentSameLine
                         (\nodeSpan commentSpan ->
@@ -461,9 +461,9 @@ collectAllComments =
                 )
                 <=< shortCircuit
                     (traverseBackwards
-     -- Collect backwards comments which are on the same line as a
-     -- node: Does the start line & end line of the comment match
-     -- that of the node?
+                     -- Collect backwards comments which are on the same line as a
+                     -- node: Does the start line & end line of the comment match
+                     -- that of the node?
                         (collectCommentsBy
                             CommentSameLine
                             (\nodeSpan commentSpan ->
@@ -476,8 +476,8 @@ collectAllComments =
                     )
                     <=< shortCircuit
                         (traverse
-     -- First, collect forwards comments for declarations which both
-     -- start on column 1 and occur before the declaration.
+                         -- First, collect forwards comments for declarations which both
+                         -- start on column 1 and occur before the declaration.
                             (collectCommentsBy
                                 CommentBeforeLine
                                 (\nodeSpan commentSpan ->

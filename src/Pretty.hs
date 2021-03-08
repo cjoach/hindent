@@ -1603,7 +1603,7 @@ instance Pretty InstHead where
     prettyInternal x =
         case
             x
-        -- Base cases
+            -- Base cases
         of
             IHCon _ name ->
                 pretty name
@@ -1615,7 +1615,7 @@ instance Pretty InstHead where
                         space
                         prettyInfixOp name
                     )
-        -- Recursive application
+            -- Recursive application
 
             IHApp _ ihead typ' ->
                 depend
@@ -1624,7 +1624,7 @@ instance Pretty InstHead where
                         space
                         pretty typ'
                     )
-        -- Wrapping in parens
+            -- Wrapping in parens
 
             IHParen _ h ->
                 parens (pretty h)
@@ -2146,8 +2146,8 @@ instance Pretty Literal where
         write "'"
         string rep
         write "'#"
-  -- We print the original notation (because HSE doesn't track Hex
-  -- vs binary vs decimal notation).
+    -- We print the original notation (because HSE doesn't track Hex
+    -- vs binary vs decimal notation).
     prettyInternal (Int _l _i originalString) =
         string originalString
     prettyInternal (Frac _l _r originalString) =
@@ -2580,7 +2580,7 @@ typ (TyCon _ p) =
 typ (TyParen _ e) =
     parens (pretty e)
 typ (TyInfix _ a promotedop b)
-  -- Apply special rules to line-break operators.
+    -- Apply special rules to line-break operators.
  = do
     let symbolName = getSymbolNameTy promotedop
         prettyInfixOp' op =
