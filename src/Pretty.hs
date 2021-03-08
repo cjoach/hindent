@@ -1452,31 +1452,6 @@ instance Pretty InstDecl where
 instance Pretty Match where
     prettyInternal =
         match
-    {-case x of
-      Match _ name pats rhs' mbinds ->
-        do depend (do pretty name
-                      space)
-                  (spaced (map pretty pats))
-           withCaseContext False (pretty rhs')
-           case mbinds of
-             Nothing -> return ()
-             Just binds ->
-               do newline
-                  indentedBlock (depend (write "where ")
-                                        (pretty binds))
-      InfixMatch _ pat1 name pats rhs' mbinds ->
-        do depend (do pretty pat1
-                      space
-                      prettyInfixName name)
-                  (do space
-                      spaced (map pretty pats))
-           withCaseContext False (pretty rhs')
-           case mbinds of
-             Nothing -> return ()
-             Just binds ->
-               do newline
-                  indentedBlock (depend (write "where ")
-                                        (pretty binds))-}
 
 
 instance Pretty PatField where
