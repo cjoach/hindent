@@ -33,22 +33,20 @@ import Utils.Write
 wrap :: String -> String -> Printer a -> Printer a
 wrap open close p =
     let
-        fullExpression = do
+        oneline = do
             write open
             p' <- p
             write close
             return p'
-    in do
-        isOneLine <- fitsOnOneLine_ fullExpression
-        if isOneLine then
-            fullExpression
 
-        else do
+        multiline = do
             write open
             p' <- indented 1 p
             newline
             write close
             return p'
+    in
+    ifFitsOnOneLineOrElse oneline multiline
 
 
 parens :: Printer a -> Printer a
@@ -71,17 +69,27 @@ brackets =
 -- >>> quotation "t" (string "Foo")
 -- > [t|Foo|]
 quotation :: String -> Printer () -> Printer ()
-quotation quoter body =
-    brackets <|
-        depend
-            (do
-                string quoter
-                write "|"
-            )
-            (do
-                body
-                write "|"
-            )
+quotation quoter p =
+    let
+        open =
+            "[" ++ quoter ++ "|"
+
+        close =
+            "|]"
+
+        oneline = do
+            write open
+            p' <- p
+            write close
+            return p'
+
+        multiline = do
+            write open
+            p' <- indented 1 p
+            write close
+            return p'
+    in
+    ifFitsOnOneLineOrElse oneline multiline
 
 
 getIndentSpaces :: Printer Int64
