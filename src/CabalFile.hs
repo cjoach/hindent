@@ -186,7 +186,7 @@ getCabalStanza srcpath = do
                             Just gpd -> do
                                 return <|
                                     packageStanzas <|
-                                        flattenPackageDescription gpd
+                                    flattenPackageDescription gpd
             return <|
                 case
                     filter (\stanza -> stanzaIsSourceFilePath stanza relpath) <|
@@ -256,5 +256,5 @@ getCabalExtensionsForSourcePath srcpath = do
     (lang, exts) <- getCabalExtensions srcpath
     return <|
         fmap HSE.EnableExtension <|
-            HSE.toExtensionList (convertLanguage lang) <|
-                mapMaybe convertExtension exts
+        HSE.toExtensionList (convertLanguage lang) <|
+        mapMaybe convertExtension exts

@@ -598,7 +598,8 @@ exp (ListComp _ e qstmt) = do
             pretty e
             newline
             depend (write "| ") <|
-                prefixedLined ", " <| map pretty qstmt
+                prefixedLined ", " <|
+                map pretty qstmt
             newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -616,7 +617,8 @@ exp (ParComp _ e qstmts) = do
             for_ qstmts <|
                 \qstmt -> do
                     depend (write "| ") <|
-                        prefixedLined ", " <| map pretty qstmt
+                        prefixedLined ", " <|
+                        map pretty qstmt
                     newline
             write "]"
     horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -1346,14 +1348,14 @@ instance Pretty ClassDecl where
             ClsDataFam _ ctx h mkind ->
                 depend (write "data ") <|
                     withCtx ctx <| do
-                        pretty h
-                        case mkind of
-                            Nothing ->
-                                return ()
+                    pretty h
+                    case mkind of
+                        Nothing ->
+                            return ()
 
-                            Just kind -> do
-                                write " :: "
-                                pretty kind
+                        Just kind -> do
+                            write " :: "
+                            pretty kind
 
             ClsTyFam _ h msig minj ->
                 depend
@@ -1517,10 +1519,10 @@ instance Pretty GadtDecl where
                 newline
                 indentedBlock <|
                     depend (write ":: ") <| do
-                        fields' <| do
-                            newline
-                            write "-> "
-                        declTy True t
+                    fields' <| do
+                        newline
+                        write "-> "
+                    declTy True t
 
 
 instance Pretty Rhs where
@@ -1725,9 +1727,8 @@ instance Pretty Module where
 -- | Format imports, preserving empty newlines between groups.
 formatImports :: [ImportDecl NodeInfo] -> Printer ()
 formatImports =
-    sequence_
-        . intersperse oneEmptyLine
-            . map formatImportGroup . groupAdjacentBy atNextLine
+    sequence_ . intersperse oneEmptyLine . map formatImportGroup
+        . groupAdjacentBy atNextLine
     where
         atNextLine import1 import2 =
             let

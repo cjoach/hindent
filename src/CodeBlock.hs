@@ -36,8 +36,10 @@ data CodeBlock
 -- will become five blocks, one for each CPP line and one for each pair of declarations.
 cppSplitBlocks :: ByteString -> [CodeBlock]
 cppSplitBlocks inp =
-    modifyLast (inBlock (<> trailing))
-        . groupLines . classifyLines . zip [0 ..] . S8.lines <|
+    modifyLast (inBlock (<> trailing)) . groupLines
+        . classifyLines
+        . zip [0 ..]
+        . S8.lines <|
         inp
     where
         groupLines :: [CodeBlock] -> [CodeBlock]

@@ -77,8 +77,8 @@ write x = do
     when
         hardFail
         (guard
-            (noAdditionalLines
-                && notOverMaxColumn && notOverMaxCodeColumn
+            (noAdditionalLines && notOverMaxColumn
+                && notOverMaxCodeColumn
             )
         )
     modify

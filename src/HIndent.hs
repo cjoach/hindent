@@ -67,8 +67,8 @@ reformat ::
     -> Either String Builder
 reformat config mexts mfilepath =
     preserveTrailingNewline
-        (fmap (mconcat . intersperse "\n")
-            . mapM processBlock . cppSplitBlocks
+        (fmap (mconcat . intersperse "\n") . mapM processBlock
+            . cppSplitBlocks
         )
     where
         processBlock :: CodeBlock -> Either String Builder
@@ -98,32 +98,31 @@ reformat config mexts mfilepath =
                         Just (Nothing, exts') ->
                             mode'
                                 { extensions =
-                                    exts'
-                                        ++ configExtensions config
-                                            ++ extensions mode'
+                                    exts' ++ configExtensions config
+                                        ++ extensions mode'
                                 }
 
                         Just (Just lang, exts') ->
                             mode'
                                 { baseLanguage = lang
                                 , extensions =
-                                    exts'
-                                        ++ configExtensions config
-                                            ++ extensions mode'
+                                    exts' ++ configExtensions config
+                                        ++ extensions mode'
                                 }
             in
             case parseModuleWithComments mode'' (UTF8.toString code) of
                 ParseOk (m, comments) ->
                     fmap
-                        (S.lazyByteString
-                            . addPrefix prefix . S.toLazyByteString
+                        (S.lazyByteString . addPrefix prefix
+                            . S.toLazyByteString
                         )
                         (prettyPrint config m comments)
 
                 ParseFailed loc e ->
                     Left
                         (Exts.prettyPrint (loc {srcLine = srcLine loc + line})
-                            ++ ": " ++ e
+                            ++ ": "
+                            ++ e
                         )
 
         unlines' =
@@ -249,9 +248,7 @@ prettyPrint ::
 prettyPrint config m comments =
     let
         ast =
-            evalState
-                (collectAllComments m)
-                comments
+            evalState (collectAllComments m) comments
     in
     Right (runPrinterStyle config (pretty ast))
 
@@ -324,9 +321,7 @@ testAst x =
             Right
                 (let
                     ast =
-                        evalState
-                            (collectAllComments m)
-                            comments
+                        evalState (collectAllComments m) comments
                  in
                  ast
                 )
@@ -442,50 +437,51 @@ collectAllComments =
             )
         )
         <=< shortCircuit addCommentsToTopLevelWhereClauses
-            <=< shortCircuit
-                (traverse
-                 -- Collect forwards comments which start at the end line of a
-                 -- node: Does the start line of the comment match the end-line
-                 -- of the node?
-                    (collectCommentsBy
-                        CommentSameLine
-                        (\nodeSpan commentSpan ->
-                            fst (srcSpanStart commentSpan)
-                                == fst (srcSpanEnd nodeSpan)
-                        )
+        <=< shortCircuit
+            (traverse
+             -- Collect forwards comments which start at the end line of a
+             -- node: Does the start line of the comment match the end-line
+             -- of the node?
+                (collectCommentsBy
+                    CommentSameLine
+                    (\nodeSpan commentSpan ->
+                        fst (srcSpanStart commentSpan)
+                            == fst (srcSpanEnd nodeSpan)
                     )
                 )
-                <=< shortCircuit
-                    (traverseBackwards
-                     -- Collect backwards comments which are on the same line as a
-                     -- node: Does the start line & end line of the comment match
-                     -- that of the node?
-                        (collectCommentsBy
-                            CommentSameLine
-                            (\nodeSpan commentSpan ->
-                                fst (srcSpanStart commentSpan)
-                                    == fst (srcSpanStart nodeSpan)
-                                    && fst (srcSpanStart commentSpan)
-                                        == fst (srcSpanEnd nodeSpan)
-                            )
-                        )
+            )
+        <=< shortCircuit
+            (traverseBackwards
+             -- Collect backwards comments which are on the same line as a
+             -- node: Does the start line & end line of the comment match
+             -- that of the node?
+                (collectCommentsBy
+                    CommentSameLine
+                    (\nodeSpan commentSpan ->
+                        fst (srcSpanStart commentSpan)
+                            == fst (srcSpanStart nodeSpan)
+                            && fst (srcSpanStart commentSpan)
+                            == fst (srcSpanEnd nodeSpan)
                     )
-                    <=< shortCircuit
-                        (traverse
-                         -- First, collect forwards comments for declarations which both
-                         -- start on column 1 and occur before the declaration.
-                            (collectCommentsBy
-                                CommentBeforeLine
-                                (\nodeSpan commentSpan ->
-                                    (snd (srcSpanStart nodeSpan) == 1
-                                        && snd (srcSpanStart commentSpan) == 1
-                                    )
-                                        && fst (srcSpanStart commentSpan)
-                                            < fst (srcSpanStart nodeSpan)
-                                )
-                            )
+                )
+            )
+        <=< shortCircuit
+            (traverse
+             -- First, collect forwards comments for declarations which both
+             -- start on column 1 and occur before the declaration.
+                (collectCommentsBy
+                    CommentBeforeLine
+                    (\nodeSpan commentSpan ->
+                        (snd (srcSpanStart nodeSpan) == 1
+                            && snd (srcSpanStart commentSpan)
+                            == 1
                         )
-                        . fmap nodify
+                            && fst (srcSpanStart commentSpan)
+                            < fst (srcSpanStart nodeSpan)
+                    )
+                )
+            )
+        . fmap nodify
     where
         nodify s =
             NodeInfo s mempty

@@ -66,7 +66,8 @@ main = do
             if null paths then
                 L8.interact
                     (either error S.toLazyByteString
-                        . reformat style (Just exts) Nothing . L8.toStrict
+                        . reformat style (Just exts) Nothing
+                        . L8.toStrict
                     )
 
             else
@@ -93,7 +94,7 @@ main = do
                                                 Validate -> do
                                                     IO.putStrLn <|
                                                         filepath
-                                                            ++ " is not formatted"
+                                                        ++ " is not formatted"
                                                     exitWith (ExitFailure 1)
 
                                                 Reformat -> do
@@ -180,7 +181,7 @@ options config =
                         (long "style"
                             <> help
                                 "Style to print with (historical, now ignored)"
-                                <> metavar "STYLE"
+                            <> metavar "STYLE"
                         ) :: Parser String
                     )
 
@@ -190,8 +191,8 @@ options config =
                 (many
                     (T.pack
                         <$> strOption
-                            (short 'X'
-                                <> help "Language extension" <> metavar "GHCEXT"
+                            (short 'X' <> help "Language extension"
+                                <> metavar "GHCEXT"
                             )
                     )
                 )
@@ -199,9 +200,9 @@ options config =
         indentSpaces =
             option
                 auto
-                (long "indent-size"
-                    <> help "Indentation size in spaces"
-                        <> value (configIndentSpaces config) <> showDefault
+                (long "indent-size" <> help "Indentation size in spaces"
+                    <> value (configIndentSpaces config)
+                    <> showDefault
                 )
                 <|> option
                     auto
@@ -212,9 +213,9 @@ options config =
         lineLen =
             option
                 auto
-                (long "line-length"
-                    <> help "Desired length of lines"
-                        <> value (configMaxColumns config) <> showDefault
+                (long "line-length" <> help "Desired length of lines"
+                    <> value (configMaxColumns config)
+                    <> showDefault
                 )
 
         trailingNewline =
@@ -223,15 +224,16 @@ options config =
                     (not (configTrailingNewline config))
                     (configTrailingNewline config)
                     (long "no-force-newline"
-                        <> help "Don't force a trailing newline" <> showDefault
+                        <> help "Don't force a trailing newline"
+                        <> showDefault
                     )
 
         sortImports =
             flag
                 Nothing
                 (Just True)
-                (long "sort-imports"
-                    <> help "Sort imports in groups" <> showDefault
+                (long "sort-imports" <> help "Sort imports in groups"
+                    <> showDefault
                 )
                 <|> flag
                     Nothing
