@@ -679,13 +679,37 @@ exp (Case _ e alts) =
 
         else
             nonEmptyAlternatives
-exp (Do _ statements) = do
-    writeDo
-    newline
-    statements
-        |> map pretty
-        |> lined
-        |> indentedBlock
+exp (Do _ statements) =
+    let
+        srcSpan =
+            srcInfoSpan . nodeInfoSpan . ann
+
+        checkNewlineFromSrc x y =
+            let
+                n =
+                    (srcSpanStartLine (srcSpan y))
+                        - (srcSpanEndLine (srcSpan x))
+            in
+            repeat newline
+                |> take n
+                |> sequence_
+
+        statementPrinters =
+            statements
+                |> map pretty
+
+        separatorPrinters =
+            zipWith checkNewlineFromSrc statements (tail statements)
+
+        fullList =
+            [statementPrinters, separatorPrinters]
+                |> transpose
+                |> concat
+                |> sequence_
+    in do
+        writeDo
+        newline
+        indentedBlock fullList
 exp (MDo _ statements) = do
     writeMdo
     newline
