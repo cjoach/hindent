@@ -250,9 +250,7 @@ prettyPrint config m comments =
     let
         ast =
             evalState
-                (collectAllComments
-                    (fromMaybe m (applyFixities baseFixities m))
-                )
+                (collectAllComments m)
                 comments
     in
     Right (runPrinterStyle config (pretty ast))
@@ -327,9 +325,7 @@ testAst x =
                 (let
                     ast =
                         evalState
-                            (collectAllComments
-                                (fromMaybe m (applyFixities baseFixities m))
-                            )
+                            (collectAllComments m)
                             comments
                  in
                  ast
