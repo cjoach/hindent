@@ -54,8 +54,7 @@ main = do
     config <- getConfig
     runMode <-
         execParser
-            (info
-                (options config <**> helper)
+            (info (options config <**> helper)
                 (header "hindent - Reformat Haskell source code")
             )
     case runMode of
@@ -76,8 +75,7 @@ main = do
                         let
                             fn cabalexts' text' =
                                 case
-                                    reformat
-                                        style
+                                    reformat style
                                         (Just <| cabalexts' ++ exts)
                                         (Just filepath)
                                         text'
@@ -101,11 +99,9 @@ main = do
                                                     tmpDir <-
                                                         IO.getTemporaryDirectory
                                                     (fp, h) <-
-                                                        IO.openTempFile
-                                                            tmpDir
+                                                        IO.openTempFile tmpDir
                                                             "hindent.hs"
-                                                    L8.hPutStr
-                                                        h
+                                                    L8.hPutStr h
                                                         (S.toLazyByteString out)
                                                     IO.hFlush h
                                                     IO.hClose h
@@ -119,16 +115,14 @@ main = do
                                                                             eXDEV
                                                                         )
                                                             then
-                                                                IO.copyFile
-                                                                    fp
+                                                                IO.copyFile fp
                                                                     filepath
                                                                     >> IO.removeFile
                                                                         fp
 
                                                             else
                                                                 throw e
-                                                    IO.copyPermissions
-                                                        filepath
+                                                    IO.copyPermissions filepath
                                                         fp
                                                     IO.renameFile fp filepath
                                                         `catch` exdev
@@ -145,8 +139,7 @@ getConfig = do
     cur <- Path.getCurrentDir
     homeDir <- Path.getHomeDir
     mfile <-
-        findFileUp
-            cur
+        findFileUp cur
             ((== ".hindent-elm.yaml") . toFilePath . filename)
             (Just homeDir)
     case mfile of
@@ -183,8 +176,7 @@ options config =
                     )
 
         exts =
-            fmap
-                getExtensions
+            fmap getExtensions
                 (many
                     (T.pack
                         <$> strOption
@@ -195,21 +187,18 @@ options config =
                 )
 
         indentSpaces =
-            option
-                auto
+            option auto
                 (long "indent-size" <> help "Indentation size in spaces"
                     <> value (configIndentSpaces config)
                     <> showDefault
                 )
-                <|> option
-                    auto
+                <|> option auto
                     (long "tab-size"
                         <> help "Same as --indent-size, for compatibility"
                     )
 
         lineLen =
-            option
-                auto
+            option auto
                 (long "line-length" <> help "Desired length of lines"
                     <> value (configMaxColumns config)
                     <> showDefault
@@ -217,8 +206,7 @@ options config =
 
         trailingNewline =
             not
-                <$> flag
-                    (not (configTrailingNewline config))
+                <$> flag (not (configTrailingNewline config))
                     (configTrailingNewline config)
                     (long "no-force-newline"
                         <> help "Don't force a trailing newline"
@@ -226,20 +214,17 @@ options config =
                     )
 
         sortImports =
-            flag
-                Nothing
+            flag Nothing
                 (Just True)
                 (long "sort-imports" <> help "Sort imports in groups"
                     <> showDefault
                 )
-                <|> flag
-                    Nothing
+                <|> flag Nothing
                     (Just False)
                     (long "no-sort-imports" <> help "Don't sort imports")
 
         action =
-            flag
-                Reformat
+            flag Reformat
                 Validate
                 (long "validate"
                     <> help "Check if files are formatted without changing them"

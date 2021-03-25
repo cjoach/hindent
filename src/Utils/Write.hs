@@ -73,8 +73,7 @@ write x = do
         notOverMaxCodeColumn =
             (psColumn' - psColumnStart')
                 <= configMaxCodeColumns (psConfig state)
-    when
-        hardFail
+    when hardFail
         (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
         (\s ->

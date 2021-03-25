@@ -63,8 +63,7 @@ mkStanza bi mnames fpaths =
                             False
 
                         Just relpath ->
-                            any
-                                (equalFilePath <| dropExtension relpath)
+                            any (equalFilePath <| dropExtension relpath)
                                 modpaths
                                 || any (equalFilePath relpath) fpaths
             in
@@ -85,8 +84,7 @@ packageStanzas pd =
 
         testStanza :: TestSuite -> Stanza
         testStanza ts =
-            mkStanza
-                (testBuildInfo ts)
+            mkStanza (testBuildInfo ts)
                 (case testInterface ts of
                     TestSuiteLibV09 _ mname ->
                         [mname]

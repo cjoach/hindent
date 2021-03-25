@@ -188,8 +188,7 @@ prefixedLined pref ps' =
 
         (p:ps) -> do
             p
-            indented
-                (fromIntegral (length pref * (-1)))
+            indented (fromIntegral (length pref * (-1)))
                 (mapM_
                     (\p' -> do
                         newline

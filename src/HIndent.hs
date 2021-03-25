@@ -370,8 +370,7 @@ traverseInOrder ::
     -> m (t b)
 traverseInOrder cmp f ast = do
     indexed <-
-        fmap
-            (zip [0 :: Integer ..] . reverse)
+        fmap (zip [0 :: Integer ..] . reverse)
             (execStateT (traverse (modify . (:)) ast) [])
     let sorted = sortBy (\(_, x) (_, y) -> cmp x y) indexed
     results <-
@@ -407,8 +406,7 @@ collectAllComments =
     shortCircuit
         (traverseBackwards
          -- Finally, collect backwards comments which come after each node.
-            (collectCommentsBy
-                CommentAfterLine
+            (collectCommentsBy CommentAfterLine
                 (\nodeSpan commentSpan ->
                     fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan)
                 )
@@ -420,8 +418,7 @@ collectAllComments =
              -- Collect forwards comments which start at the end line of a
              -- node: Does the start line of the comment match the end-line
              -- of the node?
-                (collectCommentsBy
-                    CommentSameLine
+                (collectCommentsBy CommentSameLine
                     (\nodeSpan commentSpan ->
                         fst (srcSpanStart commentSpan)
                             == fst (srcSpanEnd nodeSpan)
@@ -433,8 +430,7 @@ collectAllComments =
              -- Collect backwards comments which are on the same line as a
              -- node: Does the start line & end line of the comment match
              -- that of the node?
-                (collectCommentsBy
-                    CommentSameLine
+                (collectCommentsBy CommentSameLine
                     (\nodeSpan commentSpan ->
                         fst (srcSpanStart commentSpan)
                             == fst (srcSpanStart nodeSpan)
@@ -447,8 +443,7 @@ collectAllComments =
             (traverseBackwards
              -- First, collect forwards comments for declarations which both
              -- start on column 1 and occur before the declaration.
-                (collectCommentsBy
-                    CommentAfterLine
+                (collectCommentsBy CommentAfterLine
                     (\nodeSpan commentSpan ->
                         (snd (srcSpanStart nodeSpan) == 1
                             && snd (srcSpanStart commentSpan)
@@ -463,8 +458,7 @@ collectAllComments =
             (traverse
              -- First, collect forwards comments for declarations which both
              -- start on column 1 and occur before the declaration.
-                (collectCommentsBy
-                    CommentBeforeLine
+                (collectCommentsBy CommentBeforeLine
                     (\nodeSpan commentSpan ->
                         (snd (srcSpanStart nodeSpan) == 1
                             && snd (srcSpanStart commentSpan)
@@ -484,8 +478,7 @@ collectAllComments =
         traverseBackwards =
             traverseInOrder
                 (\x y ->
-                    on
-                        (flip compare)
+                    on (flip compare)
                         (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
                         x
                         y -- Stop traversing if all comments have been consumed.
@@ -554,8 +547,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             ) = do
             bindInfoWithComments <- addCommentsBeforeNode bindInfo
             return <|
-                PatBind
-                    bindInfoWithComments
+                PatBind bindInfoWithComments
                     (PVar x (Ident declNodeInfo declString))
                     x'
                     x''
@@ -617,8 +609,7 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
     where
         mkBeforeNodeComment :: Comment -> NodeComment
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
-            mkNodeComment
-                commentSpan
+            mkNodeComment commentSpan
                 ((if multiLine then
                     MultiLine
 
