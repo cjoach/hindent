@@ -537,13 +537,40 @@ exp (App _ op arg) =
                 |> map pretty
                 |> spaced
 
+        firstArgOneLine = do
+            let (f:a1:_) = flattened
+            pretty f
+            space
+            pretty a1
+
+        firstArgMultiline = do
+            let (f:a1:args) = flattened
+            pretty f
+            space
+            pretty a1
+            newline
+            args
+                |> map pretty
+                |> lined
+                |> indentedBlock
+
         multiline = do
             let (f:args) = flattened
             pretty f
             newline
-            indentedBlock (lined (map pretty args))
-    in
-    ifFitsOnOneLineOrElse oneLine multiline
+            args
+                |> map pretty
+                |> lined
+                |> indentedBlock
+    in do
+    isOneLine <- fitsOnOneLine_ oneLine
+    isFirstArgOneLine <- fitsOnOneLine_ firstArgOneLine
+    if isOneLine then
+        oneLine
+    else if isFirstArgOneLine then
+        firstArgMultiline
+    else
+        multiline
 -- | Space out commas in list.
 exp (List _ es) = do
     mst <- fitsOnOneLine p
