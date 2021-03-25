@@ -45,13 +45,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Traversable hiding (mapM)
 import qualified Language.Haskell.Exts as Exts
-import Language.Haskell.Exts hiding
-    ( Pretty
-    , Style
-    , parse
-    , prettyPrint
-    , style
-    )
+import Language.Haskell.Exts hiding (Pretty, Style, parse, prettyPrint, style)
 import Prelude
 import Pretty
 import Types
@@ -67,9 +61,7 @@ reformat ::
     -> Either String Builder
 reformat config mexts mfilepath =
     preserveTrailingNewline
-        (fmap (mconcat . intersperse "\n") . mapM processBlock
-            . cppSplitBlocks
-        )
+        (fmap (mconcat . intersperse "\n") . mapM processBlock . cppSplitBlocks)
     where
         processBlock :: CodeBlock -> Either String Builder
         processBlock (Shebang text) =
@@ -187,9 +179,7 @@ reformat config mexts mfilepath =
                     S8.length x > 0 && S8.head x == c
             in
             if all (startsWithChar first) ps then
-                S8.cons
-                    first
-                    (findSmallestPrefix (S.tail p : map S.tail ps))
+                S8.cons first (findSmallestPrefix (S.tail p : map S.tail ps))
 
             else
                 ""
@@ -210,9 +200,7 @@ reformat config mexts mfilepath =
             if S8.null x || S8.all isSpace x then
                 return mempty
 
-            else if
-                hasTrailingLine x || configTrailingNewline config
-            then
+            else if hasTrailingLine x || configTrailingNewline config then
                 fmap
                     (\x' ->
                         if
@@ -240,11 +228,7 @@ hasTrailingLine xs =
 
 
 -- | Print the module.
-prettyPrint ::
-    Config
-    -> Module SrcSpanInfo
-    -> [Comment]
-    -> Either a Builder
+prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Either a Builder
 prettyPrint config m comments =
     let
         ast =
@@ -282,8 +266,7 @@ runPrinterStyle config m =
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
 parseMode =
-    defaultParseMode
-        {extensions = allExtensions, fixities = Nothing}
+    defaultParseMode {extensions = allExtensions, fixities = Nothing}
     where
         allExtensions =
             filter isDisabledExtension knownExtensions
@@ -353,10 +336,7 @@ badExtensions =
     ]
 
 
-s8_stripPrefix ::
-    ByteString
-    -> ByteString
-    -> Maybe ByteString
+s8_stripPrefix :: ByteString -> ByteString -> Maybe ByteString
 s8_stripPrefix bs1@(S.PS _ _ l1) bs2
     | bs1 `S.isPrefixOf` bs2 = Just (S.unsafeDrop l1 bs2)
     | otherwise = Nothing
@@ -422,9 +402,7 @@ traverseInOrder cmp f ast = do
 
 -- | Collect all comments in the module by traversing the tree. Read
 -- this from bottom to top.
-collectAllComments ::
-    Module SrcSpanInfo
-    -> State [Comment] (Module NodeInfo)
+collectAllComments :: Module SrcSpanInfo -> State [Comment] (Module NodeInfo)
 collectAllComments =
     shortCircuit
         (traverseBackwards
@@ -530,9 +508,7 @@ collectCommentsBy ::
     -> (SrcSpan -> SrcSpan -> Bool)
     -> NodeInfo
     -> State [Comment] NodeInfo
-collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _
-                                                    ) _
-                                          ) = do
+collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) = do
     comments <- get
     let (others, mine) =
             partitionEithers
@@ -555,10 +531,8 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _
 addCommentsToTopLevelWhereClauses ::
     Module NodeInfo
     -> State [Comment] (Module NodeInfo)
-addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
-    ) =
-    Module x x' x'' x'''
-        <$> traverse addCommentsToWhereClauses topLevelDecls
+addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
+    Module x x' x'' x''' <$> traverse addCommentsToWhereClauses topLevelDecls
     where
         addCommentsToWhereClauses ::
             Decl NodeInfo
@@ -573,9 +547,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
         addCommentsToWhereClauses other =
             return other
 
-        addCommentsToPatBind ::
-            Decl NodeInfo
-            -> State [Comment] (Decl NodeInfo)
+        addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
         addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString
                                                        )
                                                ) x' x''
@@ -590,13 +562,10 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
         addCommentsToPatBind other =
             return other
 
-        addCommentsBeforeNode ::
-            NodeInfo
-            -> State [Comment] NodeInfo
+        addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
         addCommentsBeforeNode nodeInfo = do
             comments <- get
-            let (notAbove, above) =
-                    partitionAboveNotAbove comments nodeInfo
+            let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
             put notAbove
             return <| addCommentsToNode CommentBeforeLine above nodeInfo
 
@@ -604,8 +573,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls
             [Comment]
             -> NodeInfo
             -> ([Comment], [Comment])
-        partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _
-                                  ) =
+        partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
             fst <|
                 foldr'
                     (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
@@ -640,8 +608,7 @@ addCommentsToNode ::
     -> [Comment]
     -> NodeInfo
     -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _
-                                                               ) existingComments
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments
                                                      ) =
     nodeInfo
         { nodeInfoComments =
@@ -649,8 +616,7 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _
         }
     where
         mkBeforeNodeComment :: Comment -> NodeComment
-        mkBeforeNodeComment (Comment multiLine commentSpan commentString
-            ) =
+        mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
             mkNodeComment
                 commentSpan
                 ((if multiLine then

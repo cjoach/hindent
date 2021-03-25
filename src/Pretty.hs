@@ -41,10 +41,7 @@ class (Annotated ast, Typeable ast) =>
 
 
 -- | Pretty print including comments.
-pretty ::
-    (Pretty ast, Show (ast NodeInfo))
-    => ast NodeInfo
-    -> Printer ()
+pretty :: (Pretty ast, Show (ast NodeInfo)) => ast NodeInfo -> Printer ()
 pretty a = do
     mapM_
         (\c' -> do
@@ -166,8 +163,7 @@ swing a b = do
 instance Pretty Context where
     prettyInternal ctx@(CxTuple _ asserts) = do
         mst <-
-            fitsOnOneLine
-                (parens (inter (comma >> space) (map pretty asserts)))
+            fitsOnOneLine (parens (inter (comma >> space) (map pretty asserts)))
         case mst of
             Nothing ->
                 context ctx
@@ -414,8 +410,7 @@ exp (Lambda _ pats (Do l stmts)) = do
             put st
 -- | Space out tuples.
 exp (Tuple _ boxed exps) = do
-    let horVariant =
-            parensHorB boxed <| inter (write ", ") (map pretty exps)
+    let horVariant = parensHorB boxed <| inter (write ", ") (map pretty exps)
         verVariant =
             exps
                 |> map pretty
@@ -801,8 +796,7 @@ exp (LCase _ alts) = do
 
     else do
         newline
-        indentedBlock
-            (lined (map (withCaseContext True . pretty) alts))
+        indentedBlock (lined (map (withCaseContext True . pretty) alts))
 exp (MultiIf _ alts) =
     let
         prettyG (GuardedRhs _ stmts e) =
@@ -997,8 +991,7 @@ decl (TypeFamDecl _ declhead result injectivity) = do
 
         Nothing ->
             return ()
-decl (ClosedTypeFamDecl _ declhead result injectivity instances
-    ) = do
+decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
     pretty declhead
     for_ result <|
@@ -1066,8 +1059,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                     (write "=")
                     (prefixedLined "|" (map (depend space . pretty) xs))
                 )
-decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs
-    ) = do
+decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
     depend
         (pretty dataornew >> space)
         (withCtx
@@ -1220,8 +1212,7 @@ instance Pretty Deriving where
 
                     else
                         heads
-            maybeDerives <-
-                fitsOnOneLine <| parens (commas (map pretty heads'))
+            maybeDerives <- fitsOnOneLine <| parens (commas (map pretty heads'))
             case maybeDerives of
                 Nothing ->
                     formatMultiLine heads'
@@ -1828,231 +1819,129 @@ spanAdjacentBy adj (x:xs@(y:_))
     | otherwise = ([x], xs)
 
 
-importSpecCompare ::
-    ImportSpec l
-    -> ImportSpec l
-    -> Ordering
-importSpecCompare (IAbs _ _ (Ident _ s1)) (IAbs _ _ (Ident _ s2
-                                                    )
-                                          ) =
+importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering
+importSpecCompare (IAbs _ _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IAbs _ _ (Ident _ _)) (IAbs _ _ (Symbol _ _
-                                                   )
-                                         ) =
+importSpecCompare (IAbs _ _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
     GT
-importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingAll _ (Ident _ s2
-                                                       )
-                                          ) =
+importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IAbs _ _ (Ident _ _)) (IThingAll _ (Symbol _ _
-                                                      )
-                                         ) =
+importSpecCompare (IAbs _ _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
     GT
-importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingWith _ (Ident _ s2
-                                                        ) _
-                                          ) =
+importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
-importSpecCompare (IAbs _ _ (Ident _ _)) (IThingWith _ (Symbol _ _
-                                                       ) _
-                                         ) =
+importSpecCompare (IAbs _ _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
     GT
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IAbs _ _ (Ident _ _
-                                                    )
-                                          ) =
+importSpecCompare (IAbs _ _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
     LT
-importSpecCompare (IAbs _ _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2
-                                                     )
-                                           ) =
+importSpecCompare (IAbs _ _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingAll _ (Ident _ _
-                                                       )
-                                          ) =
+importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
     LT
-importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2
-                                                        )
-                                           ) =
+importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingWith _ (Ident _ _
-                                                        ) _
-                                          ) =
+importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
     LT
-importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2
-                                                         ) _
-                                           ) =
+importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 importSpecCompare (IAbs _ _ _) (IVar _ _) =
     LT
-importSpecCompare (IThingAll _ (Ident _ s1)) (IAbs _ _ (Ident _ s2
-                                                       )
-                                             ) =
+importSpecCompare (IThingAll _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IThingAll _ (Ident _ _)) (IAbs _ _ (Symbol _ _
-                                                      )
-                                            ) =
+importSpecCompare (IThingAll _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
     GT
-importSpecCompare (IThingAll _ (Ident _ s1)) (IThingAll _ (Ident _ s2
-                                                          )
-                                             ) =
+importSpecCompare (IThingAll _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IThingAll _ (Ident _ _)) (IThingAll _ (Symbol _ _
-                                                         )
-                                            ) =
+importSpecCompare (IThingAll _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
     GT
-importSpecCompare (IThingAll _ (Ident _ s1)) (IThingWith _ (Ident _ s2
-                                                           ) _
-                                             ) =
+importSpecCompare (IThingAll _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
-importSpecCompare (IThingAll _ (Ident _ _)) (IThingWith _ (Symbol _ _
-                                                          ) _
-                                            ) =
+importSpecCompare (IThingAll _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
     GT
-importSpecCompare (IThingAll _ (Symbol _ _)) (IAbs _ _ (Ident _ _
-                                                       )
-                                             ) =
+importSpecCompare (IThingAll _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
     LT
-importSpecCompare (IThingAll _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2
-                                                        )
-                                              ) =
+importSpecCompare (IThingAll _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IThingAll _ (Symbol _ _)) (IThingAll _ (Ident _ _
-                                                          )
-                                             ) =
+importSpecCompare (IThingAll _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
     LT
-importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2
-                                                           )
-                                              ) =
+importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IThingAll _ (Symbol _ _)) (IThingWith _ (Ident _ _
-                                                           ) _
-                                             ) =
+importSpecCompare (IThingAll _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
     LT
-importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2
-                                                            ) _
-                                              ) =
+importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 importSpecCompare (IThingAll _ _) (IVar _ _) =
     LT
-importSpecCompare (IThingWith _ (Ident _ s1) _) (IAbs _ _ (Ident _ s2
-                                                          )
-                                                ) =
+importSpecCompare (IThingWith _ (Ident _ s1) _) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IThingWith _ (Ident _ _) _) (IAbs _ _ (Symbol _ _
-                                                         )
-                                               ) =
+importSpecCompare (IThingWith _ (Ident _ _) _) (IAbs _ _ (Symbol _ _)) =
     GT
-importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingAll _ (Ident _ s2
-                                                             )
-                                                ) =
+importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
-importSpecCompare (IThingWith _ (Ident _ _) _) (IThingAll _ (Symbol _ _
-                                                            )
-                                               ) =
+importSpecCompare (IThingWith _ (Ident _ _) _) (IThingAll _ (Symbol _ _)) =
     GT
-importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingWith _ (Ident _ s2
-                                                              ) _
-                                                ) =
+importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
-importSpecCompare (IThingWith _ (Ident _ _) _) (IThingWith _ (Symbol _ _
-                                                             ) _
-                                               ) =
+importSpecCompare (IThingWith _ (Ident _ _) _) (IThingWith _ (Symbol _ _) _) =
     GT
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IAbs _ _ (Ident _ _
-                                                          )
-                                                ) =
+importSpecCompare (IThingWith _ (Symbol _ _) _) (IAbs _ _ (Ident _ _)) =
     LT
-importSpecCompare (IThingWith _ (Symbol _ s1) _) (IAbs _ _ (Symbol _ s2
-                                                           )
-                                                 ) =
+importSpecCompare (IThingWith _ (Symbol _ s1) _) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingAll _ (Ident _ _
-                                                             )
-                                                ) =
+importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingAll _ (Ident _ _)) =
     LT
-importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingAll _ (Symbol _ s2
-                                                              )
-                                                 ) =
+importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingWith _ (Ident _ _
-                                                              ) _
-                                                ) =
+importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingWith _ (Ident _ _) _) =
     LT
-importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingWith _ (Symbol _ s2
-                                                               ) _
-                                                 ) =
+importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 importSpecCompare (IThingWith _ _ _) (IVar _ _) =
     LT
-importSpecCompare (IVar _ (Ident _ s1)) (IVar _ (Ident _ s2)
-                                        ) =
+importSpecCompare (IVar _ (Ident _ s1)) (IVar _ (Ident _ s2)) =
     compare s1 s2
 importSpecCompare (IVar _ (Ident _ _)) (IVar _ (Symbol _ _)) =
     GT
 importSpecCompare (IVar _ (Symbol _ _)) (IVar _ (Ident _ _)) =
     LT
-importSpecCompare (IVar _ (Symbol _ s1)) (IVar _ (Symbol _ s2
-                                                 )
-                                         ) =
+importSpecCompare (IVar _ (Symbol _ s1)) (IVar _ (Symbol _ s2)) =
     compare s1 s2
 importSpecCompare (IVar _ _) _ =
     GT
 
 
 cNameCompare :: CName l -> CName l -> Ordering
-cNameCompare (VarName _ (Ident _ s1)) (VarName _ (Ident _ s2
-                                                 )
-                                      ) =
+cNameCompare (VarName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
-cNameCompare (VarName _ (Ident _ _)) (VarName _ (Symbol _ _)
-                                     ) =
+cNameCompare (VarName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
     GT
-cNameCompare (VarName _ (Ident _ s1)) (ConName _ (Ident _ s2
-                                                 )
-                                      ) =
+cNameCompare (VarName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
-cNameCompare (VarName _ (Ident _ _)) (ConName _ (Symbol _ _)
-                                     ) =
+cNameCompare (VarName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
     GT
-cNameCompare (VarName _ (Symbol _ _)) (VarName _ (Ident _ _)
-                                      ) =
+cNameCompare (VarName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
     LT
-cNameCompare (VarName _ (Symbol _ s1)) (VarName _ (Symbol _ s2
-                                                  )
-                                       ) =
+cNameCompare (VarName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
-cNameCompare (VarName _ (Symbol _ _)) (ConName _ (Ident _ _)
-                                      ) =
+cNameCompare (VarName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
     LT
-cNameCompare (VarName _ (Symbol _ s1)) (ConName _ (Symbol _ s2
-                                                  )
-                                       ) =
+cNameCompare (VarName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
     compare s1 s2
-cNameCompare (ConName _ (Ident _ s1)) (VarName _ (Ident _ s2
-                                                 )
-                                      ) =
+cNameCompare (ConName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
-cNameCompare (ConName _ (Ident _ _)) (VarName _ (Symbol _ _)
-                                     ) =
+cNameCompare (ConName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
     GT
-cNameCompare (ConName _ (Ident _ s1)) (ConName _ (Ident _ s2
-                                                 )
-                                      ) =
+cNameCompare (ConName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
-cNameCompare (ConName _ (Ident _ _)) (ConName _ (Symbol _ _)
-                                     ) =
+cNameCompare (ConName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
     GT
-cNameCompare (ConName _ (Symbol _ _)) (VarName _ (Ident _ _)
-                                      ) =
+cNameCompare (ConName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
     LT
-cNameCompare (ConName _ (Symbol _ s1)) (VarName _ (Symbol _ s2
-                                                  )
-                                       ) =
+cNameCompare (ConName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
-cNameCompare (ConName _ (Symbol _ _)) (ConName _ (Ident _ _)
-                                      ) =
+cNameCompare (ConName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
     LT
-cNameCompare (ConName _ (Symbol _ s1)) (ConName _ (Symbol _ s2
-                                                  )
-                                       ) =
+cNameCompare (ConName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
     compare s1 s2
 
 
@@ -2089,8 +1978,7 @@ instance Pretty BooleanFormula where
     prettyInternal (VarFormula _ (Symbol _ s)) =
         write "(" >> string s >> write ")"
     prettyInternal (AndFormula _ fs) = do
-        maybeFormulas <-
-            fitsOnOneLine <| inter (write ", ") <| map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write ", ") <| map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined ", " (map pretty fs)
@@ -2098,8 +1986,7 @@ instance Pretty BooleanFormula where
             Just formulas ->
                 put formulas
     prettyInternal (OrFormula _ fs) = do
-        maybeFormulas <-
-            fitsOnOneLine <| inter (write " | ") <| map pretty fs
+        maybeFormulas <- fitsOnOneLine <| inter (write " | ") <| map pretty fs
         case maybeFormulas of
             Nothing ->
                 prefixedLined "| " (map pretty fs)
@@ -2258,8 +2145,7 @@ instance Pretty ModulePragma where
 
 
 instance Pretty ImportDecl where
-    prettyInternal (ImportDecl _ name qualified source safe mpkg mas mspec
-        ) = do
+    prettyInternal (ImportDecl _ name qualified source safe mpkg mas mspec) = do
         write "import"
         when source <| write " {-# SOURCE #-}"
         when safe <| write " safe"
@@ -2535,8 +2421,7 @@ typ (TyTuple _ Boxed types) = do
                 prefixedLined "," (map (depend space . pretty) types)
     horVar `ifFitsOnOneLineOrElse` verVar
 typ (TyTuple _ Unboxed types) = do
-    let horVar =
-            wrap "(# " " #)" <| inter (write ", ") (map pretty types)
+    let horVar = wrap "(# " " #)" <| inter (write ", ") (map pretty types)
     let verVar =
             wrap "(#" " #)" <|
                 prefixedLined "," (map (depend space . pretty) types)
@@ -2837,16 +2722,12 @@ conDecl (InfixConDecl _ a f b) =
     inter space [pretty a, pretty f, pretty b]
 
 
-recUpdateExpr ::
-    Printer ()
-    -> [FieldUpdate NodeInfo]
-    -> Printer ()
+recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
 recUpdateExpr expWriter updates = do
     ifFitsOnOneLineOrElse hor <| do
         expWriter
         newline
-        indentedBlock
-            (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
+        indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
     where
         hor = do
             expWriter
@@ -2867,9 +2748,7 @@ recUpdateExpr expWriter updates = do
 
 
 --------------------------------------------------------------------------------
-getSymbolNameTy ::
-    MaybePromotedName NodeInfo
-    -> QName NodeInfo
+getSymbolNameTy :: MaybePromotedName NodeInfo -> QName NodeInfo
 getSymbolNameTy symbol =
     case symbol of
         PromotedName _ symbolName ->

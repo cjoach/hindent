@@ -123,9 +123,7 @@ depend maker dependent = do
     maker
     st <- get
     col <- gets psColumn
-    if
-        psLine state' /= psLine st || psColumn state' /= psColumn st
-    then
+    if psLine state' /= psLine st || psColumn state' /= psColumn st then
         column col dependent
 
     else

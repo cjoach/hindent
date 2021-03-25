@@ -49,11 +49,7 @@ toRelative parent child =
 
 
 -- | Create a Stanza from `BuildInfo` and names of modules and paths
-mkStanza ::
-    BuildInfo
-    -> [ModuleName]
-    -> [FilePath]
-    -> Stanza
+mkStanza :: BuildInfo -> [ModuleName] -> [FilePath] -> Stanza
 mkStanza bi mnames fpaths =
     MkStanza bi <|
         \path ->
@@ -125,10 +121,7 @@ packageStanzas pd =
 
 
 -- | Find cabal files that are "above" the source path
-findCabalFiles ::
-    FilePath
-    -> FilePath
-    -> IO (Maybe ([FilePath], FilePath))
+findCabalFiles :: FilePath -> FilePath -> IO (Maybe ([FilePath], FilePath))
 findCabalFiles dir rel = do
     names <- getDirectoryContents dir
     cabalnames <-
@@ -139,17 +132,13 @@ findCabalFiles dir rel = do
             | dir == "/" -> return Nothing
 
         [] ->
-            findCabalFiles
-                (takeDirectory dir)
-                (takeFileName dir </> rel)
+            findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
 
         _ ->
             return <| Just (fmap (\n -> dir </> n) cabalnames, rel)
 
 
-getGenericPackageDescription ::
-    FilePath
-    -> IO (Maybe GenericPackageDescription)
+getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
 #if MIN_VERSION_Cabal(2, 2, 0)
 getGenericPackageDescription cabalPath = do
     cabaltext <- BS.readFile cabalPath
@@ -168,10 +157,7 @@ getGenericPackageDescription cabalPath = do
 getCabalStanza :: FilePath -> IO (Maybe Stanza)
 getCabalStanza srcpath = do
     abssrcpath <- canonicalizePath srcpath
-    mcp <-
-        findCabalFiles
-            (takeDirectory abssrcpath)
-            (takeFileName abssrcpath)
+    mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
     case mcp of
         Just (cabalpaths, relpath) -> do
             stanzass <-
@@ -227,9 +213,7 @@ convertLanguage lang =
     read <| show lang
 
 
-convertKnownExtension ::
-    KnownExtension
-    -> Maybe HSE.KnownExtension
+convertKnownExtension :: KnownExtension -> Maybe HSE.KnownExtension
 convertKnownExtension ext =
     case readEither <| show ext of
         Left _ ->
@@ -249,9 +233,7 @@ convertExtension (UnknownExtension s) =
 
 
 -- | Get extensions from the cabal file for this source path
-getCabalExtensionsForSourcePath ::
-    FilePath
-    -> IO [HSE.Extension]
+getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]
 getCabalExtensionsForSourcePath srcpath = do
     (lang, exts) <- getCabalExtensions srcpath
     return <|

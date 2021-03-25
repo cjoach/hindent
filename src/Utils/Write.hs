@@ -69,18 +69,13 @@ write x = do
                     |> fromIntegral
                     |> (+) (psColumn state)
         noAdditionalLines = additionalLines == 0
-        notOverMaxColumn =
-            psColumn' <= configMaxColumns (psConfig state)
+        notOverMaxColumn = psColumn' <= configMaxColumns (psConfig state)
         notOverMaxCodeColumn =
             (psColumn' - psColumnStart')
                 <= configMaxCodeColumns (psConfig state)
     when
         hardFail
-        (guard
-            (noAdditionalLines && notOverMaxColumn
-                && notOverMaxCodeColumn
-            )
-        )
+        (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
         (\s ->
             s
