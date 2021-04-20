@@ -27,8 +27,8 @@ import Text.Read
 import Utils.Flow
 
 
-data Stanza =
-    MkStanza
+data Stanza
+    = MkStanza
         { _stanzaBuildInfo :: BuildInfo
         , stanzaIsSourceFilePath :: FilePath -> Bool
         }

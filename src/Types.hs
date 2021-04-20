@@ -48,8 +48,8 @@ newtype Printer a =
 
 
 -- | The state of the pretty printer.
-data PrintState =
-    PrintState
+data PrintState
+    = PrintState
         { psIndentLevel :: !Int64
         , psColumnStart :: !Int64
         -- ^ Current indentation level, i.e. every time there's a
@@ -76,8 +76,8 @@ data PrintState =
 
 -- | Configurations shared among the different styles. Styles may pay
 -- attention to or completely disregard this configuration.
-data Config =
-    Config
+data Config
+    = Config
         { configMaxColumns :: !Int64 -- ^ Maximum columns to fit code into ideally.
         , configMaxCodeColumns :: !Int64
         , configIndentSpaces :: !Int64 -- ^ How many spaces to indent?
@@ -161,8 +161,8 @@ data NodeComment
 
 
 -- | Information for each node in the AST.
-data NodeInfo =
-    NodeInfo
+data NodeInfo
+    = NodeInfo
         { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
         , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
         }

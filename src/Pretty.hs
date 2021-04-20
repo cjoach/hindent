@@ -1058,14 +1058,14 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
         (withCtx ctx
             (do
                 pretty dhead
-                case condecls of
-                    [] ->
+                case (dataornew, condecls) of
+                    (_, []) ->
                         return ()
 
-                    [x] ->
+                    (NewType _, [x]) ->
                         singleCons x
 
-                    xs ->
+                    (_, xs) ->
                         multiCons xs
             )
         )
