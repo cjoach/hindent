@@ -515,7 +515,7 @@ exp (If _ if' then' else') =
         printExpression else'
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
-exp (App _ op arg) =
+exp expression@(App _ op arg) =
     let
         flatten (App label' op' arg') =
             flatten op' ++ [amap (addComments label') arg']
@@ -530,6 +530,14 @@ exp (App _ op arg) =
 
         flattened =
             flatten op ++ [arg]
+
+        isBreakFromFile =
+            srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
+
+        srcSpan =
+            ann expression
+                |> nodeInfoSpan
+                |> srcInfoSpan
 
         oneLine = do
             flattened
@@ -564,7 +572,13 @@ exp (App _ op arg) =
     in do
         isOneLine <- fitsOnOneLine_ oneLine
         isFirstArgOneLine <- fitsOnOneLine_ firstArgOneLine
-        if isOneLine then
+        if isBreakFromFile && isFirstArgOneLine then
+            firstArgMultiline
+
+        else if isBreakFromFile && (not isFirstArgOneLine) then
+            multiline
+
+        else if isOneLine then
             oneLine
 
         else if isFirstArgOneLine then
@@ -2817,6 +2831,11 @@ infixApp wholeExpression a op b =
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
 
+        srcSpan =
+            ann wholeExpression
+                |> nodeInfoSpan
+                |> srcInfoSpan
+
         bIsDo =
             case b of
                 Do _ _ ->
@@ -2832,11 +2851,6 @@ infixApp wholeExpression a op b =
 
                 _ ->
                     False
-
-        srcSpan =
-            ann wholeExpression
-                |> nodeInfoSpan
-                |> srcInfoSpan
     in do
         let symbolName = getSymbolNameOp op
         isBreakBeforeFromConfig <- isLineBreakBefore symbolName
