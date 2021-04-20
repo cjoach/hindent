@@ -2286,21 +2286,29 @@ instance Pretty ExportSpecList where
 
             lowerExports =
                 es
+                    |> filter (not . isPrefixOf "module" . exportName)
                     |> filter (isLower . head . exportName)
                     |> sortOn exportName
 
             upperExports =
                 es
+                    |> filter (not . isPrefixOf "module" . exportName)
                     |> filter (isUpper . head . exportName)
                     |> sortOn exportName
 
             symbolExports =
                 es
+                    |> filter (not . isPrefixOf "module" . exportName)
                     |> filter ((==) '(' . head . exportName)
                     |> sortOn exportName
 
+            moduleExports =
+                es
+                    |> filter (isPrefixOf "module" . exportName)
+                    |> sortOn exportName
+
             sortedExports =
-                upperExports ++ symbolExports ++ lowerExports
+                moduleExports ++ upperExports ++ symbolExports ++ lowerExports
         in do
             write "("
             space
