@@ -2945,13 +2945,29 @@ verticalInfixApplicationBefore ::
     -> QOp NodeInfo
     -> Exp NodeInfo
     -> Printer ()
-verticalInfixApplicationBefore a op b = do
-    pretty a
-    newline
-    indentedBlock <| do
-        pretty op
-        space
-        pretty b
+verticalInfixApplicationBefore a op b =
+    case b of
+        Paren _ _ -> do
+            pretty a
+            newline
+            indentedBlock <| do
+                pretty op
+                isOneLine <- fitsOnOneLine_ (space >> pretty b)
+                if isOneLine then do
+                    space
+                    pretty b
+
+                else do
+                    newline
+                    indentedBlock <| pretty b
+
+        _ -> do
+            pretty a
+            newline
+            indentedBlock <| do
+                pretty op
+                space
+                pretty b
 
 
 verticalInfixApplicationAfter ::

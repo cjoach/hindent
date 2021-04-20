@@ -122,9 +122,10 @@ instance FromJSON Config where
                 (v Y..:? "line-breaks-before")
             <*> fmap (fromMaybe (configLineBreaksAfter defaultConfig))
                 (v Y..:? "line-breaks-after")
-            <*> (traverse readExtension
-                =<< fmap (fromMaybe []) (v Y..:? "extensions")
-            )
+            <*>
+                (traverse readExtension
+                    =<< fmap (fromMaybe []) (v Y..:? "extensions")
+                )
     parseJSON _ =
         fail "Expected Object for Config value"
 
