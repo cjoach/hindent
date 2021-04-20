@@ -2763,7 +2763,11 @@ conDecl (InfixConDecl _ a f b) =
     inter space [ pretty a, pretty f, pretty b ]
 
 
-recUpdateExpr :: Exp NodeInfo -> Printer () -> [FieldUpdate NodeInfo] -> Printer ()
+recUpdateExpr ::
+    Exp NodeInfo
+    -> Printer ()
+    -> [FieldUpdate NodeInfo]
+    -> Printer ()
 recUpdateExpr wholeExpression expWriter updates =
     let
         isBreakFromFile =
@@ -2795,18 +2799,18 @@ recUpdateExpr wholeExpression expWriter updates =
                 newline
                 write "}"
     in do
-    case updates of
-        [] -> do
-            expWriter
-            space
-            write "{}"
+        case updates of
+            [] -> do
+                expWriter
+                space
+                write "{}"
 
-        _ ->
-            if isBreakFromFile then
-                vertical
+            _ ->
+                if isBreakFromFile then
+                    vertical
 
-            else
-                ifFitsOnOneLineOrElse horizontal vertical
+                else
+                    ifFitsOnOneLineOrElse horizontal vertical
 
 
 --------------------------------------------------------------------------------
