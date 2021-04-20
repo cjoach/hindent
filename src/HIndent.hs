@@ -9,7 +9,7 @@ module HIndent
     ( reformat
     , prettyPrint
     , parseMode
-     -- * Testing
+    -- * Testing
     , test
     , testFile
     , testAst

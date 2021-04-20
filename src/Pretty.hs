@@ -2277,14 +2277,18 @@ instance Pretty WarningText where
 
 instance Pretty ExportSpecList where
     prettyInternal (ExportSpecList _ es) = do
-        depend (write "(") (prefixedLined "," (map pretty es))
+        write "("
+        space
+        es
+            |> map pretty
+            |> prefixedLined_ ", "
         newline
         write ")"
 
 
 instance Pretty ExportSpec where
     prettyInternal x =
-        string " " >> pretty' x
+        pretty' x
 
 
 -- Do statements need to handle infix expression indentation specially because
