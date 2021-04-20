@@ -1,7 +1,7 @@
 module Utils.Fits
-    ( ifFitsOnOneLineOrElse
-    , fitsOnOneLine
+    ( fitsOnOneLine
     , fitsOnOneLine_
+    , ifFitsOnOneLineOrElse
     ) where
 
 

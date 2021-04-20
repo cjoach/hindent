@@ -9,14 +9,14 @@
 
 -- | All types.
 module Types
-    ( Printer(..)
-    , PrintState(..)
-    , Config(..)
-    , readExtension
-    , defaultConfig
-    , NodeInfo(..)
+    ( Config(..)
     , NodeComment(..)
+    , NodeInfo(..)
+    , PrintState(..)
+    , Printer(..)
     , SomeComment(..)
+    , defaultConfig
+    , readExtension
     ) where
 
 

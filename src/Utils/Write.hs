@@ -1,25 +1,25 @@
 module Utils.Write
-    ( writeDo
-    , writeMdo
-    , writeLet
-    , writeIn
-    , writeCase
-    , writeOf
-    , writeWhere
-    , rightArrow
-    , leftArrow
-    , rightFatArrow
-    , nothing
-    , space
-    , comma
+    ( comma
     , emptyBraces
     , int
-    , write
-    , string
-    , writeForall
+    , leftArrow
     , newline
+    , nothing
     , oneEmptyLine
+    , rightArrow
+    , rightFatArrow
+    , space
+    , string
     , twoEmptyLines
+    , write
+    , writeCase
+    , writeDo
+    , writeForall
+    , writeIn
+    , writeLet
+    , writeMdo
+    , writeOf
+    , writeWhere
     ) where
 
 

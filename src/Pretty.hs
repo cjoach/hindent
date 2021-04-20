@@ -15,6 +15,7 @@ module Pretty
 
 
 import Control.Monad.State.Strict hiding (state)
+import Data.Char
 import Data.Foldable (for_, traverse_)
 import Data.Int
 import Data.List
@@ -2276,14 +2277,38 @@ instance Pretty WarningText where
 
 
 instance Pretty ExportSpecList where
-    prettyInternal (ExportSpecList _ es) = do
-        write "("
-        space
-        es
-            |> map pretty
-            |> prefixedLined_ ", "
-        newline
-        write ")"
+    prettyInternal (ExportSpecList _ es) =
+        let
+            exportName x =
+                x
+                    |> fmap nodeInfoSpan
+                    |> P.prettyPrint
+
+            lowerExports =
+                es
+                    |> filter (isLower . head . exportName)
+                    |> sortOn exportName
+
+            upperExports =
+                es
+                    |> filter (isUpper . head . exportName)
+                    |> sortOn exportName
+
+            symbolExports =
+                es
+                    |> filter ((==) '(' . head . exportName)
+                    |> sortOn exportName
+
+            sortedExports =
+                upperExports ++ symbolExports ++ lowerExports
+        in do
+            write "("
+            space
+            sortedExports
+                |> map pretty
+                |> prefixedLined_ ", "
+            newline
+            write ")"
 
 
 instance Pretty ExportSpec where

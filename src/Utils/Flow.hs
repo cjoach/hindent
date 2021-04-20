@@ -1,6 +1,6 @@
 module Utils.Flow
-    ( (|>)
-    , (<|)
+    ( (<|)
+    , (|>)
     ) where
 
 

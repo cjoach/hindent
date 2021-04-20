@@ -1,25 +1,25 @@
 module Utils.Combinator
-    ( identity
+    ( braces
+    , brackets
+    , column
+    , commas
+    , depend
+    , doubleLined
+    , getIndentSpaces
+    , identity
     , indented
     , indentedBlock
-    , spaced
-    , commas
     , inter
     , lined
-    , doubleLined
+    , parens
     , prefixedLined
     , prefixedLined_
-    , column
+    , quotation
+    , spaced
     , withCaseContext
     , withLetStatementContext
     , wrap
-    , parens
-    , braces
-    , brackets
     , wrapSpaces
-    , quotation
-    , getIndentSpaces
-    , depend
     ) where
 
 

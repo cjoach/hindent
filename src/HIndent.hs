@@ -6,16 +6,16 @@
 
 -- | Haskell indenter.
 module HIndent
-    ( reformat
-    , prettyPrint
+    ( defaultExtensions
+    , getExtensions
     , parseMode
     -- * Testing
+    , prettyPrint
+    , reformat
     , test
-    , testFile
     , testAst
+    , testFile
     , testFileAst
-    , defaultExtensions
-    , getExtensions
     ) where
 
 
