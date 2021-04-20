@@ -2856,6 +2856,9 @@ infixApp wholeExpression a op b =
         else if isBreakAfterFromConfig then
             ifFitsOnOneLineOrElse horizontal verticalAfter
 
+        else if isBreakFromFile then
+            verticalBefore
+
         else
             ifFitsOnOneLineOrElse horizontal verticalBefore
 
