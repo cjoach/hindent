@@ -462,21 +462,6 @@ collectAllComments =
                 )
             )
         <=< shortCircuit
-            (traverseBackwards
-             -- First, collect forwards comments for declarations which both
-             -- start on column 1 and occur before the declaration.
-                (collectCommentsBy CommentAfterLine
-                    (\nodeSpan commentSpan ->
-                        (snd (srcSpanStart nodeSpan) == 1
-                            && snd (srcSpanStart commentSpan)
-                            == 1
-                        )
-                            && fst (srcSpanStart commentSpan)
-                            >= fst (srcSpanStart nodeSpan)
-                    )
-                )
-            )
-        <=< shortCircuit
             (traverse
              -- First, collect forwards comments for declarations which both
              -- start on column 1 and occur before the declaration.
