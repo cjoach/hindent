@@ -403,6 +403,28 @@ traverseInOrder cmp f ast = do
 -- this from bottom to top.
 collectAllComments :: Module SrcSpanInfo -> State [Comment] (Module NodeInfo)
 collectAllComments =
+    let
+        nodify s =
+            NodeInfo s mempty
+        -- Sort the comments by their end position.
+
+        traverseBackwards =
+            traverseInOrder
+                (\x y ->
+                    on (flip compare)
+                        (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
+                        x
+                        y -- Stop traversing if all comments have been consumed.
+                )
+
+        shortCircuit m v = do
+            comments <- get
+            if null comments then
+                return v
+
+            else
+                m v
+    in
     shortCircuit
         (traverseBackwards
          -- Finally, collect backwards comments which come after each node.
@@ -470,27 +492,6 @@ collectAllComments =
                 )
             )
         . fmap nodify
-    where
-        nodify s =
-            NodeInfo s mempty
-
-        -- Sort the comments by their end position.
-        traverseBackwards =
-            traverseInOrder
-                (\x y ->
-                    on (flip compare)
-                        (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
-                        x
-                        y -- Stop traversing if all comments have been consumed.
-                )
-
-        shortCircuit m v = do
-            comments <- get
-            if null comments then
-                return v
-
-            else
-                m v
 
 
 -- | Collect comments by satisfying the given predicate, to collect a
