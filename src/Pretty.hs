@@ -421,31 +421,37 @@ exp (Lambda _ pats (Do l stmts)) = do
         Just st ->
             put st
 -- | Space out tuples.
-exp (Tuple _ boxed exps) = do
-    let horVariant = parensHorB boxed <| inter (write ", ") (map pretty exps)
-        verVariant =
+exp (Tuple _ boxed exps) =
+    let
+        boxWrap =
+            case boxed of
+                Boxed ->
+                    identity
+
+                Unboxed ->
+                    wrap "#" "#"
+
+        horizontal =
             exps
                 |> map pretty
-                |> map (\x -> space >> x)
-                |> prefixedLined ","
-                |> parensVerB boxed
-    mst <- fitsOnOneLine horVariant
-    case mst of
-        Nothing ->
-            verVariant
+                |> commas
+                |> wrapSpaces
+                |> boxWrap
+                |> parens
 
-        Just st ->
-            put st
-    where
-        parensHorB Boxed =
-            parens
-        parensHorB Unboxed =
-            wrap "(# " " #)"
+        vertical =
+            exps
+                |> map pretty
+                |> prefixedLined ", "
+                |> boxWrap
+                |> parens
+    in
+    case exps of
+        [] ->
+            write "()"
 
-        parensVerB Boxed =
-            parens
-        parensVerB Unboxed =
-            wrap "(#" "#)"
+        _ ->
+            ifFitsOnOneLineOrElse horizontal vertical
 -- | Space out tuples.
 exp (TupleSection _ boxed mexps) = do
     let horVariant =

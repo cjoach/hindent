@@ -1,5 +1,6 @@
 module Utils.Combinator
-    ( indented
+    ( identity
+    , indented
     , indentedBlock
     , spaced
     , commas
@@ -29,6 +30,11 @@ import Types
 import Utils.Fits
 import Utils.Flow
 import Utils.Write
+
+
+identity :: Printer a -> Printer a
+identity printer =
+    printer
 
 
 wrap :: String -> String -> Printer a -> Printer a
