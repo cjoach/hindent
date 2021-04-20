@@ -446,12 +446,15 @@ exp (Tuple _ boxed exps) =
                 |> boxWrap
                 |> parens
 
-        vertical =
+        vertical = do
+            write "("
+            space
             exps
                 |> map pretty
-                |> prefixedLined ", "
+                |> prefixedLined_ ", "
                 |> boxWrap
-                |> parens
+            newline
+            write ")"
     in
     case exps of
         [] ->
@@ -1751,8 +1754,8 @@ instance Pretty Module where
                                 ( False, pretty modHead )
                          )
                        , ( null imps, formatImports imps )
-                       , (null decls
-                        , interOf newline
+                       , ( null decls
+                         , interOf newline
                             (map
                                 (\case
                                     r@TypeSig {} ->
