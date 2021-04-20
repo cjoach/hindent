@@ -72,8 +72,11 @@ brackets =
 
 
 wrapSpaces :: Printer a -> Printer a
-wrapSpaces =
-    wrap " " " "
+wrapSpaces p = do
+    space
+    p' <- p
+    space
+    return p'
 
 
 -- | Write a Template Haskell quotation or a quasi-quotation.

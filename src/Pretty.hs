@@ -216,33 +216,40 @@ instance Pretty Pat where
                     (spaced (map pretty args))
 
             PTuple _ boxed pats ->
-                depend
-                    (write
-                        (case boxed of
-                            Unboxed ->
-                                "(# "
-
+                let
+                    boxWrap =
+                        case boxed of
                             Boxed ->
-                                "("
-                        )
-                    )
-                    (do
-                        commas (map pretty pats)
-                        write
-                            (case boxed of
-                                Unboxed ->
-                                    " #)"
+                                identity
 
-                                Boxed ->
-                                    ")"
-                            )
-                    )
+                            Unboxed ->
+                                wrap "#" "#"
+                in
+                case pats of
+                    [] ->
+                        write "()"
+
+                    _ ->
+                        pats
+                            |> map pretty
+                            |> commas
+                            |> boxWrap
+                            |> parens
 
             PList _ ps ->
-                brackets (commas (map pretty ps))
+                case ps of
+                    [] ->
+                        write "[]"
+
+                    _ ->
+                        ps
+                            |> map pretty
+                            |> commas
+                            |> brackets
 
             PParen _ e ->
-                parens (pretty e)
+                pretty e
+                    |> parens
 
             PRec _ qname fields -> do
                 let horVariant = do
