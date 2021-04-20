@@ -2146,7 +2146,7 @@ instance Pretty SpecialCon where
                 string ("(# " ++ replicate (i - 1) ',' ++ " #)")
 
             Cons _ ->
-                write ":"
+                write " : "
 
             UnboxedSingleCon _ ->
                 write "(##)"
