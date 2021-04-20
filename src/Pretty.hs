@@ -248,7 +248,16 @@ instance Pretty Pat where
                 let horVariant = do
                         pretty qname
                         space
-                        braces <| commas <| map pretty fields
+                        case fields of
+                            [] ->
+                                write "{}"
+
+                            _ ->
+                                fields
+                                    |> map pretty
+                                    |> commas
+                                    |> wrapSpaces
+                                    |> braces
                     verVariant =
                         depend (pretty qname >> space) <| do
                             case fields of
@@ -256,7 +265,10 @@ instance Pretty Pat where
                                     write "{}"
 
                                 [field] ->
-                                    braces <| pretty field
+                                    field
+                                        |> pretty
+                                        |> wrapSpaces
+                                        |> braces
 
                                 _ -> do
                                     write "{"
@@ -2732,19 +2744,24 @@ conDecl (InfixConDecl _ a f b) =
 
 
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
-recUpdateExpr expWriter updates = do
-    ifFitsOnOneLineOrElse hor <| do
-        expWriter
-        newline
-        indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
-    where
+recUpdateExpr expWriter updates =
+    let
         hor = do
             expWriter
             space
             updatesHor
 
         updatesHor =
-            braces <| commas <| map pretty updates
+            case updates of
+                [] ->
+                    write "{}"
+
+                _ ->
+                    updates
+                        |> map pretty
+                        |> commas
+                        |> wrapSpaces
+                        |> braces
 
         updatesVer = do
             write "{"
@@ -2754,6 +2771,11 @@ recUpdateExpr expWriter updates = do
                 |> prefixedLined_ ", "
             newline
             write "}"
+    in do
+        ifFitsOnOneLineOrElse hor <| do
+            expWriter
+            newline
+            indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
 
 
 --------------------------------------------------------------------------------

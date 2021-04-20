@@ -15,6 +15,7 @@ module Utils.Combinator
     , parens
     , braces
     , brackets
+    , wrapSpaces
     , quotation
     , getIndentSpaces
     , depend
@@ -62,6 +63,11 @@ braces =
 brackets :: Printer a -> Printer a
 brackets =
     wrap "[" "]"
+
+
+wrapSpaces :: Printer a -> Printer a
+wrapSpaces =
+    wrap " " " "
 
 
 -- | Write a Template Haskell quotation or a quasi-quotation.
