@@ -633,10 +633,10 @@ exp (List _ es) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
-exp (RecUpdate _ exp' updates) =
-    recUpdateExpr (pretty exp') updates
-exp (RecConstr _ qname updates) =
-    recUpdateExpr (pretty qname) updates
+exp e@(RecUpdate _ exp' updates) =
+    recUpdateExpr e (pretty exp') updates
+exp e@(RecConstr _ qname updates) =
+    recUpdateExpr e (pretty qname) updates
 exp (Let _ binds e) =
     let
         afterIn =
@@ -2763,39 +2763,50 @@ conDecl (InfixConDecl _ a f b) =
     inter space [ pretty a, pretty f, pretty b ]
 
 
-recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()
-recUpdateExpr expWriter updates =
+recUpdateExpr :: Exp NodeInfo -> Printer () -> [FieldUpdate NodeInfo] -> Printer ()
+recUpdateExpr wholeExpression expWriter updates =
     let
-        hor = do
+        isBreakFromFile =
+            srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
+
+        srcSpan =
+            ann wholeExpression
+                |> nodeInfoSpan
+                |> srcInfoSpan
+
+        horizontal = do
             expWriter
-            space
-            updatesHor
-
-        updatesHor =
-            case updates of
-                [] ->
-                    write "{}"
-
-                _ ->
-                    updates
-                        |> map pretty
-                        |> commas
-                        |> wrapSpaces
-                        |> braces
-
-        updatesVer = do
-            write "{"
             space
             updates
                 |> map pretty
-                |> prefixedLined_ ", "
-            newline
-            write "}"
-    in do
-        ifFitsOnOneLineOrElse hor <| do
+                |> commas
+                |> wrapSpaces
+                |> braces
+
+        vertical = do
             expWriter
             newline
-            indentedBlock (updatesHor `ifFitsOnOneLineOrElse` updatesVer)
+            indentedBlock <| do
+                write "{"
+                space
+                updates
+                    |> map pretty
+                    |> prefixedLined_ ", "
+                newline
+                write "}"
+    in do
+    case updates of
+        [] -> do
+            expWriter
+            space
+            write "{}"
+
+        _ ->
+            if isBreakFromFile then
+                vertical
+
+            else
+                ifFitsOnOneLineOrElse horizontal vertical
 
 
 --------------------------------------------------------------------------------
