@@ -71,15 +71,15 @@ cppSplitBlocks inp =
         cppLine :: ByteString -> Bool
         cppLine src =
             any (`S8.isPrefixOf` src)
-                [ "#if"
-                , "#end"
-                , "#else"
-                , "#define"
-                , "#undef"
-                , "#elif"
-                , "#include"
-                , "#error"
-                , "#warning"
+                ["#if"
+               , "#end"
+               , "#else"
+               , "#define"
+               , "#undef"
+               , "#elif"
+               , "#include"
+               , "#error"
+               , "#warning"
                 ]
         -- Note: #ifdef and #ifndef are handled by #if
 
@@ -111,7 +111,7 @@ cppSplitBlocks inp =
                         spanCPPLines nextLines
                 in
                 ( line : cppLines, nextLines' )
-            | otherwise = ( [line], nextLines )
+            | otherwise = ( [ line ], nextLines )
         spanCPPLines [] =
             ( [], [] )
         -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
@@ -130,7 +130,7 @@ cppSplitBlocks inp =
         modifyLast _ [] =
             []
         modifyLast f [x] =
-            [f x]
+            [ f x ]
         modifyLast f (x:xs) =
             x : modifyLast f xs
 

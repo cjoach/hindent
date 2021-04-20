@@ -323,16 +323,16 @@ defaultExtensions =
 -- | Extensions which steal too much syntax.
 badExtensions :: [KnownExtension]
 badExtensions =
-    [ Arrows -- steals proc
-    , TransformListComp -- steals the group keyword
-    , XmlSyntax
-    , RegularPatterns -- steals a-b
-    , UnboxedTuples -- breaks (#) lens operator
-      -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
-    , PatternSynonyms -- steals the pattern keyword
-    , RecursiveDo -- steals the rec keyword
-    , DoRec -- same
-    , TypeApplications -- since GHC 8 and haskell-src-exts-1.19
+    [Arrows -- steals proc
+   , TransformListComp -- steals the group keyword
+   , XmlSyntax
+   , RegularPatterns -- steals a-b
+   , UnboxedTuples -- breaks (#) lens operator
+     -- ,QuasiQuotes -- breaks [x| ...], making whitespace free list comps break
+   , PatternSynonyms -- steals the pattern keyword
+   , RecursiveDo -- steals the rec keyword
+   , DoRec -- same
+   , TypeApplications -- since GHC 8 and haskell-src-exts-1.19
     ]
 
 

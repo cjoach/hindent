@@ -138,8 +138,8 @@ defaultConfig =
         , configIndentSpaces = 4
         , configTrailingNewline = True
         , configSortImports = True
-        , configLineBreaksBefore = ["|>"]
-        , configLineBreaksAfter = ["<|"]
+        , configLineBreaksBefore = [ "|>" ]
+        , configLineBreaksAfter = [ "<|" ]
         , configExtensions = []
         }
 

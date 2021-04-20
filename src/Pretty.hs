@@ -536,9 +536,9 @@ exp (If _ if' then' else') =
 exp expression@(App _ op arg) =
     let
         flatten (App label' op' arg') =
-            flatten op' ++ [amap (addComments label') arg']
+            flatten op' ++ [ amap (addComments label') arg' ]
         flatten x =
-            [x]
+            [ x ]
 
         addComments n1 n2 =
             n2
@@ -547,7 +547,7 @@ exp expression@(App _ op arg) =
                 }
 
         flattened =
-            flatten op ++ [arg]
+            flatten op ++ [ arg ]
 
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
@@ -619,7 +619,6 @@ exp (List _ es) =
                 |> map pretty
                 |> prefixedLined ", "
                 |> brackets
-
     in
     case es of
         [] ->
@@ -764,7 +763,7 @@ exp (Do _ statements) =
             zipWith checkNewlineFromSrc statements (tail statements)
 
         fullList =
-            [statementPrinters, separatorPrinters]
+            [ statementPrinters, separatorPrinters ]
                 |> transpose
                 |> concat
                 |> sequence_
@@ -1736,17 +1735,17 @@ instance Pretty Module where
                             else
                                 Just r
                         )
-                        [ ( null pragmas, inter newline (map pretty pragmas) )
-                        , (case mayModHead of
+                        [( null pragmas, inter newline (map pretty pragmas) )
+                       , (case mayModHead of
                             Nothing ->
                                 ( True, return () )
 
                             Just modHead ->
                                 ( False, pretty modHead )
-                          )
-                        , ( null imps, formatImports imps )
-                        , (null decls
-                         , interOf newline
+                         )
+                       , ( null imps, formatImports imps )
+                       , (null decls
+                        , interOf newline
                             (map
                                 (\case
                                     r@TypeSig {} ->
@@ -1758,7 +1757,7 @@ instance Pretty Module where
                                 )
                                 decls
                             )
-                          )
+                         )
                         ]
                     )
                 newline
@@ -1850,7 +1849,7 @@ spanAdjacentBy :: (a -> a -> Bool) -> [a] -> ([a], [a])
 spanAdjacentBy _ [] =
     ( [], [] )
 spanAdjacentBy _ [x] =
-    ( [x], [] )
+    ( [ x ], [] )
 spanAdjacentBy adj (x:xs@(y:_))
     | adj x y =
         let
@@ -1858,7 +1857,7 @@ spanAdjacentBy adj (x:xs@(y:_))
                 spanAdjacentBy adj xs
         in
         ( x : xs', rest' )
-    | otherwise = ( [x], xs )
+    | otherwise = ( [ x ], xs )
 
 
 importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering
@@ -2493,7 +2492,7 @@ typ (TyParArray _ t) =
             write ":"
         )
 typ (TyApp _ f a) =
-    spaced [pretty f, pretty a]
+    spaced [ pretty f, pretty a ]
 typ (TyVar _ n) =
     pretty n
 typ (TyCon _ p) =
@@ -2704,7 +2703,7 @@ prettyTy breakLine ty =
         collapseFaps (TyFun _ arg result) =
             arg : collapseFaps result
         collapseFaps e =
-            [e]
+            [ e ]
 
         oneline =
             pretty ty
@@ -2754,7 +2753,7 @@ conDecl (ConDecl _ name bangty) = do
             )
         )
 conDecl (InfixConDecl _ a f b) =
-    inter space [pretty a, pretty f, pretty b]
+    inter space [ pretty a, pretty f, pretty b ]
 
 
 recUpdateExpr :: Printer () -> [FieldUpdate NodeInfo] -> Printer ()

@@ -80,21 +80,21 @@ packageStanzas pd =
 
         exeStanza :: Executable -> Stanza
         exeStanza exe =
-            mkStanza (buildInfo exe) [] [modulePath exe]
+            mkStanza (buildInfo exe) [] [ modulePath exe ]
 
         testStanza :: TestSuite -> Stanza
         testStanza ts =
             mkStanza (testBuildInfo ts)
                 (case testInterface ts of
                     TestSuiteLibV09 _ mname ->
-                        [mname]
+                        [ mname ]
 
                     _ ->
                         []
                 )
                 (case testInterface ts of
                     TestSuiteExeV10 _ path ->
-                        [path]
+                        [ path ]
 
                     _ ->
                         []
@@ -105,16 +105,16 @@ packageStanzas pd =
             mkStanza (benchmarkBuildInfo bn) [] <|
                 case benchmarkInterface bn of
                     BenchmarkExeV10 _ path ->
-                        [path]
+                        [ path ]
 
                     _ ->
                         []
     in
     mconcat
-        [ maybeToList <| fmap libStanza <| library pd
-        , fmap exeStanza <| executables pd
-        , fmap testStanza <| testSuites pd
-        , fmap benchStanza <| benchmarks pd
+        [maybeToList <| fmap libStanza <| library pd
+       , fmap exeStanza <| executables pd
+       , fmap testStanza <| testSuites pd
+       , fmap benchStanza <| benchmarks pd
         ]
 
 
