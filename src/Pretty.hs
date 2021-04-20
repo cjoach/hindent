@@ -605,20 +605,28 @@ exp expression@(App _ op arg) =
         else
             multiline
 -- | Space out commas in list.
-exp (List _ es) = do
-    mst <- fitsOnOneLine p
-    case mst of
-        Nothing -> do
-            depend (write "[")
-                (prefixedLined "," (map (depend space . pretty) es))
-            newline
-            write "]"
+exp (List _ es) =
+    let
+        horizontal =
+            es
+                |> map pretty
+                |> commas
+                |> wrapSpaces
+                |> brackets
 
-        Just st ->
-            put st
-    where
-        p =
-            brackets (inter (write ", ") (map pretty es))
+        vertical =
+            es
+                |> map pretty
+                |> prefixedLined ", "
+                |> brackets
+
+    in
+    case es of
+        [] ->
+            write "[]"
+
+        _ ->
+            ifFitsOnOneLineOrElse horizontal vertical
 exp (RecUpdate _ exp' updates) =
     recUpdateExpr (pretty exp') updates
 exp (RecConstr _ qname updates) =
