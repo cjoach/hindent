@@ -198,7 +198,7 @@ prefixedLined pref ps' =
         [] ->
             return ()
 
-        (p:ps) -> do
+        (p : ps) -> do
             p
             indented (fromIntegral (length pref * (-1)))
                 (mapM_
@@ -218,7 +218,7 @@ prefixedLined_ pref ps' =
         [] ->
             return ()
 
-        (p:ps) -> do
+        (p : ps) -> do
             p
             mapM_
                 (\p' -> do

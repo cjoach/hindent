@@ -41,7 +41,7 @@ cppSplitBlocks inp =
         inp
     where
         groupLines :: [CodeBlock] -> [CodeBlock]
-        groupLines (line1:line2:remainingLines) =
+        groupLines (line1 : line2 : remainingLines) =
             case mergeLines line1 line2 of
                 Just line1And2 ->
                     groupLines (line1And2 : remainingLines)
@@ -88,7 +88,7 @@ cppSplitBlocks inp =
             "\\" `S8.isSuffixOf` src
 
         classifyLines :: [(Int, ByteString)] -> [CodeBlock]
-        classifyLines allLines@((lineIndex, src):nextLines)
+        classifyLines allLines@((lineIndex, src) : nextLines)
             | cppLine src =
                 let
                     (cppLines, nextLines') =
@@ -104,7 +104,7 @@ cppSplitBlocks inp =
         spanCPPLines ::
             [(Int, ByteString)]
             -> ([(Int, ByteString)], [(Int, ByteString)])
-        spanCPPLines (line@(_, src):nextLines)
+        spanCPPLines (line@(_, src) : nextLines)
             | hasEscapedTrailingNewline src =
                 let
                     (cppLines, nextLines') =
@@ -131,7 +131,7 @@ cppSplitBlocks inp =
             []
         modifyLast f [x] =
             [ f x ]
-        modifyLast f (x:xs) =
+        modifyLast f (x : xs) =
             x : modifyLast f xs
 
         inBlock :: (ByteString -> ByteString) -> CodeBlock -> CodeBlock

@@ -563,13 +563,13 @@ exp expression@(App _ op arg) =
                 |> spaced
 
         firstArgOneLine = do
-            let (f:a1:_) = flattened
+            let (f : a1 : _) = flattened
             pretty f
             space
             pretty a1
 
         firstArgMultiline = do
-            let (f:a1:args) = flattened
+            let (f : a1 : args) = flattened
             pretty f
             space
             pretty a1
@@ -580,7 +580,7 @@ exp expression@(App _ op arg) =
                 |> indentedBlock
 
         multiline = do
-            let (f:args) = flattened
+            let (f : args) = flattened
             pretty f
             newline
             args
@@ -1382,7 +1382,7 @@ instance Pretty Binds where
 formatBDecls :: [Decl NodeInfo] -> Printer ()
 formatBDecls [x] =
     pretty x
-formatBDecls (x:xs) =
+formatBDecls (x : xs) =
     let
         separator =
             case x of
@@ -1761,7 +1761,7 @@ instance Pretty Module where
                         ]
                     )
                 newline
-                where interOf i ((c, p):ps) =
+                where interOf i ((c, p) : ps) =
                         case ps of
                             [] ->
                                 p
@@ -1850,7 +1850,7 @@ spanAdjacentBy _ [] =
     ( [], [] )
 spanAdjacentBy _ [x] =
     ( [ x ], [] )
-spanAdjacentBy adj (x:xs@(y:_))
+spanAdjacentBy adj (x : xs@(y : _))
     | adj x y =
         let
             (xs', rest') =

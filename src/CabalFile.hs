@@ -179,7 +179,7 @@ getCabalStanza srcpath = do
                     [] ->
                         Nothing
 
-                    (stanza:_) ->
+                    (stanza : _) ->
                         Just stanza -- just pick the first one
 
         Nothing ->

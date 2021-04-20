@@ -168,9 +168,9 @@ reformat config mexts mfilepath =
         findSmallestPrefix :: [ByteString] -> ByteString
         findSmallestPrefix [] =
             ""
-        findSmallestPrefix ("":_) =
+        findSmallestPrefix ("" : _) =
             ""
-        findSmallestPrefix (p:ps) =
+        findSmallestPrefix (p : ps) =
             let
                 first =
                     S8.head p
@@ -351,7 +351,7 @@ getExtensions =
     where
         f _ "Haskell98" =
             []
-        f a ('N':'o':x)
+        f a ('N' : 'o' : x)
             | Just x' <- readExtension x = delete x' a
         f a x
             | Just x' <- readExtension x = x' : delete x' a
@@ -371,7 +371,7 @@ traverseInOrder ::
 traverseInOrder cmp f ast = do
     indexed <-
         fmap (zip [0 :: Integer ..] . reverse)
-            (execStateT (traverse (modify . (:)) ast) [])
+            (execStateT (traverse (modify . ( : )) ast) [])
     let sorted = sortBy (\(_, x) (_, y) -> cmp x y) indexed
     results <-
         mapM
