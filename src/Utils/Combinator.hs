@@ -161,7 +161,7 @@ commas =
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter sep ps =
     foldr
-        (\(i, p) next ->
+        (\( i, p ) next ->
             depend
                 (do
                     p

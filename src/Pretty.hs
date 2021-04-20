@@ -61,7 +61,7 @@ pretty a = do
         comments
     prettyInternal a
     mapM_
-        (\(i, c') -> do
+        (\( i, c' ) -> do
             case c' of
                 CommentSameLine _ c -> do
                     space
@@ -233,6 +233,7 @@ instance Pretty Pat where
                         pats
                             |> map pretty
                             |> commas
+                            |> wrapSpaces
                             |> boxWrap
                             |> parens
 
@@ -706,16 +707,16 @@ exp (Lambda _ ps e) = do
     spaced
         [ do
             case ( i, x ) of
-                (0, PIrrPat {}) ->
+                ( 0, PIrrPat {} ) ->
                     space
 
-                (0, PBangPat {}) ->
+                ( 0, PBangPat {} ) ->
                     space
 
                 _ ->
                     return ()
             pretty x
-        | (i, x) <- zip [0 :: Int ..] ps
+        | ( i, x ) <- zip [0 :: Int ..] ps
         ]
     swing (write " ->") <| pretty e
 exp (Paren _ e) =
@@ -881,7 +882,7 @@ exp (MultiIf _ alts) =
         prettyG (GuardedRhs _ stmts e) =
             let
                 fn =
-                    \(i, p) -> do
+                    \( i, p ) -> do
                         unless (i == 1) space
                         pretty p
                         unless (i == length stmts) (write ",")
@@ -1097,13 +1098,13 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
             (do
                 pretty dhead
                 case ( dataornew, condecls ) of
-                    (_, []) ->
+                    ( _, [] ) ->
                         return ()
 
-                    (NewType _, [x]) ->
+                    ( NewType _, [x] ) ->
                         singleCons x
 
-                    (_, xs) ->
+                    ( _, xs ) ->
                         multiCons xs
             )
         )
@@ -1741,7 +1742,7 @@ instance Pretty Module where
             Module _ mayModHead pragmas imps decls -> do
                 inter twoEmptyLines
                     (mapMaybe
-                        (\(isNull, r) ->
+                        (\( isNull, r ) ->
                             if isNull then
                                 Nothing
 
@@ -1774,7 +1775,7 @@ instance Pretty Module where
                         ]
                     )
                 newline
-                where interOf i ((c, p) : ps) =
+                where interOf i (( c, p ) : ps) =
                         case ps of
                             [] ->
                                 p
@@ -1854,7 +1855,7 @@ groupAdjacentBy _ [] =
 groupAdjacentBy adj items =
     xs : groupAdjacentBy adj rest
     where
-        (xs, rest) =
+        ( xs, rest ) =
             spanAdjacentBy adj items
 
 
@@ -1866,7 +1867,7 @@ spanAdjacentBy _ [x] =
 spanAdjacentBy adj (x : xs@(y : _))
     | adj x y =
         let
-            (xs', rest') =
+            ( xs', rest' ) =
                 spanAdjacentBy adj xs
         in
         ( x : xs', rest' )

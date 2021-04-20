@@ -88,10 +88,10 @@ cppSplitBlocks inp =
             "\\" `S8.isSuffixOf` src
 
         classifyLines :: [(Int, ByteString)] -> [CodeBlock]
-        classifyLines allLines@((lineIndex, src) : nextLines)
+        classifyLines allLines@(( lineIndex, src ) : nextLines)
             | cppLine src =
                 let
-                    (cppLines, nextLines') =
+                    ( cppLines, nextLines' ) =
                         spanCPPLines allLines
                 in
                 CPPDirectives (S8.intercalate "\n" (map snd cppLines))
@@ -104,10 +104,10 @@ cppSplitBlocks inp =
         spanCPPLines ::
             [(Int, ByteString)]
             -> ([(Int, ByteString)], [(Int, ByteString)])
-        spanCPPLines (line@(_, src) : nextLines)
+        spanCPPLines (line@( _, src ) : nextLines)
             | hasEscapedTrailingNewline src =
                 let
-                    (cppLines, nextLines') =
+                    ( cppLines, nextLines' ) =
                         spanCPPLines nextLines
                 in
                 ( line : cppLines, nextLines' )

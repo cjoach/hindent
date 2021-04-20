@@ -87,14 +87,14 @@ reformat config mexts mfilepath =
                         Nothing ->
                             mode'
 
-                        Just (Nothing, exts') ->
+                        Just ( Nothing, exts' ) ->
                             mode'
                                 { extensions =
                                     exts' ++ configExtensions config
                                         ++ extensions mode'
                                 }
 
-                        Just (Just lang, exts') ->
+                        Just ( Just lang, exts' ) ->
                             mode'
                                 { baseLanguage = lang
                                 , extensions =
@@ -103,7 +103,7 @@ reformat config mexts mfilepath =
                                 }
             in
             case parseModuleWithComments mode'' (UTF8.toString code) of
-                ParseOk (m, comments) ->
+                ParseOk ( m, comments ) ->
                     fmap
                         (S.lazyByteString . addPrefix prefix
                             . S.toLazyByteString
@@ -151,14 +151,14 @@ reformat config mexts mfilepath =
                 Nothing ->
                     ""
 
-                Just ('>', txt') ->
+                Just ( '>', txt' ) ->
                     if not bracketUsed then
                         S8.cons '>' (takePrefix True txt')
 
                     else
                         ""
 
-                Just (c, txt') ->
+                Just ( c, txt' ) ->
                     if c == ' ' || c == '\t' then
                         S8.cons c (takePrefix bracketUsed txt')
 
@@ -300,7 +300,7 @@ test =
 testAst :: ByteString -> Either String (Module NodeInfo)
 testAst x =
     case parseModuleWithComments parseMode (UTF8.toString x) of
-        ParseOk (m, comments) ->
+        ParseOk ( m, comments ) ->
             Right
                 (let
                     ast =
@@ -372,10 +372,10 @@ traverseInOrder cmp f ast = do
     indexed <-
         fmap (zip [0 :: Integer ..] . reverse)
             (execStateT (traverse (modify . ( : )) ast) [])
-    let sorted = sortBy (\(_, x) (_, y) -> cmp x y) indexed
+    let sorted = sortBy (\( _, x ) ( _, y ) -> cmp x y) indexed
     results <-
         mapM
-            (\(i, m) -> do
+            (\( i, m ) -> do
                 v <- f m
                 return ( i, v )
             )
@@ -503,7 +503,7 @@ collectCommentsBy ::
     -> State [Comment] NodeInfo
 collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) = do
     comments <- get
-    let (others, mine) =
+    let ( others, mine ) =
             partitionEithers
                 (map
                     (\comment@(Comment _ commentSpan _) ->
@@ -557,7 +557,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
         addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
         addCommentsBeforeNode nodeInfo = do
             comments <- get
-            let (notAbove, above) = partitionAboveNotAbove comments nodeInfo
+            let ( notAbove, above ) = partitionAboveNotAbove comments nodeInfo
             put notAbove
             return <| addCommentsToNode CommentBeforeLine above nodeInfo
 
@@ -568,7 +568,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
         partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
             fst <|
                 foldr'
-                    (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
+                    (\comment@(Comment _ commentSpan _) ( ( ls, rs ), lastSpan ) ->
                         if comment `isAbove` lastSpan then
                             ( ( ls, comment : rs ), commentSpan )
 
@@ -581,13 +581,13 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
         isAbove :: Comment -> SrcSpan -> Bool
         isAbove (Comment _ commentSpan _) span =
             let
-                (_, commentColStart) =
+                ( _, commentColStart ) =
                     srcSpanStart commentSpan
 
-                (commentLnEnd, _) =
+                ( commentLnEnd, _ ) =
                     srcSpanEnd commentSpan
 
-                (lnStart, colStart) =
+                ( lnStart, colStart ) =
                     srcSpanStart span
             in
             commentColStart == colStart && commentLnEnd + 1 == lnStart

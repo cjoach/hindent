@@ -157,7 +157,7 @@ getCabalStanza srcpath = do
     abssrcpath <- canonicalizePath srcpath
     mcp <- findCabalFiles (takeDirectory abssrcpath) (takeFileName abssrcpath)
     case mcp of
-        Just (cabalpaths, relpath) -> do
+        Just ( cabalpaths, relpath ) -> do
             stanzass <-
                 for cabalpaths <|
                     \cabalpath -> do
@@ -233,7 +233,7 @@ convertExtension (UnknownExtension s) =
 -- | Get extensions from the cabal file for this source path
 getCabalExtensionsForSourcePath :: FilePath -> IO [HSE.Extension]
 getCabalExtensionsForSourcePath srcpath = do
-    (lang, exts) <- getCabalExtensions srcpath
+    ( lang, exts ) <- getCabalExtensions srcpath
     return <|
         fmap HSE.EnableExtension <|
         HSE.toExtensionList (convertLanguage lang) <|

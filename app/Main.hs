@@ -98,7 +98,7 @@ main = do
                                                 Reformat -> do
                                                     tmpDir <-
                                                         IO.getTemporaryDirectory
-                                                    (fp, h) <-
+                                                    ( fp, h ) <-
                                                         IO.openTempFile tmpDir
                                                             "hindent.hs"
                                                     L8.hPutStr h
