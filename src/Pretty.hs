@@ -685,7 +685,7 @@ exp (Lambda _ ps e) = do
     write "\\"
     spaced
         [ do
-            case (i, x) of
+            case ( i, x ) of
                 (0, PIrrPat {}) ->
                     space
 
@@ -1076,7 +1076,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
         (withCtx ctx
             (do
                 pretty dhead
-                case (dataornew, condecls) of
+                case ( dataornew, condecls ) of
                     (_, []) ->
                         return ()
 
@@ -1728,25 +1728,25 @@ instance Pretty Module where
                             else
                                 Just r
                         )
-                        [ (null pragmas, inter newline (map pretty pragmas))
+                        [ ( null pragmas, inter newline (map pretty pragmas) )
                         , (case mayModHead of
                             Nothing ->
-                                (True, return ())
+                                ( True, return () )
 
                             Just modHead ->
-                                (False, pretty modHead)
+                                ( False, pretty modHead )
                           )
-                        , (null imps, formatImports imps)
-                        , ( null decls
-                          , interOf newline
+                        , ( null imps, formatImports imps )
+                        , (null decls
+                         , interOf newline
                             (map
                                 (\case
                                     r@TypeSig {} ->
-                                        (1, pretty r)
+                                        ( 1, pretty r )
                                     r@InlineSig {} ->
-                                        (1, pretty r)
+                                        ( 1, pretty r )
                                     r ->
-                                        (3, pretty r)
+                                        ( 3, pretty r )
                                 )
                                 decls
                             )
@@ -1840,17 +1840,17 @@ groupAdjacentBy adj items =
 
 spanAdjacentBy :: (a -> a -> Bool) -> [a] -> ([a], [a])
 spanAdjacentBy _ [] =
-    ([], [])
+    ( [], [] )
 spanAdjacentBy _ [x] =
-    ([x], [])
+    ( [x], [] )
 spanAdjacentBy adj (x:xs@(y:_))
     | adj x y =
         let
             (xs', rest') =
                 spanAdjacentBy adj xs
         in
-        (x : xs', rest')
-    | otherwise = ([x], xs)
+        ( x : xs', rest' )
+    | otherwise = ( [x], xs )
 
 
 importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering

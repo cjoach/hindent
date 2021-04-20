@@ -377,7 +377,7 @@ traverseInOrder cmp f ast = do
         mapM
             (\(i, m) -> do
                 v <- f m
-                return (i, v)
+                return ( i, v )
             )
             sorted
     evalStateT
@@ -570,12 +570,12 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                 foldr'
                     (\comment@(Comment _ commentSpan _) ((ls, rs), lastSpan) ->
                         if comment `isAbove` lastSpan then
-                            ((ls, comment : rs), commentSpan)
+                            ( ( ls, comment : rs ), commentSpan )
 
                         else
-                            ((comment : ls, rs), lastSpan)
+                            ( ( comment : ls, rs ), lastSpan )
                     )
-                    (([], []), nodeSpan)
+                    ( ( [], [] ), nodeSpan )
                     cs
 
         isAbove :: Comment -> SrcSpan -> Bool

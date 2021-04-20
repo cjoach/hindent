@@ -133,7 +133,7 @@ findCabalFiles dir rel = do
             findCabalFiles (takeDirectory dir) (takeFileName dir </> rel)
 
         _ ->
-            return <| Just (fmap (\n -> dir </> n) cabalnames, rel)
+            return <| Just ( fmap (\n -> dir </> n) cabalnames, rel )
 
 
 getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
@@ -193,7 +193,7 @@ getCabalExtensions srcpath = do
     return <|
         case mstanza of
             Nothing ->
-                (Haskell98, [])
+                ( Haskell98, [] )
 
             Just (MkStanza bi _) ->
                 let
@@ -203,7 +203,7 @@ getCabalExtensions srcpath = do
                     extensions =
                         defaultExtensions bi
                 in do
-                    (language, extensions)
+                    ( language, extensions )
 
 
 convertLanguage :: Language -> HSE.Language

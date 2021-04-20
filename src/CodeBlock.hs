@@ -110,10 +110,10 @@ cppSplitBlocks inp =
                     (cppLines, nextLines') =
                         spanCPPLines nextLines
                 in
-                (line : cppLines, nextLines')
-            | otherwise = ([line], nextLines)
+                ( line : cppLines, nextLines' )
+            | otherwise = ( [line], nextLines )
         spanCPPLines [] =
-            ([], [])
+            ( [], [] )
         -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
         -- need to have a newline following them in order to parse properly, so we include
         -- the trailing newline in the code block if it existed.
