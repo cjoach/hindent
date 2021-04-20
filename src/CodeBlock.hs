@@ -71,15 +71,15 @@ cppSplitBlocks inp =
         cppLine :: ByteString -> Bool
         cppLine src =
             any (`S8.isPrefixOf` src)
-                ["#if"
-               , "#end"
-               , "#else"
-               , "#define"
-               , "#undef"
-               , "#elif"
-               , "#include"
-               , "#error"
-               , "#warning"
+                [ "#if"
+                , "#end"
+                , "#else"
+                , "#define"
+                , "#undef"
+                , "#elif"
+                , "#include"
+                , "#error"
+                , "#warning"
                 ]
         -- Note: #ifdef and #ifndef are handled by #if
 

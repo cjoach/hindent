@@ -111,10 +111,10 @@ packageStanzas pd =
                         []
     in
     mconcat
-        [maybeToList <| fmap libStanza <| library pd
-       , fmap exeStanza <| executables pd
-       , fmap testStanza <| testSuites pd
-       , fmap benchStanza <| benchmarks pd
+        [ maybeToList <| fmap libStanza <| library pd
+        , fmap exeStanza <| executables pd
+        , fmap testStanza <| testSuites pd
+        , fmap benchStanza <| benchmarks pd
         ]
 
 

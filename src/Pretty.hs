@@ -624,11 +624,14 @@ exp (List _ es) =
                 |> wrapSpaces
                 |> brackets
 
-        vertical =
+        vertical = do
+            write "["
+            space
             es
                 |> map pretty
-                |> prefixedLined ", "
-                |> brackets
+                |> prefixedLined_ ", "
+            newline
+            write "]"
     in
     case es of
         [] ->
@@ -1745,17 +1748,17 @@ instance Pretty Module where
                             else
                                 Just r
                         )
-                        [( null pragmas, inter newline (map pretty pragmas) )
-                       , (case mayModHead of
+                        [ ( null pragmas, inter newline (map pretty pragmas) )
+                        , (case mayModHead of
                             Nothing ->
                                 ( True, return () )
 
                             Just modHead ->
                                 ( False, pretty modHead )
-                         )
-                       , ( null imps, formatImports imps )
-                       , ( null decls
-                         , interOf newline
+                        )
+                        , ( null imps, formatImports imps )
+                        , ( null decls
+                        , interOf newline
                             (map
                                 (\case
                                     r@TypeSig {} ->
@@ -1767,7 +1770,7 @@ instance Pretty Module where
                                 )
                                 decls
                             )
-                         )
+                        )
                         ]
                     )
                 newline
