@@ -91,7 +91,7 @@ write x = do
 newline :: Printer ()
 newline = do
     write "\n"
-    modify (\s -> s {psNewline = True})
+    modify (\s -> s { psNewline = True })
 
 
 oneEmptyLine :: Printer ()

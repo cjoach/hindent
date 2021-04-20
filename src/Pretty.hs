@@ -83,10 +83,10 @@ pretty a = do
             \case
                 EndOfLine cs -> do
                     write ("--" ++ cs)
-                    modify (\s -> s {psEolComment = True})
+                    modify (\s -> s { psEolComment = True })
                 MultiLine cs -> do
                     write ("{-" ++ cs ++ "-}")
-                    modify (\s -> s {psEolComment = True})
+                    modify (\s -> s { psEolComment = True })
 
 
 -- | Pretty print using HSE's own printer. The 'P.Pretty' class here
@@ -1808,7 +1808,7 @@ formatImports =
                 imps
 
         sortImportSpecsOnImport imp =
-            imp {importSpecs = fmap sortImportSpecs (importSpecs imp)}
+            imp { importSpecs = fmap sortImportSpecs (importSpecs imp) }
 
         sortImportSpecs (ImportSpecList l hiding specs) =
             ImportSpecList l hiding sortedSpecs

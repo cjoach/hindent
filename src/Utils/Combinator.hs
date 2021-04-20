@@ -107,9 +107,9 @@ getIndentSpaces =
 indented :: Int64 -> Printer a -> Printer a
 indented i p = do
     level <- gets psIndentLevel
-    modify (\s -> s {psIndentLevel = level + i})
+    modify (\s -> s { psIndentLevel = level + i })
     m <- p
-    modify (\s -> s {psIndentLevel = level})
+    modify (\s -> s { psIndentLevel = level })
     return m
 
 
@@ -228,9 +228,9 @@ prefixedLined_ pref ps' =
 column :: Int64 -> Printer a -> Printer a
 column i p = do
     level <- gets psIndentLevel
-    modify (\s -> s {psIndentLevel = i})
+    modify (\s -> s { psIndentLevel = i })
     m <- p
-    modify (\s -> s {psIndentLevel = level})
+    modify (\s -> s { psIndentLevel = level })
     return m
 
 
@@ -239,16 +239,16 @@ column i p = do
 withCaseContext :: Bool -> Printer a -> Printer a
 withCaseContext bool pr = do
     original <- gets psInsideCase
-    modify (\s -> s {psInsideCase = bool})
+    modify (\s -> s { psInsideCase = bool })
     result <- pr
-    modify (\s -> s {psInsideCase = original})
+    modify (\s -> s { psInsideCase = original })
     return result
 
 
 withLetStatementContext :: Bool -> Printer a -> Printer a
 withLetStatementContext bool pr = do
     original <- gets psInsideLetStatement
-    modify (\s -> s {psInsideLetStatement = bool})
+    modify (\s -> s { psInsideLetStatement = bool })
     result <- pr
-    modify (\s -> s {psInsideLetStatement = original})
+    modify (\s -> s { psInsideLetStatement = original })
     return result

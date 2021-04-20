@@ -112,7 +112,7 @@ reformat config mexts mfilepath =
 
                 ParseFailed loc e ->
                     Left
-                        (Exts.prettyPrint (loc {srcLine = srcLine loc + line})
+                        (Exts.prettyPrint (loc { srcLine = srcLine loc + line })
                             ++ ": "
                             ++ e
                         )
@@ -189,12 +189,12 @@ reformat config mexts mfilepath =
                 m =
                     case mexts of
                         Just exts ->
-                            parseMode {extensions = exts}
+                            parseMode { extensions = exts }
 
                         Nothing ->
                             parseMode
             in
-            m {parseFilename = fromMaybe "<interactive>" mfilepath}
+            m { parseFilename = fromMaybe "<interactive>" mfilepath }
 
         preserveTrailingNewline f x =
             if S8.null x || S8.all isSpace x then
@@ -266,7 +266,7 @@ runPrinterStyle config m =
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
 parseMode =
-    defaultParseMode {extensions = allExtensions, fixities = Nothing}
+    defaultParseMode { extensions = allExtensions, fixities = Nothing }
     where
         allExtensions =
             filter isDisabledExtension knownExtensions

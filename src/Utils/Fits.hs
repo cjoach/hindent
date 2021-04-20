@@ -24,7 +24,7 @@ ifFitsOnOneLineOrElse a b = do
 fitsOnOneLine_ :: Printer a -> Printer Bool
 fitsOnOneLine_ p = do
     st <- get
-    put st {psFitOnOneLine = True}
+    put st { psFitOnOneLine = True }
     ok <- fmap (const True) p <|> return False
     put st
     guard <| ok || not (psFitOnOneLine st)
@@ -34,14 +34,14 @@ fitsOnOneLine_ p = do
 fitsOnOneLine :: Printer a -> Printer (Maybe PrintState)
 fitsOnOneLine p = do
     st <- get
-    put st {psFitOnOneLine = True}
+    put st { psFitOnOneLine = True }
     ok <- fmap (const True) p <|> return False
     st' <- get
     put st
     guard <| ok || not (psFitOnOneLine st)
     return
         (if ok then
-            Just st' {psFitOnOneLine = psFitOnOneLine st}
+            Just st' { psFitOnOneLine = psFitOnOneLine st }
 
          else
             Nothing
