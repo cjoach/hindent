@@ -2985,7 +2985,15 @@ verticalInfixApplicationBefore ::
     -> Printer ()
 verticalInfixApplicationBefore a op b =
     case b of
-        Paren _ _ -> do
+        App _ _ _ -> do
+            pretty a
+            newline
+            indentedBlock <| do
+                pretty op
+                space
+                pretty b
+
+        _ -> do
             pretty a
             newline
             indentedBlock <| do
@@ -2998,14 +3006,6 @@ verticalInfixApplicationBefore a op b =
                 else do
                     newline
                     indentedBlock <| pretty b
-
-        _ -> do
-            pretty a
-            newline
-            indentedBlock <| do
-                pretty op
-                space
-                pretty b
 
 
 verticalInfixApplicationAfter ::
