@@ -187,6 +187,7 @@ withCtx ::
     -> Printer b
 withCtx Nothing m =
     m
+
 withCtx (Just ctx) m = do
     pretty ctx
     write " =>"
@@ -225,6 +226,7 @@ instance Pretty Context where
 
             _ ->
                 ifFitsOnOneLineOrElse horizontal vertical
+
     prettyInternal ctx =
         context ctx
 
@@ -406,6 +408,7 @@ prettyInfixName (Ident _ n) = do
     write "`"
     string n
     write "`"
+
 prettyInfixName (Symbol _ s) =
     string s
 
@@ -470,6 +473,7 @@ exp (Lambda _ pats doExpression@(Do _ _)) = do
     rightArrow
     space
     pretty doExpression
+
 -- | Space out tuples.
 
 
@@ -503,6 +507,7 @@ exp (Tuple _ boxed exps) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
+
 -- | Space out tuples.
 
 
@@ -518,13 +523,16 @@ exp (TupleSection _ boxed mexps) =
             |> commas
         space
         write close
+
 exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
+
 -- | Infix apps, same algorithm as ChrisDone at the moment.
 
 
 exp e@(InfixApp _ a op b) =
     infixApp e a op b
+
 -- | If bodies are indented 4 spaces. Handle also do-notation.
 
 
@@ -575,6 +583,7 @@ exp (If _ if' then' else') =
         oneEmptyLine
         write "else"
         printExpression else'
+
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
 
@@ -583,6 +592,7 @@ exp expression@(App _ op arg) =
     let
         flatten (App label' op' arg') =
             flatten op' ++ [ amap (addComments label') arg' ]
+
         flatten x =
             [ x ]
 
@@ -650,6 +660,7 @@ exp expression@(App _ op arg) =
 
         else
             multiline
+
 -- | Space out commas in list.
 
 
@@ -680,10 +691,13 @@ exp (List _ es) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
+
 exp e@(RecUpdate _ exp' updates) =
     recUpdateExpr e (pretty exp') updates
+
 exp e@(RecConstr _ qname updates) =
     recUpdateExpr e (pretty qname) updates
+
 exp (Let _ binds e) =
     let
         afterIn =
@@ -703,6 +717,7 @@ exp (Let _ binds e) =
         indentedBlock (pretty binds)
         newline
         afterIn
+
 exp (ListComp _ e qstmt) =
     let
         horizontal = do
@@ -738,6 +753,7 @@ exp (ListComp _ e qstmt) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
+
 exp (ParComp _ e qstmts) =
     let
         checkEmpty fn qstmt =
@@ -789,11 +805,14 @@ exp (ParComp _ e qstmts) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
+
 exp (TypeApp _ t) = do
     write "@"
     pretty t
+
 exp (NegApp _ e) =
     depend (write "-") (pretty e)
+
 exp (Lambda _ ps e) =
     let
         rhsHorizontal = do
@@ -822,6 +841,7 @@ exp (Lambda _ ps e) =
         space
         rightArrow
         ifFitsOnOneLineOrElse rhsHorizontal rhsVertical
+
 exp (Paren _ e) =
     let
         horizontal = do
@@ -837,6 +857,7 @@ exp (Paren _ e) =
             write ")"
     in
     ifFitsOnOneLineOrElse horizontal vertical
+
 exp (Case _ e alts) =
     let
         horizontal = do
@@ -870,16 +891,21 @@ exp (Case _ e alts) =
 
         else
             nonEmptyAlternatives
+
 exp (Do _ statements) =
     let
         srcSpan =
             srcInfoSpan . nodeInfoSpan . ann
+
+        numberOfComments =
+            length . nodeInfoComments . ann
 
         checkNewlineFromSrc x y =
             let
                 n =
                     (srcSpanStartLine (srcSpan y))
                         - (srcSpanEndLine (srcSpan x))
+                        - (numberOfComments y)
             in
             repeat newline
                 |> take n
@@ -893,16 +919,15 @@ exp (Do _ statements) =
             zipWith checkNewlineFromSrc statements (tail statements)
 
         fullList =
-            statementPrinters
-                |> lined
-    -- [ statementPrinters, separatorPrinters ]
-    --     |> transpose
-    --     |> concat
-    --     |> sequence_
+            [ statementPrinters, separatorPrinters ]
+                |> transpose
+                |> concat
+                |> sequence_
     in do
         writeDo
         newline
         indentedBlock fullList
+
 exp (MDo _ statements) = do
     writeMdo
     newline
@@ -910,6 +935,7 @@ exp (MDo _ statements) = do
         |> map pretty
         |> lined
         |> indentedBlock
+
 exp (LeftSection _ e op) =
     let
         horizontal = do
@@ -929,6 +955,7 @@ exp (LeftSection _ e op) =
             write ")"
     in
     ifFitsOnOneLineOrElse horizontal vertical
+
 exp (RightSection _ e op) =
     let
         horizontal = do
@@ -948,6 +975,7 @@ exp (RightSection _ e op) =
             write ")"
     in
     ifFitsOnOneLineOrElse horizontal vertical
+
 exp (EnumFrom _ e) = do
     write "["
     space
@@ -956,6 +984,7 @@ exp (EnumFrom _ e) = do
     write ".."
     space
     write "]"
+
 exp (EnumFromTo _ e f) = do
     write "["
     space
@@ -966,6 +995,7 @@ exp (EnumFromTo _ e f) = do
     pretty f
     space
     write "]"
+
 exp (EnumFromThen _ e t) = do
     write "["
     space
@@ -977,6 +1007,7 @@ exp (EnumFromThen _ e t) = do
     write ".."
     space
     write "]"
+
 exp (EnumFromThenTo _ e t f) = do
     write "["
     space
@@ -990,6 +1021,7 @@ exp (EnumFromThenTo _ e t f) = do
     pretty f
     space
     write "]"
+
 exp (ExpTypeSig _ e t) =
     depend
         ( do
@@ -997,16 +1029,22 @@ exp (ExpTypeSig _ e t) =
             write " :: "
         )
         (pretty t)
+
 exp (VarQuote _ x) =
     depend (write "'") (pretty x)
+
 exp (TypQuote _ x) =
     depend (write "''") (pretty x)
+
 exp (BracketExp _ b) =
     pretty b
+
 exp (SpliceExp _ s) =
     pretty s
+
 exp (QuasiQuote _ n s) =
     quotation n (string s)
+
 exp (LCase _ alts) = do
     write "\\case"
     if null alts then do
@@ -1019,6 +1057,7 @@ exp (LCase _ alts) = do
             |> map (withCaseContext True . pretty)
             |> doubleLined
             |> indentedBlock
+
 exp (MultiIf _ alts) =
     let
         prettyG (GuardedRhs _ stmts e) =
@@ -1047,48 +1086,70 @@ exp (MultiIf _ alts) =
                 |> setPrefixList "| "
                 |> map prettyG
                 |> lined
+
 exp (Lit _ lit) =
     prettyInternal lit
+
 exp (Var _ q) =
     pretty q
+
 exp (IPVar _ q) =
     pretty q
+
 exp (Con _ q) =
     pretty q
+
 exp x@XTag {} =
     pretty' x
+
 exp x@XETag {} =
     pretty' x
+
 exp x@XPcdata {} =
     pretty' x
+
 exp x@XExpTag {} =
     pretty' x
+
 exp x@XChildTag {} =
     pretty' x
+
 exp x@CorePragma {} =
     pretty' x
+
 exp x@SCCPragma {} =
     pretty' x
+
 exp x@GenPragma {} =
     pretty' x
+
 exp x@Proc {} =
     pretty' x
+
 exp x@LeftArrApp {} =
     pretty' x
+
 exp x@RightArrApp {} =
     pretty' x
+
 exp x@LeftArrHighApp {} =
     pretty' x
+
 exp x@RightArrHighApp {} =
     pretty' x
+
 exp x@ParArray {} =
     pretty' x
+
 exp x@ParArrayFromTo {} =
     pretty' x
+
 exp x@ParArrayFromThenTo {} =
     pretty' x
+
 exp x@ParArrayComp {} =
     pretty' x
+
 exp (OverloadedLabel _ label) =
     string ('#' : label)
 
@@ -1155,8 +1216,10 @@ decl (InstDecl _ moverlap dhead decls) = do
             newline
             indentedBlock (lined (map pretty (fromMaybe [] decls)))
         )
+
 decl (SpliceDecl _ e) =
     pretty e
+
 decl (TypeSig _ names ty) =
     depend
         ( do
@@ -1164,8 +1227,12 @@ decl (TypeSig _ names ty) =
             write " :: "
         )
         (pretty ty)
+
 decl (FunBind _ matches) =
-    lined (map pretty matches)
+    matches
+        |> map pretty
+        |> doubleLined
+
 decl (ClassDecl _ ctx dhead fundeps decls) = do
     classHead ctx dhead fundeps decls
     unless (null (fromMaybe [] decls))
@@ -1173,6 +1240,7 @@ decl (ClassDecl _ ctx dhead fundeps decls) = do
             newline
             indentedBlock (lined (map pretty (fromMaybe [] decls)))
         )
+
 decl (TypeDecl _ typehead typ') = do
     write "type"
     space
@@ -1181,6 +1249,7 @@ decl (TypeDecl _ typehead typ') = do
     write "="
     newline
     indentedBlock (pretty typ')
+
 decl (TypeFamDecl _ declhead result injectivity) = do
     write "type family "
     pretty declhead
@@ -1207,6 +1276,7 @@ decl (TypeFamDecl _ declhead result injectivity) = do
 
         Nothing ->
             return ()
+
 decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
     pretty declhead
@@ -1231,6 +1301,7 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "where"
     newline
     indentedBlock (lined (map pretty instances))
+
 decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
     pretty dataornew
     space
@@ -1271,6 +1342,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                     |> setPrefixTail "| "
                     |> map pretty
                     |> lined
+
 decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
     depend (pretty dataornew >> space)
         ( withCtx ctx
@@ -1295,6 +1367,7 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
                 newline
                 lined (map pretty condecls)
         forM_ mderivs <| \deriv -> newline >> pretty deriv
+
 decl (InlineSig _ inline active name) = do
     write "{-# "
     unless inline <| write "NO"
@@ -1310,6 +1383,7 @@ decl (InlineSig _ inline active name) = do
             write ("[~" ++ show x ++ "] ")
     pretty name
     write " #-}"
+
 decl (MinimalPragma _ (Just formula)) = do
     write "{-#"
     space
@@ -1318,6 +1392,7 @@ decl (MinimalPragma _ (Just formula)) = do
     pretty formula
     space
     write "#-}"
+
 decl (ForImp _ callconv maybeSafety maybeName name ty) =
     let
         tylineHorizontal = do
@@ -1353,6 +1428,7 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) =
                 nothing
         pretty' name
         ifFitsOnOneLineOrElse tylineHorizontal tylineVertical
+
 decl (ForExp _ callconv maybeName name ty) =
     let
         tylineHorizontal = do
@@ -1381,6 +1457,7 @@ decl (ForExp _ callconv maybeName name ty) =
                 nothing
         pretty' name
         ifFitsOnOneLineOrElse tylineHorizontal tylineVertical
+
 decl x' =
     pretty' x'
 
@@ -1435,6 +1512,7 @@ instance Pretty Deriving where
         let
             stripParens (IParen _ iRule) =
                 stripParens iRule
+
             stripParens x =
                 x
 
@@ -1561,8 +1639,10 @@ instance Pretty BangType where
 instance Pretty Unpackedness where
     prettyInternal (Unpack _) =
         write "{-# UNPACK #-}"
+
     prettyInternal (NoUnpack _) =
         write "{-# NOUNPACK #-}"
+
     prettyInternal (NoUnpackPragma _) =
         return ()
 
@@ -1580,6 +1660,7 @@ instance Pretty Binds where
 formatBDecls :: [Decl NodeInfo] -> Printer ()
 formatBDecls [ x ] =
     pretty x
+
 formatBDecls (x : xs) =
     let
         separator =
@@ -1829,6 +1910,7 @@ instance Pretty InstRule where
         write "("
         pretty rule
         write ")"
+
     prettyInternal (IRule _ mvarbinds mctx ihead) = do
         case mvarbinds of
             Nothing ->
@@ -1919,14 +2001,19 @@ instance Pretty DeclHead where
 instance Pretty Overlap where
     prettyInternal (Overlap _) =
         write "{-# OVERLAP #-}"
+
     prettyInternal (Overlapping _) =
         write "{-# OVERLAPPING #-}"
+
     prettyInternal (Overlaps _) =
         write "{-# OVERLAPS #-}"
+
     prettyInternal (Overlappable _) =
         write "{-# OVERLAPPABLE #-}"
+
     prettyInternal (NoOverlap _) =
         write "{-# NO_OVERLAP #-}"
+
     prettyInternal (Incoherent _) =
         write "{-# INCOHERENT #-}"
 
@@ -1934,6 +2021,7 @@ instance Pretty Overlap where
 instance Pretty Sign where
     prettyInternal (Signless _) =
         return ()
+
     prettyInternal (Negative _) =
         write "-"
 
@@ -2002,6 +2090,7 @@ instance Pretty Module where
                                 p
                                 replicateM_ c i
                                 interOf i ps
+
                       interOf _ [] =
                         return ()
 
@@ -2062,6 +2151,7 @@ formatImports =
 
                 sortCNames (IThingWith l2 name cNames) =
                     IThingWith l2 name . sortBy cNameCompare <| cNames
+
                 sortCNames is =
                     is
 
@@ -2069,6 +2159,7 @@ formatImports =
 groupAdjacentBy :: (a -> a -> Bool) -> [a] -> [[a]]
 groupAdjacentBy _ [] =
     []
+
 groupAdjacentBy adj items =
     xs : groupAdjacentBy adj rest
     where
@@ -2079,8 +2170,10 @@ groupAdjacentBy adj items =
 spanAdjacentBy :: (a -> a -> Bool) -> [a] -> ([a], [a])
 spanAdjacentBy _ [] =
     ( [], [] )
+
 spanAdjacentBy _ [ x ] =
     ( [ x ], [] )
+
 spanAdjacentBy adj (x : xs@(y : _))
     | adj x y =
         let
@@ -2094,90 +2187,133 @@ spanAdjacentBy adj (x : xs@(y : _))
 importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
     GT
+
 importSpecCompare (IAbs _ _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
     LT
+
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
     LT
+
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
     LT
+
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IAbs _ _ _) (IVar _ _) =
     LT
+
 importSpecCompare (IThingAll _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IThingAll _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IThingAll _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
     GT
+
 importSpecCompare (IThingAll _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
     LT
+
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
     LT
+
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
     LT
+
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IThingAll _ _) (IVar _ _) =
     LT
+
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ (Ident _ _) _) (IAbs _ _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ (Ident _ _) _) (IThingAll _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ (Ident _ _) _) (IThingWith _ (Symbol _ _) _) =
     GT
+
 importSpecCompare (IThingWith _ (Symbol _ _) _) (IAbs _ _ (Ident _ _)) =
     LT
+
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingAll _ (Ident _ _)) =
     LT
+
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingWith _ (Ident _ _) _) =
     LT
+
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
+
 importSpecCompare (IThingWith _ _ _) (IVar _ _) =
     LT
+
 importSpecCompare (IVar _ (Ident _ s1)) (IVar _ (Ident _ s2)) =
     compare s1 s2
+
 importSpecCompare (IVar _ (Ident _ _)) (IVar _ (Symbol _ _)) =
     GT
+
 importSpecCompare (IVar _ (Symbol _ _)) (IVar _ (Ident _ _)) =
     LT
+
 importSpecCompare (IVar _ (Symbol _ s1)) (IVar _ (Symbol _ s2)) =
     compare s1 s2
+
 importSpecCompare (IVar _ _) _ =
     GT
 
@@ -2185,34 +2321,49 @@ importSpecCompare (IVar _ _) _ =
 cNameCompare :: CName l -> CName l -> Ordering
 cNameCompare (VarName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
+
 cNameCompare (VarName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
     GT
+
 cNameCompare (VarName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
+
 cNameCompare (VarName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
     GT
+
 cNameCompare (VarName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
     LT
+
 cNameCompare (VarName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
+
 cNameCompare (VarName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
     LT
+
 cNameCompare (VarName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
     compare s1 s2
+
 cNameCompare (ConName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
+
 cNameCompare (ConName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
     GT
+
 cNameCompare (ConName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
+
 cNameCompare (ConName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
     GT
+
 cNameCompare (ConName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
     LT
+
 cNameCompare (ConName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
+
 cNameCompare (ConName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
     LT
+
 cNameCompare (ConName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
     compare s1 s2
 
@@ -2247,8 +2398,10 @@ instance Pretty IPBind where
 instance Pretty BooleanFormula where
     prettyInternal (VarFormula _ i@(Ident _ _)) =
         pretty' i
+
     prettyInternal (VarFormula _ (Symbol _ s)) =
         write "(" >> string s >> write ")"
+
     prettyInternal (AndFormula _ fs) =
         let
             horizontal =
@@ -2263,6 +2416,7 @@ instance Pretty BooleanFormula where
                     |> lined
         in
         ifFitsOnOneLineOrElse horizontal vertical
+
     prettyInternal (OrFormula _ fs) =
         let
             horizontal =
@@ -2277,6 +2431,7 @@ instance Pretty BooleanFormula where
                     |> lined
         in
         ifFitsOnOneLineOrElse horizontal vertical
+
     prettyInternal (ParenFormula _ f) = do
         write "("
         pretty f
@@ -2300,6 +2455,7 @@ instance Pretty FunDep where
 instance Pretty ResultSig where
     prettyInternal (KindSig _ kind) =
         pretty kind
+
     prettyInternal (TyVarSig _ tyVarBind) =
         pretty tyVarBind
 
@@ -2309,24 +2465,30 @@ instance Pretty Literal where
         write "\""
         string rep
         write "\""
+
     prettyInternal (Char _ _ rep) = do
         write "'"
         string rep
         write "'"
+
     prettyInternal (PrimString _ _ rep) = do
         write "\""
         string rep
         write "\"#"
+
     prettyInternal (PrimChar _ _ rep) = do
         write "'"
         string rep
         write "'#"
+
     -- We print the original notation (because HSE doesn't track Hex
     -- vs binary vs decimal notation).
     prettyInternal (Int _l _i originalString) =
         string originalString
+
     prettyInternal (Frac _l _r originalString) =
         string originalString
+
     prettyInternal x =
         pretty' x
 
@@ -2536,6 +2698,7 @@ instance Pretty ImportSpec where
 instance Pretty WarningText where
     prettyInternal (DeprText _ s) =
         write "{-# DEPRECATED " >> string s >> write " #-}"
+
     prettyInternal (WarnText _ s) =
         write "{-# WARNING " >> string s >> write " #-}"
 
@@ -2632,6 +2795,7 @@ stmt x =
 rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ e) =
     pretty e
+
 rhs (GuardedRhss _ gas) =
     gas
         |> setPrefixList "| "
@@ -2655,6 +2819,7 @@ guardedRhs (GuardedRhs _ stmts doExpression@(Do _ _)) = do
     rhsSeparator
     space
     pretty doExpression
+
 guardedRhs (GuardedRhs _ stmts e) =
     let
         horizontal = do
@@ -2706,6 +2871,7 @@ match (Match _ name pats rhs' mbinds) = do
             newline
             indentedBlock <| pretty rhs'
     for_ mbinds bindingGroup
+
 match (InfixMatch _ pat1 name pats rhs' mbinds) = do
     depend
         ( do
@@ -2773,6 +2939,7 @@ typ (TyTuple _ boxed types) =
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
+
 typ (TyForall _ mbinds ctx ty) =
     depend
         ( case mbinds of
@@ -2787,6 +2954,7 @@ typ (TyForall _ mbinds ctx ty) =
         ( do
             withCtx ctx (indentedBlock (pretty ty))
         )
+
 typ (TyFun _ a b) =
     depend
         ( do
@@ -2794,26 +2962,33 @@ typ (TyFun _ a b) =
             write " -> "
         )
         (pretty b)
+
 typ (TyList _ t) = do
     write "["
     pretty t
     write "]"
+
 typ (TyParArray _ t) = do
     write "["
     write ":"
     pretty t
     write ":"
     write "]"
+
 typ (TyApp _ f a) =
     spaced [ pretty f, pretty a ]
+
 typ (TyVar _ n) =
     pretty n
+
 typ (TyCon _ p) =
     pretty p
+
 typ (TyParen _ e) = do
     write "("
     pretty e
     write ")"
+
 -- Apply special rules to line-break operators.
 
 
@@ -2840,6 +3015,7 @@ typ (TyInfix _ a promotedop b) = do
         prettyInfixOp' promotedop
         space
         pretty b
+
 typ (TyKind _ ty k) = do
     write "("
     pretty ty
@@ -2848,36 +3024,45 @@ typ (TyKind _ ty k) = do
     space
     pretty k
     write ")"
+
 typ (TyBang _ bangty unpackty right) = do
     pretty unpackty
     pretty bangty
     pretty right
+
 typ (TyEquals _ left right) = do
     pretty left
     write " ~ "
     pretty right
+
 typ (TyPromoted _ (PromotedList _ _ ts)) = do
     write "'["
     unless (null ts) <| write " "
     commas (map pretty ts)
     write "]"
+
 typ (TyPromoted _ (PromotedTuple _ ts)) = do
     write "'("
     unless (null ts) <| write " "
     commas (map pretty ts)
     write ")"
+
 typ (TyPromoted _ (PromotedCon _ _ tname)) = do
     write "'"
     pretty tname
+
 typ (TyPromoted _ (PromotedString _ _ raw)) = do
     do
         write "\""
         string raw
         write "\""
+
 typ ty@TyPromoted {} =
     pretty' ty
+
 typ (TySplice _ splice) =
     pretty splice
+
 typ (TyWildCard _ name) =
     case name of
         Nothing ->
@@ -2886,10 +3071,13 @@ typ (TyWildCard _ name) =
         Just n -> do
             write "_"
             pretty n
+
 typ (TyQuasiQuote _ n s) =
     quotation n (string s)
+
 typ (TyUnboxedSum {}) =
     error "FIXME: No implementation for TyUnboxedSum."
+
 typ (TyStar _) =
     write "*"
 
@@ -2897,6 +3085,7 @@ typ (TyStar _) =
 prettyTopName :: Name NodeInfo -> Printer ()
 prettyTopName x@Ident {} =
     pretty x
+
 prettyTopName x@Symbol {} = do
     write "("
     pretty x
@@ -2938,6 +3127,7 @@ decl' (TypeSig _ names ty') =
                 declTy True ty'
     in do
         ifFitsOnOneLineOrElse oneline multiline
+
 decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat
@@ -2966,6 +3156,7 @@ decl' (PatBind _ pat rhs' mbinds) =
                     newline
                     indentedBlock <| pretty rhs'
         for_ mbinds bindingGroup
+
 -- | Handle records specially for a prettier display (see guide).
 
 
@@ -3027,6 +3218,7 @@ prettyTy breakLine ty =
     let
         collapseFaps (TyFun _ arg result) =
             arg : collapseFaps result
+
         collapseFaps e =
             [ e ]
 
@@ -3068,6 +3260,7 @@ conDecl (RecDecl _ name fields) = do
             |> lined
         newline
         write "}"
+
 conDecl (ConDecl _ name bangty) = do
     prettyQuoteName name
     unless (null bangty)
@@ -3081,6 +3274,7 @@ conDecl (ConDecl _ name bangty) = do
                 indentedBlock (lined (map pretty bangty))
             )
         )
+
 conDecl (InfixConDecl _ a f b) =
     inter space [ pretty a, pretty f, pretty b ]
 
@@ -3170,6 +3364,7 @@ isLineBreakBefore (UnQual _ (Symbol _ s)) = do
     breaks <- gets (configLineBreaksBefore . psConfig)
     let isInConfig = elem s breaks
     return isInConfig
+
 isLineBreakBefore _ =
     return False
 
@@ -3182,6 +3377,7 @@ isLineBreakAfter (UnQual _ (Symbol _ s)) = do
     breaks <- gets (configLineBreaksAfter . psConfig)
     let isInConfig = elem s breaks
     return isInConfig
+
 isLineBreakAfter _ =
     return False
 

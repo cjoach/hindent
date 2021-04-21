@@ -53,18 +53,23 @@ cppSplitBlocks inp =
 
                 Nothing ->
                     line1 : groupLines (line2 : remainingLines)
+
         groupLines xs@[ _ ] =
             xs
+
         groupLines xs@[] =
             xs
 
         mergeLines :: CodeBlock -> CodeBlock -> Maybe CodeBlock
         mergeLines (CPPDirectives src1) (CPPDirectives src2) =
             Just <| CPPDirectives (src1 <> "\n" <> src2)
+
         mergeLines (Shebang src1) (Shebang src2) =
             Just <| Shebang (src1 <> "\n" <> src2)
+
         mergeLines (HaskellSource lineNumber1 src1) (HaskellSource _lineNumber2 src2) =
             Just <| HaskellSource lineNumber1 (src1 <> "\n" <> src2)
+
         mergeLines _ _ =
             Nothing
 
@@ -102,6 +107,7 @@ cppSplitBlocks inp =
                     : classifyLines nextLines'
             | shebangLine src = Shebang src : classifyLines nextLines
             | otherwise = HaskellSource lineIndex src : classifyLines nextLines
+
         classifyLines [] =
             []
 
@@ -116,6 +122,7 @@ cppSplitBlocks inp =
                 in
                 ( line : cppLines, nextLines' )
             | otherwise = ( [ line ], nextLines )
+
         spanCPPLines [] =
             ( [], [] )
 
@@ -133,13 +140,16 @@ cppSplitBlocks inp =
         modifyLast :: (a -> a) -> [a] -> [a]
         modifyLast _ [] =
             []
+
         modifyLast f [ x ] =
             [ f x ]
+
         modifyLast f (x : xs) =
             x : modifyLast f xs
 
         inBlock :: (ByteString -> ByteString) -> CodeBlock -> CodeBlock
         inBlock f (HaskellSource line txt) =
             HaskellSource line (f txt)
+
         inBlock _ dir =
             dir

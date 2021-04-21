@@ -156,7 +156,7 @@ lined ps =
 doubleLined :: [Printer ()] -> Printer ()
 doubleLined ps =
     ps
-        |> intersperse (newline >> newline)
+        |> intersperse oneEmptyLine
         |> sequence_
 
 

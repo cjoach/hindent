@@ -223,8 +223,10 @@ convertKnownExtension ext =
 convertExtension :: Extension -> Maybe HSE.Extension
 convertExtension (EnableExtension ke) =
     fmap HSE.EnableExtension <| convertKnownExtension ke
+
 convertExtension (DisableExtension ke) =
     fmap HSE.DisableExtension <| convertKnownExtension ke
+
 convertExtension (UnknownExtension s) =
     Just <| HSE.UnknownExtension s
 

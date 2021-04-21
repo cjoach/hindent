@@ -72,8 +72,10 @@ reformat config mexts mfilepath =
         processBlock :: CodeBlock -> Either String Builder
         processBlock (Shebang text) =
             Right <| S.byteString text
+
         processBlock (CPPDirectives text) =
             Right <| S.byteString text
+
         processBlock (HaskellSource line text) =
             let
                 ls =
@@ -175,8 +177,10 @@ reformat config mexts mfilepath =
         findSmallestPrefix :: [ByteString] -> ByteString
         findSmallestPrefix [] =
             ""
+
         findSmallestPrefix ("" : _) =
             ""
+
         findSmallestPrefix (p : ps) =
             let
                 first =
@@ -256,6 +260,7 @@ parseMode =
 
         isDisabledExtension (DisableExtension _) =
             False
+
         isDisabledExtension _ =
             True
 
@@ -348,10 +353,13 @@ getExtensions =
     where
         f _ "Haskell98" =
             []
+
         f a ('N' : 'o' : x)
             | Just x' <- readExtension x = delete x' a
+
         f a x
             | Just x' <- readExtension x = x' : delete x' a
+
         f _ x =
             error <| "Unknown extension: " ++ x
 
@@ -544,6 +552,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             newWhereDecls <- traverse addCommentsToPatBind whereDecls
             return <|
                 PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
+
         addCommentsToWhereClauses other =
             return other
 
@@ -555,6 +564,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                     (PVar x (Ident declNodeInfo declString))
                     x'
                     x''
+
         addCommentsToPatBind other =
             return other
 
@@ -595,6 +605,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
                     srcSpanStart span
             in
             commentColStart == colStart && commentLnEnd + 1 == lnStart
+
 addCommentsToTopLevelWhereClauses other =
     return other
 

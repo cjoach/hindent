@@ -129,6 +129,7 @@ instance FromJSON Config where
                 ( traverse readExtension
                     =<< fmap (fromMaybe []) (v Y..:? "extensions")
                 )
+
     parseJSON _ =
         fail "Expected Object for Config value"
 
@@ -183,5 +184,6 @@ data NodeInfo
 instance Show NodeInfo where
     show (NodeInfo _ [] _) =
         ""
+
     show (NodeInfo _ s _) =
         "{- " ++ show s ++ " -}"
