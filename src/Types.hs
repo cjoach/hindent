@@ -156,8 +156,8 @@ data NodeComment
 -- | Information for each node in the AST.
 data NodeInfo
     = NodeInfo
-        { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
-        , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
+        { nodeInfoSpan :: SrcSpanInfo -- ^ Location info from the parser.
+        , nodeInfoComments :: [NodeComment] -- ^ Comments attached to this node.
         }
 
 
