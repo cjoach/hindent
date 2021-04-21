@@ -44,22 +44,16 @@ class (Annotated ast, Typeable ast) =>
 -- | Pretty print including comments.
 pretty :: (Pretty ast, Show (ast NodeInfo)) => ast NodeInfo -> Printer ()
 pretty a = do
-    mapM_
-        (\c' -> do
-            case c' of
+    comments
+        |> mapM_
+            (\case
                 CommentBeforeLine _ c -> do
-                    case c of
-                        EndOfLine s ->
-                            write ("--" ++ s)
-
-                        MultiLine s ->
-                            write ("{-" ++ s ++ "-}")
+                    writeComment c
                     newline
 
                 _ ->
                     return ()
-        )
-        comments
+            )
     prettyInternal a
     mapM_
         (\( i, c' ) -> do
@@ -85,6 +79,7 @@ pretty a = do
                 EndOfLine cs -> do
                     write ("--" ++ cs)
                     modify (\s -> s { psEolComment = True })
+
                 MultiLine cs -> do
                     write ("{-" ++ cs ++ "-}")
                     modify (\s -> s { psEolComment = True })
@@ -872,12 +867,16 @@ exp (QuasiQuote _ n s) =
     quotation n (string s)
 exp (LCase _ alts) = do
     write "\\case"
-    if null alts then
-        write " {}"
+    if null alts then do
+        space
+        write "{}"
 
     else do
         newline
-        indentedBlock (lined (map (withCaseContext True . pretty) alts))
+        alts
+            |> map (withCaseContext True . pretty)
+            |> doubleLined
+            |> indentedBlock
 exp (MultiIf _ alts) =
     let
         prettyG (GuardedRhs _ stmts e) =
@@ -1444,6 +1443,7 @@ instance Pretty ClassDecl where
                                 (\case
                                     KindSig _ kind ->
                                         write " :: " >> pretty kind
+
                                     TyVarSig _ tyVarBind ->
                                         write " = " >> pretty tyVarBind
                                 )
@@ -1765,8 +1765,10 @@ instance Pretty Module where
                                 (\case
                                     r@TypeSig {} ->
                                         ( 1, pretty r )
+
                                     r@InlineSig {} ->
                                         ( 1, pretty r )
+
                                     r ->
                                         ( 3, pretty r )
                                 )
@@ -2122,6 +2124,7 @@ instance Pretty QName where
                         write "."
                         string s
                         write ")"
+
             UnQual _ n ->
                 case n of
                     Ident _ i ->
@@ -2131,10 +2134,13 @@ instance Pretty QName where
                         write "("
                         string s
                         write ")"
+
             Special _ s@Cons {} ->
                 parens (pretty s)
+
             Special _ s@FunCon {} ->
                 parens (pretty s)
+
             Special _ s ->
                 pretty s
 
