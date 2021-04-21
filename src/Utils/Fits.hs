@@ -1,6 +1,5 @@
 module Utils.Fits
-    ( fitsOnOneLine
-    , fitsOnOneLine_
+    ( fitsOnOneLine_
     , ifFitsOnOneLineOrElse
     ) where
 
@@ -29,20 +28,3 @@ fitsOnOneLine_ p = do
     put st
     guard <| ok || not (psFitOnOneLine st)
     return ok
-
-
-fitsOnOneLine :: Printer a -> Printer (Maybe PrintState)
-fitsOnOneLine p = do
-    st <- get
-    put st { psFitOnOneLine = True }
-    ok <- fmap (const True) p <|> return False
-    st' <- get
-    put st
-    guard <| ok || not (psFitOnOneLine st)
-    return
-        ( if ok then
-            Just st' { psFitOnOneLine = psFitOnOneLine st }
-
-          else
-            Nothing
-        )
