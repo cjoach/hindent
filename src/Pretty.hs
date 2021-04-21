@@ -1744,33 +1744,35 @@ instance Pretty InstRule where
     prettyInternal (IRule _ mvarbinds mctx ihead) = do
         case mvarbinds of
             Nothing ->
-                return ()
+                nothing
 
             Just xs -> do
-                write "forall "
-                spaced (map pretty xs)
-                write ". "
+                write "forall"
+                space
+                xs
+                    |> map pretty
+                    |> spaced
+                write "."
+                space
         case mctx of
             Nothing ->
                 pretty ihead
 
-            Just ctx -> do
-                mst <-
-                    fitsOnOneLine
-                        ( do
-                            pretty ctx
-                            write " => "
-                            pretty ihead
-                            write " where"
-                        )
-                case mst of
-                    Nothing ->
-                        withCtx mctx (pretty ihead)
-
-                    Just {} -> do
+            Just ctx ->
+                let
+                    horizontal = do
                         pretty ctx
-                        write " => "
+                        space
+                        write "=>"
+                        space
                         pretty ihead
+                        space
+                        write "where"
+
+                    vertical =
+                        withCtx mctx (pretty ihead)
+                in
+                ifFitsOnOneLineOrElse horizontal vertical
 
 
 instance Pretty InstHead where
