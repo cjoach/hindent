@@ -33,7 +33,6 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.UTF8 as UTF8
 import qualified Data.ByteString.Unsafe as S
-import Data.Char
 import Data.Either
 import Data.Foldable (foldr')
 import Data.Function
@@ -60,8 +59,9 @@ reformat ::
     -> ByteString
     -> Either String Builder
 reformat config mexts mfilepath =
-    preserveTrailingNewline
-        (fmap (mconcat . intersperse "\n") . mapM processBlock . cppSplitBlocks)
+    fmap (\x -> x <> "\n") . fmap (mconcat . intersperse "\n")
+        . mapM processBlock
+        . cppSplitBlocks
     where
         processBlock :: CodeBlock -> Either String Builder
         processBlock (Shebang text) =
@@ -195,36 +195,6 @@ reformat config mexts mfilepath =
                             parseMode
             in
             m { parseFilename = fromMaybe "<interactive>" mfilepath }
-
-        preserveTrailingNewline f x =
-            if S8.null x || S8.all isSpace x then
-                return mempty
-
-            else if hasTrailingLine x || configTrailingNewline config then
-                fmap
-                    (\x' ->
-                        if
-                            hasTrailingLine (L.toStrict (S.toLazyByteString x'))
-                        then
-                            x'
-
-                        else
-                            x' <> "\n"
-                    )
-                    (f x)
-
-            else
-                f x
-
-
--- | Does the strict bytestring have a trailing newline?
-hasTrailingLine :: ByteString -> Bool
-hasTrailingLine xs =
-    if S8.null xs then
-        False
-
-    else
-        S8.last xs == '\n'
 
 
 -- | Print the module.

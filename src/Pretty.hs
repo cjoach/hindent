@@ -1811,15 +1811,12 @@ formatImports =
             in
             start2 - end1 <= 1
 
-        formatImportGroup imps = do
-            shouldSortImports <- gets <| configSortImports . psConfig
-            let imps1 =
-                    if shouldSortImports then
-                        sortImports imps
-
-                    else
-                        imps
-            sequence_ . intersperse newline <| map formatImport imps1
+        formatImportGroup imps =
+            imps
+                |> sortImports
+                |> map formatImport
+                |> intersperse newline
+                |> sequence_
 
         moduleVisibleName idecl =
             let

@@ -16,7 +16,6 @@ import Control.Monad
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Builder as S
 import qualified Data.ByteString.Lazy.Char8 as L8
-import Data.Maybe
 import Data.Version (showVersion)
 import qualified Data.Yaml as Y
 import Find (findFileUp)
@@ -163,9 +162,7 @@ options config =
         <|> (Run <$> style <*> exts <*> action <*> files)
     where
         style =
-            (makeStyle config <$> lineLen <*> indentSpaces <*> trailingNewline
-                <*> sortImports
-            )
+            (makeStyle config <$> lineLen <*> indentSpaces)
                 <* optional
                     (strOption
                         (long "style"
@@ -204,25 +201,6 @@ options config =
                     <> showDefault
                 )
 
-        trailingNewline =
-            not
-                <$> flag (not (configTrailingNewline config))
-                    (configTrailingNewline config)
-                    (long "no-force-newline"
-                        <> help "Don't force a trailing newline"
-                        <> showDefault
-                    )
-
-        sortImports =
-            flag Nothing
-                (Just True)
-                (long "sort-imports" <> help "Sort imports in groups"
-                    <> showDefault
-                )
-                <|> flag Nothing
-                    (Just False)
-                    (long "no-sort-imports" <> help "Don't sort imports")
-
         action =
             flag Reformat
                 Validate
@@ -230,12 +208,10 @@ options config =
                     <> help "Check if files are formatted without changing them"
                 )
 
-        makeStyle s mlen tabs trailing imports =
+        makeStyle s mlen tabs =
             s
                 { configMaxColumns = mlen
                 , configIndentSpaces = tabs
-                , configTrailingNewline = trailing
-                , configSortImports = fromMaybe (configSortImports s) imports
                 }
 
         files =

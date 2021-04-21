@@ -81,8 +81,6 @@ data Config
         { configMaxColumns :: !Int64 -- ^ Maximum columns to fit code into ideally.
         , configMaxCodeColumns :: !Int64
         , configIndentSpaces :: !Int64 -- ^ How many spaces to indent?
-        , configTrailingNewline :: !Bool -- ^ End with a newline.
-        , configSortImports :: !Bool -- ^ Sort imports in groups.
         , configLineBreaksBefore :: [String] -- ^ Break line when meets these operators.
         , configLineBreaksAfter :: [String] -- ^ Break line when meets these operators.
         , configExtensions :: [Extension]
@@ -114,10 +112,6 @@ instance FromJSON Config where
                 (v Y..:? "code-length")
             <*> fmap (fromMaybe (configIndentSpaces defaultConfig))
                 (v Y..:? "indent-size" <|> v Y..:? "tab-size")
-            <*> fmap (fromMaybe (configTrailingNewline defaultConfig))
-                (v Y..:? "force-trailing-newline")
-            <*> fmap (fromMaybe (configSortImports defaultConfig))
-                (v Y..:? "sort-imports")
             <*> fmap (fromMaybe (configLineBreaksBefore defaultConfig))
                 (v Y..:? "line-breaks-before")
             <*> fmap (fromMaybe (configLineBreaksAfter defaultConfig))
@@ -137,8 +131,6 @@ defaultConfig =
         { configMaxColumns = 80
         , configMaxCodeColumns = 80
         , configIndentSpaces = 4
-        , configTrailingNewline = True
-        , configSortImports = True
         , configLineBreaksBefore = [ "|>" ]
         , configLineBreaksAfter = [ "<|" ]
         , configExtensions = []
