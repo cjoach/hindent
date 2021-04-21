@@ -9,7 +9,6 @@ module Utils.Combinator
     , indentedBlock
     , inter
     , lined
-    , prefixedLined
     , quotation
     , spaced
     , withCaseContext
@@ -143,26 +142,6 @@ doubleLined ps =
     ps
         |> intersperse (newline >> newline)
         |> sequence_
-
-
--- | Print all the printers separated newlines and optionally a line
--- prefix.
-prefixedLined :: String -> [Printer ()] -> Printer ()
-prefixedLined pref ps' =
-    case ps' of
-        [] ->
-            return ()
-
-        (p : ps) -> do
-            p
-            indented (fromIntegral (length pref * (-1)))
-                ( mapM_
-                    ( \p' -> do
-                        newline
-                        depend (write pref) p'
-                    )
-                    ps
-                )
 
 
 -- | Set the (newline-) indent level to the given column for the given
