@@ -113,9 +113,9 @@ commas =
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter sep ps =
     foldr
-        (\( i, p ) next ->
+        ( \( i, p ) next ->
             depend
-                (do
+                ( do
                     p
                     if i < length ps then
                         sep
@@ -126,7 +126,7 @@ inter sep ps =
                 next
         )
         (return ())
-        (zip [1 ..] ps)
+        (zip [ 1 .. ] ps)
 
 
 -- | Print all the printers separated by newlines.
@@ -156,8 +156,8 @@ prefixedLined pref ps' =
         (p : ps) -> do
             p
             indented (fromIntegral (length pref * (-1)))
-                (mapM_
-                    (\p' -> do
+                ( mapM_
+                    ( \p' -> do
                         newline
                         depend (write pref) p'
                     )

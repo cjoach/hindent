@@ -1,6 +1,9 @@
 module Utils.Write
-    ( comma
+    ( boxWrap
+    , comma
     , emptyBraces
+    , emptyBrackets
+    , emptyParens
     , int
     , leftArrow
     , newline
@@ -20,19 +23,16 @@ module Utils.Write
     , writeMdo
     , writeOf
     , writeWhere
-    , boxWrap
-    , emptyParens
-    , emptyBrackets
     ) where
 
 
 import Control.Monad.State.Strict hiding (state)
 import Data.ByteString.Builder as S
 import Data.List
+import Language.Haskell.Exts.Syntax
 import Prelude hiding (exp)
 import Types
 import Utils.Flow
-import Language.Haskell.Exts.Syntax
 
 
 write :: String -> Printer ()
@@ -80,7 +80,7 @@ write x = do
     when hardFail
         (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
-        (\s ->
+        ( \s ->
             s
                 { psOutput = psOutput state <> S.stringUtf8 out
                 , psNewline = False

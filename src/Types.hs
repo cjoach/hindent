@@ -38,13 +38,14 @@ newtype Printer a =
     Printer
         { runPrinter :: StateT PrintState (MaybeT Identity) a
         }
-    deriving ( Applicative
-             , Monad
-             , Functor
-             , MonadState PrintState
-             , MonadPlus
-             , Alternative
-             )
+    deriving
+        ( Applicative
+        , Monad
+        , Functor
+        , MonadState PrintState
+        , MonadPlus
+        , Alternative
+        )
 
 
 -- | The state of the pretty printer.
@@ -115,7 +116,7 @@ instance FromJSON Config where
             <*> fmap (fromMaybe (configLineBreaksAfter defaultConfig))
                 (v Y..:? "line-breaks-after")
             <*>
-                (traverse readExtension
+                ( traverse readExtension
                     =<< fmap (fromMaybe []) (v Y..:? "extensions")
                 )
     parseJSON _ =

@@ -40,9 +40,9 @@ fitsOnOneLine p = do
     put st
     guard <| ok || not (psFitOnOneLine st)
     return
-        (if ok then
+        ( if ok then
             Just st' { psFitOnOneLine = psFitOnOneLine st }
 
-         else
+          else
             Nothing
         )

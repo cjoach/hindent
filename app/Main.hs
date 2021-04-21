@@ -53,7 +53,7 @@ main = do
     config <- getConfig
     runMode <-
         execParser
-            (info (options config <**> helper)
+            ( info (options config <**> helper)
                 (header "hindent - Reformat Haskell source code")
             )
     case runMode of
@@ -63,7 +63,7 @@ main = do
         Run style exts action paths ->
             if null paths then
                 L8.interact
-                    (either error S.toLazyByteString
+                    ( either error S.toLazyByteString
                         . reformat style (Just exts) Nothing
                         . L8.toStrict
                     )
@@ -84,7 +84,7 @@ main = do
 
                                     Right out ->
                                         unless
-                                            (L8.fromStrict text'
+                                            ( L8.fromStrict text'
                                                 == S.toLazyByteString out
                                             ) <|
                                             case action of
@@ -108,9 +108,9 @@ main = do
                                                             if
                                                                 ioe_errno e
                                                                     == Just
-                                                                        ((\(Errno a
-                                                                          ) -> a
-                                                                         )
+                                                                        ( ( \(Errno a) ->
+                                                                                a
+                                                                          )
                                                                             eXDEV
                                                                         )
                                                             then
@@ -164,8 +164,8 @@ options config =
         style =
             (makeStyle config <$> lineLen <*> indentSpaces)
                 <* optional
-                    (strOption
-                        (long "style"
+                    ( strOption
+                        ( long "style"
                             <> help
                                 "Style to print with (historical, now ignored)"
                             <> metavar "STYLE"
@@ -174,10 +174,10 @@ options config =
 
         exts =
             fmap getExtensions
-                (many
-                    (T.pack
+                ( many
+                    ( T.pack
                         <$> strOption
-                            (short 'X' <> help "Language extension"
+                            ( short 'X' <> help "Language extension"
                                 <> metavar "GHCEXT"
                             )
                     )
@@ -185,18 +185,18 @@ options config =
 
         indentSpaces =
             option auto
-                (long "indent-size" <> help "Indentation size in spaces"
+                ( long "indent-size" <> help "Indentation size in spaces"
                     <> value (configIndentSpaces config)
                     <> showDefault
                 )
                 <|> option auto
-                    (long "tab-size"
+                    ( long "tab-size"
                         <> help "Same as --indent-size, for compatibility"
                     )
 
         lineLen =
             option auto
-                (long "line-length" <> help "Desired length of lines"
+                ( long "line-length" <> help "Desired length of lines"
                     <> value (configMaxColumns config)
                     <> showDefault
                 )
@@ -204,7 +204,7 @@ options config =
         action =
             flag Reformat
                 Validate
-                (long "validate"
+                ( long "validate"
                     <> help "Check if files are formatted without changing them"
                 )
 

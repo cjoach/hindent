@@ -15,7 +15,7 @@ setPrefixTail ::
     -> [ast NodeInfo]
 setPrefixTail _ [] =
     []
-setPrefixTail _ [x] =
+setPrefixTail _ [ x ] =
     [ x ]
 setPrefixTail prefix' (x : xs) =
     x : (map (setPrefix prefix') xs)
