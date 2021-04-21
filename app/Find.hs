@@ -3,6 +3,8 @@
 
 -- | Finding files.
 -- Lifted from Stack.
+
+
 module Find
     ( findFileUp
     ) where
@@ -16,6 +18,8 @@ import Path.IO hiding (findFiles)
 
 
 -- | Find the location of a file matching the given predicate.
+
+
 findFileUp ::
     (MonadIO m, MonadThrow m)
     => Path Abs Dir -- ^ Start here.
@@ -27,10 +31,11 @@ findFileUp =
 
 
 -- | Find the location of a path matching the given predicate.
+
+
 findPathUp ::
     (MonadIO m, MonadThrow m)
     => (([Path Abs Dir], [Path Abs File]) -> [Path Abs t])
-    -- ^ Choose path type from pair.
     -> Path Abs Dir -- ^ Start here.
     -> (Path Abs t -> Bool) -- ^ Predicate to match the path.
     -> Maybe (Path Abs Dir) -- ^ Do not ascend above this directory.

@@ -13,6 +13,8 @@ import Utils.Flow
 
 
 -- | A block of code.
+
+
 data CodeBlock
     = Shebang ByteString
     | HaskellSource Int ByteString
@@ -34,6 +36,8 @@ data CodeBlock
 -- > #endif
 --
 -- will become five blocks, one for each CPP line and one for each pair of declarations.
+
+
 cppSplitBlocks :: ByteString -> [CodeBlock]
 cppSplitBlocks inp =
     modifyLast (inBlock (<> trailing)) . groupLines . classifyLines
@@ -81,8 +85,8 @@ cppSplitBlocks inp =
                 , "#error"
                 , "#warning"
                 ]
-        -- Note: #ifdef and #ifndef are handled by #if
 
+        -- Note: #ifdef and #ifndef are handled by #if
         hasEscapedTrailingNewline :: ByteString -> Bool
         hasEscapedTrailingNewline src =
             "\\" `S8.isSuffixOf` src
@@ -114,10 +118,10 @@ cppSplitBlocks inp =
             | otherwise = ( [ line ], nextLines )
         spanCPPLines [] =
             ( [], [] )
+
         -- Hack to work around some parser issues in haskell-src-exts: Some pragmas
         -- need to have a newline following them in order to parse properly, so we include
         -- the trailing newline in the code block if it existed.
-
         trailing :: ByteString
         trailing =
             if S8.isSuffixOf "\n" inp then

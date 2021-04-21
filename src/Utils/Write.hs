@@ -19,7 +19,6 @@ module Utils.Write
     , writeDo
     , writeForall
     , writeIf
-    , writeIn
     , writeLet
     , writeMdo
     , writeOf
@@ -130,11 +129,6 @@ writeMdo =
 writeLet :: Printer ()
 writeLet =
     write "let"
-
-
-writeIn :: Printer ()
-writeIn =
-    write "in"
 
 
 writeIf :: Printer ()

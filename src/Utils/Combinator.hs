@@ -34,6 +34,8 @@ identity printer =
 --
 -- >>> quotation "t" (string "Foo")
 -- > [t|Foo|]
+
+
 quotation :: String -> Printer () -> Printer ()
 quotation quoter p =
     let
@@ -64,6 +66,8 @@ getIndentSpaces =
 
 
 -- | Increase indentation level by n spaces for the given printer.
+
+
 indented :: Int64 -> Printer a -> Printer a
 indented i p = do
     level <- gets psIndentLevel
@@ -83,6 +87,8 @@ indentedBlock p = do
 
 -- | Make the latter's indentation depend upon the end column of the
 -- former.
+
+
 depend :: Printer () -> Printer b -> Printer b
 depend maker dependent = do
     state' <- get
@@ -97,18 +103,24 @@ depend maker dependent = do
 
 
 -- | Print all the printers separated by spaces.
+
+
 spaced :: [Printer ()] -> Printer ()
 spaced =
     inter space
 
 
 -- | Print all the printers separated by commas.
+
+
 commas :: [Printer ()] -> Printer ()
 commas =
     inter (write ", ")
 
 
 -- | Print all the printers separated by sep.
+
+
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter sep ps =
     foldr
@@ -129,6 +141,8 @@ inter sep ps =
 
 
 -- | Print all the printers separated by newlines.
+
+
 lined :: [Printer ()] -> Printer ()
 lined ps =
     ps
@@ -137,6 +151,8 @@ lined ps =
 
 
 -- | Print all the printers separated by newlines.
+
+
 doubleLined :: [Printer ()] -> Printer ()
 doubleLined ps =
     ps
@@ -146,6 +162,8 @@ doubleLined ps =
 
 -- | Set the (newline-) indent level to the given column for the given
 -- printer.
+
+
 column :: Int64 -> Printer a -> Printer a
 column i p = do
     level <- gets psIndentLevel
@@ -157,6 +175,8 @@ column i p = do
 
 -- | Output a newline.
 -- | Set the context to a case context, where RHS is printed with -> .
+
+
 withCaseContext :: Bool -> Printer a -> Printer a
 withCaseContext bool pr = do
     original <- gets psInsideCase

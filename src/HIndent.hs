@@ -5,6 +5,8 @@
 
 
 -- | Haskell indenter.
+
+
 module HIndent
     ( defaultExtensions
     , getExtensions
@@ -20,6 +22,8 @@ module HIndent
 
 
 -- * Formatting functions.
+
+
 import CodeBlock
 import Control.Monad.State.Strict
 import Control.Monad.Trans.Maybe
@@ -52,6 +56,8 @@ import Utils.Flow
 
 
 -- | Format the given source.
+
+
 reformat ::
     Config
     -> Maybe [Extension]
@@ -199,6 +205,8 @@ reformat config mexts mfilepath =
 
 
 -- | Print the module.
+
+
 prettyPrint :: Config -> Module SrcSpanInfo -> [Comment] -> Either a Builder
 prettyPrint config m comments =
     let
@@ -209,6 +217,8 @@ prettyPrint config m comments =
 
 
 -- | Pretty print the given printable thing.
+
+
 runPrinterStyle :: Config -> Printer () -> Builder
 runPrinterStyle config m =
     let
@@ -235,6 +245,8 @@ runPrinterStyle config m =
 
 
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
+
+
 parseMode :: ParseMode
 parseMode =
     defaultParseMode { extensions = allExtensions, fixities = Nothing }
@@ -249,18 +261,24 @@ parseMode =
 
 
 -- | Test the given file.
+
+
 testFile :: FilePath -> IO ()
 testFile fp =
     S.readFile fp >>= test
 
 
 -- | Test the given file.
+
+
 testFileAst :: FilePath -> IO ()
 testFileAst fp =
     S.readFile fp >>= print . testAst
 
 
 -- | Test with the given style, prints to stdout.
+
+
 test :: ByteString -> IO ()
 test =
     either error (L8.putStrLn . S.toLazyByteString)
@@ -268,6 +286,8 @@ test =
 
 
 -- | Parse the source and annotate it with comments, yielding the resulting AST.
+
+
 testAst :: ByteString -> Either String (Module NodeInfo)
 testAst x =
     case parseModuleWithComments parseMode (UTF8.toString x) of
@@ -285,6 +305,8 @@ testAst x =
 
 
 -- | Default extensions.
+
+
 defaultExtensions :: [Extension]
 defaultExtensions =
     [ e | e@EnableExtension {} <- knownExtensions ]
@@ -292,6 +314,8 @@ defaultExtensions =
 
 
 -- | Extensions which steal too much syntax.
+
+
 badExtensions :: [KnownExtension]
 badExtensions =
     [ Arrows -- steals proc
@@ -316,6 +340,8 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 --------------------------------------------------------------------------------
 -- Extensions stuff stolen from hlint
 -- | Consume an extensions list from arguments.
+
+
 getExtensions :: [Text] -> [Extension]
 getExtensions =
     foldl f defaultExtensions . map T.unpack
@@ -333,6 +359,8 @@ getExtensions =
 --------------------------------------------------------------------------------
 -- Comments
 -- | Traverse the structure backwards.
+
+
 traverseInOrder ::
     (Monad m, Traversable t, Functor m)
     => (b -> b -> Ordering)
@@ -372,13 +400,15 @@ traverseInOrder cmp f ast = do
 
 -- | Collect all comments in the module by traversing the tree. Read
 -- this from bottom to top.
+
+
 collectAllComments :: Module SrcSpanInfo -> State [Comment] (Module NodeInfo)
 collectAllComments =
     let
         nodify s =
             NodeInfo s mempty ""
-        -- Sort the comments by their end position.
 
+        -- Sort the comments by their end position.
         traverseBackwards =
             traverseInOrder
                 ( \x y ->
@@ -395,55 +425,74 @@ collectAllComments =
 
             else
                 m v
+
+        atFirstColumn commentSpan nodeSpan =
+            (srcSpanStartColumn commentSpan == 1)
+                && (srcSpanStartColumn nodeSpan == 1)
+
+        commentBeforeNode commentSpan nodeSpan =
+            srcSpanStartLine commentSpan < srcSpanStartLine nodeSpan
+
+        commentAfterNode commentSpan nodeSpan =
+            srcSpanStartLine commentSpan > srcSpanStartLine nodeSpan
     in
     shortCircuit
-        ( traverseBackwards
-          -- Finally, collect backwards comments which come after each node.
-            ( collectCommentsBy CommentAfterLine
+        ( traverse
+            -- Finally, collect forward comments which come before each node.
+            ( collectCommentsBy CommentBeforeLine
                 ( \nodeSpan commentSpan ->
-                    fst (srcSpanStart commentSpan) >= fst (srcSpanEnd nodeSpan)
+                    srcSpanEndLine commentSpan < srcSpanStartLine nodeSpan
                 )
             )
         )
-        <=< shortCircuit addCommentsToTopLevelWhereClauses
+        --     <=< shortCircuit addCommentsToTopLevelWhereClauses
         <=< shortCircuit
             ( traverse
-              -- Collect forwards comments which start at the end line of a
-              -- node: Does the start line of the comment match the end-line
-              -- of the node?
+                -- Collect forwards comments which start at the end line of a
+                -- node: Does the start line of the comment match the end-line
+                -- of the node?
                 ( collectCommentsBy CommentSameLine
                     ( \nodeSpan commentSpan ->
-                        fst (srcSpanStart commentSpan)
-                            == fst (srcSpanEnd nodeSpan)
+                        srcSpanStartLine commentSpan == srcSpanEndLine nodeSpan
                     )
                 )
             )
         <=< shortCircuit
             ( traverseBackwards
-              -- Collect backwards comments which are on the same line as a
-              -- node: Does the start line & end line of the comment match
-              -- that of the node?
+                -- Collect backwards comments which are on the same line as a
+                -- node: Does the start line & end line of the comment match
+                -- that of the node?
                 ( collectCommentsBy CommentSameLine
                     ( \nodeSpan commentSpan ->
-                        fst (srcSpanStart commentSpan)
-                            == fst (srcSpanStart nodeSpan)
-                            && fst (srcSpanStart commentSpan)
-                            == fst (srcSpanEnd nodeSpan)
+                        ( srcSpanStartLine commentSpan
+                            == srcSpanStartLine nodeSpan
+                        )
+                            &&
+                                ( srcSpanStartLine commentSpan
+                                    == srcSpanEndLine nodeSpan
+                                )
+                    )
+                )
+            )
+        <=< shortCircuit
+            ( traverseBackwards
+                -- First, collect forwards comments for declarations which both
+                -- start on column 1 and occur before the declaration.
+                ( collectCommentsBy TopLevelCommentAfterLine
+                    ( \nodeSpan commentSpan ->
+                        atFirstColumn commentSpan nodeSpan
+                            && commentAfterNode commentSpan nodeSpan
                     )
                 )
             )
         <=< shortCircuit
             ( traverse
-              -- First, collect forwards comments for declarations which both
-              -- start on column 1 and occur before the declaration.
-                ( collectCommentsBy CommentBeforeLine
+                -- First, collect forwards comments for declarations which both
+                -- start on column 1 and occur before the declaration.
+                ( collectCommentsBy TopLevelCommentBeforeLine
                     ( \nodeSpan commentSpan ->
-                        ( snd (srcSpanStart nodeSpan) == 1
-                            && snd (srcSpanStart commentSpan)
-                            == 1
-                        )
-                            && fst (srcSpanStart commentSpan)
-                            < fst (srcSpanStart nodeSpan)
+                        atFirstColumn commentSpan nodeSpan
+                            && commentBeforeNode commentSpan nodeSpan
                     )
                 )
             )
@@ -453,6 +502,8 @@ collectAllComments =
 -- | Collect comments by satisfying the given predicate, to collect a
 -- comment means to remove it from the pool of available comments in
 -- the State. This allows for a multiple pass approach.
+
+
 collectCommentsBy ::
     (SrcSpan -> SomeComment -> NodeComment)
     -> (SrcSpan -> SrcSpan -> Bool)
@@ -478,6 +529,8 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _ _
 
 -- | Reintroduce comments which were immediately above declarations in where clauses.
 -- Affects where clauses of top level declarations only.
+
+
 addCommentsToTopLevelWhereClauses ::
     Module NodeInfo
     -> State [Comment] (Module NodeInfo)

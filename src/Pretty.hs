@@ -9,6 +9,8 @@
 
 
 -- | Pretty printing.
+
+
 module Pretty
     ( pretty
     ) where
@@ -36,6 +38,8 @@ import Utils.Write
 --------------------------------------------------------------------------------
 -- * Pretty printing class
 -- | Pretty printing class.
+
+
 class (Annotated ast, Typeable ast) =>
       Pretty ast
     where
@@ -43,39 +47,11 @@ class (Annotated ast, Typeable ast) =>
 
 
 -- | Pretty print including comments.
+
+
 pretty :: (Pretty ast, Show (ast NodeInfo)) => ast NodeInfo -> Printer ()
-pretty a = do
-    comments
-        |> mapM_
-            ( \case
-                CommentBeforeLine _ c -> do
-                    writeComment c
-                    newline
-
-                _ ->
-                    return ()
-            )
-    a
-        |> ann
-        |> prefix
-        |> write
-    prettyInternal a
-    mapM_
-        ( \( i, c' ) -> do
-            case c' of
-                CommentSameLine _ c -> do
-                    space
-                    writeComment c
-
-                CommentAfterLine _ c -> do
-                    when (i == 0) newline
-                    writeComment c
-
-                _ ->
-                    return ()
-        )
-        (zip [ 0 :: Int .. ] comments)
-    where
+pretty a =
+    let
         comments =
             nodeInfoComments (ann a)
 
@@ -89,9 +65,88 @@ pretty a = do
                     write ("{-" ++ cs ++ "-}")
                     modify (\s -> s { psEolComment = True })
 
+        topLevelCommentsBefore =
+            comments
+                |> filter
+                    ( \case
+                        TopLevelCommentBeforeLine _ _ ->
+                            True
+
+                        _ ->
+                            False
+                    )
+
+        topLevelCommentsAfter =
+            comments
+                |> filter
+                    ( \case
+                        TopLevelCommentAfterLine _ _ ->
+                            True
+
+                        _ ->
+                            False
+                    )
+
+        commentsBefore =
+            comments
+                |> filter
+                    ( \case
+                        CommentBeforeLine _ _ ->
+                            True
+
+                        _ ->
+                            False
+                    )
+
+        commentsSame =
+            comments
+                |> filter
+                    ( \case
+                        CommentSameLine _ _ ->
+                            True
+
+                        _ ->
+                            False
+                    )
+    in do
+        topLevelCommentsBefore
+            |> map (\(TopLevelCommentBeforeLine _ c) -> writeComment c)
+            |> lined
+        if not (null topLevelCommentsBefore) then
+            twoEmptyLines
+
+        else
+            nothing
+        commentsBefore
+            |> map (\(CommentBeforeLine _ c) -> writeComment c)
+            |> lined
+        if not (null commentsBefore) then
+            newline
+
+        else
+            nothing
+        a
+            |> ann
+            |> prefix
+            |> write
+        prettyInternal a
+        commentsSame
+            |> map (\(CommentSameLine _ c) -> (space >> writeComment c))
+            |> sequence_
+        if not (null topLevelCommentsAfter) then
+            oneEmptyLine
+
+        else
+            nothing
+        topLevelCommentsAfter
+            |> map (\(TopLevelCommentAfterLine _ c) -> writeComment c)
+            |> lined
+
 
 -- | Pretty print using HSE's own printer. The 'P.Pretty' class here
 -- is HSE's.
+
+
 pretty' ::
     (Pretty ast, P.Pretty (ast SrcSpanInfo))
     => ast NodeInfo
@@ -101,6 +156,8 @@ pretty' =
 
 
 -- | Get the current RHS separator, either = or -> .
+
+
 rhsSeparator :: Printer ()
 rhsSeparator = do
     inCase <- gets psInsideCase
@@ -121,6 +178,8 @@ rhsSeparator = do
 --     put orig
 --     return (a, new)
 -- | Render a type with a context, or not.
+
+
 withCtx ::
     (Pretty ast, Show (ast NodeInfo))
     => Maybe (ast NodeInfo)
@@ -136,6 +195,8 @@ withCtx (Just ctx) m = do
 
 
 -- | Maybe render an overlap definition.
+
+
 maybeOverlap :: Maybe (Overlap NodeInfo) -> Printer ()
 maybeOverlap =
     maybe (return ()) (\p -> pretty p >> space)
@@ -143,6 +204,8 @@ maybeOverlap =
 
 --------------------------------------------------------------------------------
 -- * Instances
+
+
 instance Pretty Context where
     prettyInternal ctx@(CxTuple _ asserts) =
         let
@@ -336,6 +399,8 @@ instance Pretty Pat where
 
 
 -- | Pretty infix application of a name (identifier or symbol).
+
+
 prettyInfixName :: Name NodeInfo -> Printer ()
 prettyInfixName (Ident _ n) = do
     write "`"
@@ -346,6 +411,8 @@ prettyInfixName (Symbol _ s) =
 
 
 -- | Pretty print a name for being an infix operator.
+
+
 prettyInfixOp :: QName NodeInfo -> Printer ()
 prettyInfixOp x =
     case x of
@@ -391,6 +458,8 @@ instance Pretty Exp where
 
 
 -- | Render an expression.
+
+
 exp :: Exp NodeInfo -> Printer ()
 exp (Lambda _ pats doExpression@(Do _ _)) = do
     write "\\"
@@ -402,6 +471,8 @@ exp (Lambda _ pats doExpression@(Do _ _)) = do
     space
     pretty doExpression
 -- | Space out tuples.
+
+
 exp (Tuple _ boxed exps) =
     let
         ( open, close ) =
@@ -433,6 +504,8 @@ exp (Tuple _ boxed exps) =
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
 -- | Space out tuples.
+
+
 exp (TupleSection _ boxed mexps) =
     let
         ( open, close ) =
@@ -448,9 +521,13 @@ exp (TupleSection _ boxed mexps) =
 exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
 -- | Infix apps, same algorithm as ChrisDone at the moment.
+
+
 exp e@(InfixApp _ a op b) =
     infixApp e a op b
 -- | If bodies are indented 4 spaces. Handle also do-notation.
+
+
 exp (If _ if' then' else') =
     let
         ifLine = do
@@ -500,6 +577,8 @@ exp (If _ if' then' else') =
         printExpression else'
 -- | Render on one line, or otherwise render the op with the arguments
 -- listed line by line.
+
+
 exp expression@(App _ op arg) =
     let
         flatten (App label' op' arg') =
@@ -572,6 +651,8 @@ exp expression@(App _ op arg) =
         else
             multiline
 -- | Space out commas in list.
+
+
 exp (List _ es) =
     let
         horizontal = do
@@ -608,10 +689,12 @@ exp (Let _ binds e) =
         afterIn =
             case e of
                 Do _ _ -> do
-                    space
-                    pretty e
+                    e
+                        |> setPrefix "in "
+                        |> pretty
 
                 _ -> do
+                    write "in"
                     newline
                     pretty e
     in do
@@ -619,7 +702,6 @@ exp (Let _ binds e) =
         newline
         indentedBlock (pretty binds)
         newline
-        writeIn
         afterIn
 exp (ListComp _ e qstmt) =
     let
@@ -811,10 +893,12 @@ exp (Do _ statements) =
             zipWith checkNewlineFromSrc statements (tail statements)
 
         fullList =
-            [ statementPrinters, separatorPrinters ]
-                |> transpose
-                |> concat
-                |> sequence_
+            statementPrinters
+                |> lined
+    -- [ statementPrinters, separatorPrinters ]
+    --     |> transpose
+    --     |> concat
+    --     |> sequence_
     in do
         writeDo
         newline
@@ -1056,6 +1140,8 @@ instance Pretty Decl where
 
 
 -- | Render a declaration.
+
+
 decl :: Decl NodeInfo -> Printer ()
 decl (InstDecl _ moverlap dhead decls) = do
     depend (write "instance ")
@@ -1779,10 +1865,8 @@ instance Pretty InstRule where
 
 instance Pretty InstHead where
     prettyInternal x =
-        case
-            x
+        case x of
             -- Base cases
-        of
             IHCon _ name ->
                 pretty name
 
@@ -1792,16 +1876,16 @@ instance Pretty InstHead where
                         space
                         prettyInfixOp name
                     )
-            -- Recursive application
 
+            -- Recursive application
             IHApp _ ihead typ' ->
                 depend (pretty ihead)
                     ( do
                         space
                         pretty typ'
                     )
-            -- Wrapping in parens
 
+            -- Wrapping in parens
             IHParen _ h -> do
                 write "("
                 pretty h
@@ -1866,6 +1950,8 @@ instance Pretty Safety where
 
 --------------------------------------------------------------------------------
 -- * Unimplemented or incomplete printers
+
+
 instance Pretty Module where
     prettyInternal x =
         case x of
@@ -1927,6 +2013,8 @@ instance Pretty Module where
 
 
 -- | Format imports, preserving empty newlines between groups.
+
+
 formatImports :: [ImportDecl NodeInfo] -> Printer ()
 formatImports =
     sequence_ . intersperse oneEmptyLine . map formatImportGroup
@@ -2197,6 +2285,8 @@ instance Pretty BooleanFormula where
 
 --------------------------------------------------------------------------------
 -- * Fallback printers
+
+
 instance Pretty DataOrNew where
     prettyInternal =
         pretty'
@@ -2500,6 +2590,8 @@ instance Pretty ExportSpec where
 -- do x *
 --    y
 -- is two invalid statements, not one valid infix op.
+
+
 stmt :: Stmt NodeInfo -> Printer ()
 stmt x =
     case x of
@@ -2532,6 +2624,8 @@ stmt x =
 
 
 -- | Handle do and case specially and also space out guards more.
+
+
 rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ e) =
     pretty e
@@ -2543,8 +2637,12 @@ rhs (GuardedRhss _ gas) =
 
 
 -- | Implement dangling right-hand-sides.
+
+
 guardedRhs :: GuardedRhs NodeInfo -> Printer ()
 -- | Handle do specially.
+
+
 guardedRhs (GuardedRhs _ stmts doExpression@(Do _ _)) = do
     stmts
         |> setPrefixTail ", "
@@ -2621,6 +2719,8 @@ match (InfixMatch _ pat1 name pats rhs' mbinds) = do
 
 
 -- | Format contexts with spaces and commas between class constraints.
+
+
 context :: Context NodeInfo -> Printer ()
 context ctx =
     case ctx of
@@ -2711,9 +2811,10 @@ typ (TyParen _ e) = do
     write "("
     pretty e
     write ")"
-typ (TyInfix _ a promotedop b)
-    -- Apply special rules to line-break operators.
- = do
+-- Apply special rules to line-break operators.
+
+
+typ (TyInfix _ a promotedop b) = do
     let symbolName = getSymbolNameTy promotedop
         prettyInfixOp' op =
             case op of
@@ -2800,6 +2901,8 @@ prettyTopName x@Symbol {} = do
 
 
 -- | Specially format records. Indent where clauses only 2 spaces.
+
+
 decl' :: Decl NodeInfo -> Printer ()
 -- | Pretty print type signatures like
 --
@@ -2809,6 +2912,8 @@ decl' :: Decl NodeInfo -> Printer ()
 --     -> (Char -> X -> Y)
 --     -> IO ()
 --
+
+
 decl' (TypeSig _ names ty') =
     let
         firstPart = do
@@ -2859,6 +2964,8 @@ decl' (PatBind _ pat rhs' mbinds) =
                     indentedBlock <| pretty rhs'
         for_ mbinds bindingGroup
 -- | Handle records specially for a prettier display (see guide).
+
+
 decl' e =
     decl e
 
@@ -2943,6 +3050,8 @@ prettyTy breakLine ty =
 
 
 -- | Fields are preceded with a space.
+
+
 conDecl :: ConDecl NodeInfo -> Printer ()
 conDecl (RecDecl _ name fields) = do
     pretty name
@@ -3027,6 +3136,8 @@ recUpdateExpr wholeExpression expWriter updates =
 
 
 --------------------------------------------------------------------------------
+
+
 getSymbolNameTy :: MaybePromotedName NodeInfo -> QName NodeInfo
 getSymbolNameTy symbol =
     case symbol of
@@ -3049,6 +3160,8 @@ getSymbolNameOp symbol =
 
 -- Predicates
 -- | If the given operator is an element of line breaks before in configuration.
+
+
 isLineBreakBefore :: QName NodeInfo -> Printer Bool
 isLineBreakBefore (UnQual _ (Symbol _ s)) = do
     breaks <- gets (configLineBreaksBefore . psConfig)
@@ -3059,6 +3172,8 @@ isLineBreakBefore _ =
 
 
 -- | If the given operator is an element of line breaks after in configuration.
+
+
 isLineBreakAfter :: QName NodeInfo -> Printer Bool
 isLineBreakAfter (UnQual _ (Symbol _ s)) = do
     breaks <- gets (configLineBreaksAfter . psConfig)

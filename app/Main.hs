@@ -4,6 +4,8 @@
 -- | Main entry point to hindent.
 --
 -- hindent
+
+
 module Main
     ( main
     ) where
@@ -34,6 +36,8 @@ import Types
 import Utils.Flow
 
 -- import           Data.Monoid ((<>))
+
+
 import qualified Data.Text as T
 
 
@@ -48,6 +52,8 @@ data RunMode
 
 
 -- | Main entry point.
+
+
 main :: IO ()
 main = do
     config <- getConfig
@@ -133,6 +139,8 @@ main = do
 
 
 -- | Read config from a config file, or return 'defaultConfig'.
+
+
 getConfig :: IO Config
 getConfig = do
     cur <- Path.getCurrentDir
@@ -156,6 +164,8 @@ getConfig = do
 
 
 -- | Program options.
+
+
 options :: Config -> Parser RunMode
 options config =
     flag' ShowVersion (long "version" <> help "Print the version")

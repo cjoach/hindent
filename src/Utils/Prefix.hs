@@ -1,5 +1,6 @@
 module Utils.Prefix
-    ( setPrefixList
+    ( setPrefix
+    , setPrefixList
     , setPrefixTail
     ) where
 

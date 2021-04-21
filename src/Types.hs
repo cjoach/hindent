@@ -8,6 +8,8 @@
 
 
 -- | All types.
+
+
 module Types
     ( Config(..)
     , NodeComment(..)
@@ -34,6 +36,8 @@ import Language.Haskell.Exts hiding (Pretty, Style, parse, prettyPrint, style)
 
 
 -- | A pretty printing monad.
+
+
 newtype Printer a =
     Printer
         { runPrinter :: StateT PrintState (MaybeT Identity) a
@@ -49,6 +53,8 @@ newtype Printer a =
 
 
 -- | The state of the pretty printer.
+
+
 data PrintState
     = PrintState
         { psIndentLevel :: !Int64
@@ -77,6 +83,8 @@ data PrintState
 
 -- | Configurations shared among the different styles. Styles may pay
 -- attention to or completely disregard this configuration.
+
+
 data Config
     = Config
         { configMaxColumns :: !Int64 -- ^ Maximum columns to fit code into ideally.
@@ -85,11 +93,13 @@ data Config
         , configLineBreaksBefore :: [String] -- ^ Break line when meets these operators.
         , configLineBreaksAfter :: [String] -- ^ Break line when meets these operators.
         , configExtensions :: [Extension]
-        -- ^ Extra language extensions enabled by default.
         }
 
 
 -- | Parse an extension.
+-- ^ Extra language extensions enabled by default.
+
+
 readExtension :: (Monad m, MonadFail m) => String -> m Extension
 readExtension x =
     case
@@ -124,6 +134,8 @@ instance FromJSON Config where
 
 
 -- | Default style configuration.
+
+
 defaultConfig :: Config
 defaultConfig =
     Config
@@ -137,6 +149,8 @@ defaultConfig =
 
 
 -- | Some comment to print.
+
+
 data SomeComment
     = EndOfLine String
     | MultiLine String
@@ -145,14 +159,19 @@ data SomeComment
 
 -- | Comment associated with a node.
 -- 'SrcSpan' is the original source span of the comment.
+
+
 data NodeComment
     = CommentSameLine SrcSpan SomeComment
-    | CommentAfterLine SrcSpan SomeComment
     | CommentBeforeLine SrcSpan SomeComment
+    | TopLevelCommentBeforeLine SrcSpan SomeComment
+    | TopLevelCommentAfterLine SrcSpan SomeComment
     deriving (Show, Ord, Eq)
 
 
 -- | Information for each node in the AST.
+
+
 data NodeInfo
     = NodeInfo
         { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
