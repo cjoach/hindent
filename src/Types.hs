@@ -86,12 +86,10 @@ data Config
         , configExtensions :: [Extension]
         -- ^ Extra language extensions enabled by default.
         }
- -- | Parse an extension.
-#if __GLASGOW_HASKELL__ >= 808
+
+
+-- | Parse an extension.
 readExtension :: (Monad m, MonadFail m) => String -> m Extension
-#else
-readExtension :: Monad m => String -> m Extension
-#endif
 readExtension x =
     case
         classifyExtension x -- Foo

@@ -14,11 +14,7 @@ import Data.Traversable
 import Distribution.ModuleName
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Configuration
-#if MIN_VERSION_Cabal(2, 2, 0)
 import Distribution.PackageDescription.Parsec
-#else
-import Distribution.PackageDescription.Parse
-#endif
 import Language.Haskell.Extension
 import qualified Language.Haskell.Exts.Extension as HSE
 import System.Directory
@@ -137,20 +133,11 @@ findCabalFiles dir rel = do
 
 
 getGenericPackageDescription :: FilePath -> IO (Maybe GenericPackageDescription)
-#if MIN_VERSION_Cabal(2, 2, 0)
 getGenericPackageDescription cabalPath = do
     cabaltext <- BS.readFile cabalPath
     return <| parseGenericPackageDescriptionMaybe cabaltext
-#else
-getGenericPackageDescription cabalPath = do
-    cabaltext <- readFile cabalPath
-    case parsePackageDescription cabaltext of
-        ParseOk _ gpd ->
-            return <| Just gpd
 
-        _ ->
-            return Nothing
-#endif
+
 -- | Find the `Stanza` that refers to this source path
 getCabalStanza :: FilePath -> IO (Maybe Stanza)
 getCabalStanza srcpath = do
