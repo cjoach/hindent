@@ -411,27 +411,15 @@ instance Pretty Exp where
 -- | Render an expression.
 exp :: Exp NodeInfo -> Printer ()
 -- | Do after lambda should swing.
-exp (Lambda _ pats (Do l stmts)) = do
-    mst <-
-        fitsOnOneLine
-            ( do
-                write "\\"
-                spaced (map pretty pats)
-                write " -> "
-                pretty (Do l stmts)
-            )
-    case mst of
-        Nothing ->
-            swing
-                ( do
-                    write "\\"
-                    spaced (map pretty pats)
-                    write " -> do"
-                )
-                (lined (map pretty stmts))
-
-        Just st ->
-            put st
+exp (Lambda _ pats doExpression@(Do _ _)) = do
+    write "\\"
+    pats
+        |> map pretty
+        |> spaced
+    space
+    rightArrow
+    space
+    pretty doExpression
 -- | Space out tuples.
 exp (Tuple _ boxed exps) =
     let
