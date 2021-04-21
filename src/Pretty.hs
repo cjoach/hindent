@@ -1248,7 +1248,8 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) =
         tylineVertical = do
             newline
             indentedBlock <| do
-                string ":: "
+                write "::"
+                space
                 pretty' ty
     in do
         write "foreign import"
@@ -1271,29 +1272,34 @@ decl (ForImp _ callconv maybeSafety maybeName name ty) =
                 nothing
         pretty' name
         ifFitsOnOneLineOrElse tylineHorizontal tylineVertical
-decl (ForExp _ callconv maybeName name ty) = do
-    string "foreign export "
-    pretty' callconv >> space
-    case maybeName of
-        Just namestr ->
-            string (show namestr) >> space
-
-        Nothing ->
-            return ()
-    pretty' name
-    tyline <-
-        fitsOnOneLine <| do
-            string " :: "
+decl (ForExp _ callconv maybeName name ty) =
+    let
+        tylineHorizontal = do
+            space
+            write "::"
+            space
             pretty' ty
-    case tyline of
-        Just line ->
-            put line
 
-        Nothing -> do
+        tylineVertical = do
             newline
             indentedBlock <| do
-                string ":: "
+                write "::"
+                space
                 pretty' ty
+    in do
+        write "foreign export"
+        space
+        pretty' callconv
+        space
+        case maybeName of
+            Just namestr -> do
+                write (show namestr)
+                space
+
+            Nothing ->
+                nothing
+        pretty' name
+        ifFitsOnOneLineOrElse tylineHorizontal tylineVertical
 decl x' =
     pretty' x'
 
