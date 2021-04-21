@@ -1237,35 +1237,40 @@ decl (MinimalPragma _ (Just formula)) = do
     pretty formula
     space
     write "#-}"
-decl (ForImp _ callconv maybeSafety maybeName name ty) = do
-    string "foreign import "
-    pretty' callconv >> space
-    case maybeSafety of
-        Just safety ->
-            pretty' safety >> space
-
-        Nothing ->
-            return ()
-    case maybeName of
-        Just namestr ->
-            string (show namestr) >> space
-
-        Nothing ->
-            return ()
-    pretty' name
-    tyline <-
-        fitsOnOneLine <| do
-            string " :: "
+decl (ForImp _ callconv maybeSafety maybeName name ty) =
+    let
+        tylineHorizontal = do
+            space
+            write "::"
+            space
             pretty' ty
-    case tyline of
-        Just line ->
-            put line
 
-        Nothing -> do
+        tylineVertical = do
             newline
             indentedBlock <| do
                 string ":: "
                 pretty' ty
+    in do
+        write "foreign import"
+        space
+        pretty' callconv
+        space
+        case maybeSafety of
+            Just safety -> do
+                pretty' safety
+                space
+
+            Nothing ->
+                nothing
+        case maybeName of
+            Just namestr -> do
+                write (show namestr)
+                space
+
+            Nothing ->
+                nothing
+        pretty' name
+        ifFitsOnOneLineOrElse tylineHorizontal tylineVertical
 decl (ForExp _ callconv maybeName name ty) = do
     string "foreign export "
     pretty' callconv >> space
