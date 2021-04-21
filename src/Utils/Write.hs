@@ -20,6 +20,9 @@ module Utils.Write
     , writeMdo
     , writeOf
     , writeWhere
+    , boxWrap
+    , emptyParens
+    , emptyBrackets
     ) where
 
 
@@ -29,6 +32,7 @@ import Data.List
 import Prelude hiding (exp)
 import Types
 import Utils.Flow
+import Language.Haskell.Exts.Syntax
 
 
 write :: String -> Printer ()
@@ -172,11 +176,6 @@ comma =
     write ","
 
 
-emptyBraces :: Printer ()
-emptyBraces =
-    write "{}"
-
-
 int :: Integer -> Printer ()
 int =
     write . show
@@ -190,3 +189,28 @@ string =
 nothing :: Printer ()
 nothing =
     return ()
+
+
+boxWrap :: Boxed -> (String, String)
+boxWrap boxed =
+    case boxed of
+        Boxed ->
+            ( "(", ")" )
+
+        Unboxed ->
+            ( "(#", "#)" )
+
+
+emptyParens :: Printer ()
+emptyParens =
+    write "()"
+
+
+emptyBraces :: Printer ()
+emptyBraces =
+    write "{}"
+
+
+emptyBrackets :: Printer ()
+emptyBrackets =
+    write "[]"

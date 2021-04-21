@@ -1,7 +1,5 @@
 module Utils.Combinator
-    ( braces
-    , brackets
-    , column
+    ( column
     , commas
     , depend
     , doubleLined
@@ -11,14 +9,11 @@ module Utils.Combinator
     , indentedBlock
     , inter
     , lined
-    , parens
     , prefixedLined
     , quotation
     , spaced
     , withCaseContext
     , withLetStatementContext
-    , wrap
-    , wrapSpaces
     ) where
 
 
@@ -34,48 +29,6 @@ import Utils.Write
 identity :: Printer a -> Printer a
 identity printer =
     printer
-
-
-wrap :: String -> String -> Printer a -> Printer a
-wrap open close p =
-    let
-        oneline = do
-            write open
-            p' <- p
-            write close
-            return p'
-
-        multiline = do
-            write open
-            p' <- indented 1 p
-            newline
-            write close
-            return p'
-    in
-    ifFitsOnOneLineOrElse oneline multiline
-
-
-parens :: Printer a -> Printer a
-parens =
-    wrap "(" ")"
-
-
-braces :: Printer a -> Printer a
-braces =
-    wrap "{" "}"
-
-
-brackets :: Printer a -> Printer a
-brackets =
-    wrap "[" "]"
-
-
-wrapSpaces :: Printer a -> Printer a
-wrapSpaces p = do
-    space
-    p' <- p
-    space
-    return p'
 
 
 -- | Write a Template Haskell quotation or a quasi-quotation.

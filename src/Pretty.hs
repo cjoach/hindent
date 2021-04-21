@@ -162,15 +162,24 @@ swing a b = do
 --------------------------------------------------------------------------------
 -- * Instances
 instance Pretty Context where
-    prettyInternal ctx@(CxTuple _ asserts) = do
-        mst <-
-            fitsOnOneLine (parens (inter (comma >> space) (map pretty asserts)))
-        case mst of
-            Nothing ->
-                context ctx
+    prettyInternal ctx@(CxTuple _ asserts) =
+        let
+            horizontal = do
+                write "("
+                asserts
+                    |> map pretty
+                    |> commas
+                write ")"
 
-            Just st ->
-                put st
+            vertical =
+                context ctx
+        in
+        case asserts of
+            [] ->
+                emptyParens
+
+            _ ->
+                ifFitsOnOneLineOrElse horizontal vertical
     prettyInternal ctx =
         context ctx
 
@@ -218,77 +227,70 @@ instance Pretty Pat where
 
             PTuple _ boxed pats ->
                 let
-                    boxWrap =
-                        case boxed of
-                            Boxed ->
-                                identity
-
-                            Unboxed ->
-                                wrap "#" "#"
+                    ( open, close ) =
+                        boxWrap boxed
                 in
                 case pats of
                     [] ->
-                        write "()"
+                        emptyParens
 
-                    _ ->
+                    _ -> do
+                        write open
+                        space
                         pats
                             |> map pretty
                             |> commas
-                            |> wrapSpaces
-                            |> boxWrap
-                            |> parens
+                        space
+                        write close
 
             PList _ ps ->
                 case ps of
                     [] ->
-                        write "[]"
+                        emptyBrackets
 
-                    _ ->
+                    _ -> do
+                        write "["
+                        space
                         ps
                             |> map pretty
                             |> commas
-                            |> brackets
-
-            PParen _ e ->
-                pretty e
-                    |> parens
-
-            PRec _ qname fields -> do
-                let horVariant = do
-                        pretty qname
                         space
-                        case fields of
-                            [] ->
-                                write "{}"
+                        write "]"
 
-                            _ ->
-                                fields
-                                    |> map pretty
-                                    |> commas
-                                    |> wrapSpaces
-                                    |> braces
-                    verVariant =
-                        depend (pretty qname >> space) <| do
-                            case fields of
-                                [] ->
-                                    write "{}"
+            PParen _ e -> do
+                write "("
+                pretty e
+                write ")"
 
-                                [field] ->
-                                    field
-                                        |> pretty
-                                        |> wrapSpaces
-                                        |> braces
+            PRec _ qname fields ->
+                let
+                    horizontal = do
+                        write "{"
+                        space
+                        fields
+                            |> map pretty
+                            |> commas
+                        space
+                        write "}"
 
-                                _ -> do
-                                    write "{"
-                                    space
-                                    fields
-                                        |> setPrefixTail ", "
-                                        |> map pretty
-                                        |> lined
-                                    newline
-                                    write "}"
-                horVariant `ifFitsOnOneLineOrElse` verVariant
+                    vertical = do
+                        write "{"
+                        space
+                        fields
+                            |> setPrefixTail ", "
+                            |> map pretty
+                            |> lined
+                        newline
+                        write "}"
+                in do
+                    pretty qname
+                    space
+                    case fields of
+                        [] ->
+                            emptyBraces
+
+                        _ ->
+                            ifFitsOnOneLineOrElse horizontal vertical
 
             PAsPat _ n p ->
                 depend
@@ -433,65 +435,47 @@ exp (Lambda _ pats (Do l stmts)) = do
 -- | Space out tuples.
 exp (Tuple _ boxed exps) =
     let
-        boxWrap =
-            case boxed of
-                Boxed ->
-                    identity
+        ( open, close ) =
+            boxWrap boxed
 
-                Unboxed ->
-                    wrap "#" "#"
-
-        horizontal =
+        horizontal = do
+            write open
+            space
             exps
                 |> map pretty
                 |> commas
-                |> wrapSpaces
-                |> boxWrap
-                |> parens
+            space
+            write close
 
         vertical = do
-            write "("
+            write open
             space
             exps
                 |> setPrefixTail ", "
                 |> map pretty
                 |> lined
-                |> boxWrap
             newline
-            write ")"
+            write close
     in
     case exps of
         [] ->
-            write "()"
+            emptyParens
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
 -- | Space out tuples.
-exp (TupleSection _ boxed mexps) = do
-    let horVariant =
-            parensHorB boxed <|
-                inter (write ", ") (map (maybe (return ()) pretty) mexps)
-        verVariant =
-            parensVerB boxed <|
-                prefixedLined ","
-                    (map (maybe (return ()) (depend space . pretty)) mexps)
-    mst <- fitsOnOneLine horVariant
-    case mst of
-        Nothing ->
-            verVariant
-
-        Just st ->
-            put st
-    where
-        parensHorB Boxed =
-            parens
-        parensHorB Unboxed =
-            wrap "(# " " #)"
-
-        parensVerB Boxed =
-            parens
-        parensVerB Unboxed =
-            wrap "(#" "#)"
+exp (TupleSection _ boxed mexps) =
+    let
+        ( open, close ) =
+            boxWrap boxed
+    in do
+        write open
+        space
+        mexps
+            |> map (maybe nothing pretty)
+            |> commas
+        space
+        write close
 exp (UnboxedSum {}) =
     error "FIXME: No implementation for UnboxedSum."
 -- | Infix apps, same algorithm as ChrisDone at the moment.
@@ -621,12 +605,14 @@ exp expression@(App _ op arg) =
 -- | Space out commas in list.
 exp (List _ es) =
     let
-        horizontal =
+        horizontal = do
+            write "["
+            space
             es
                 |> map pretty
                 |> commas
-                |> wrapSpaces
-                |> brackets
+            space
+            write "]"
 
         vertical = do
             write "["
@@ -640,7 +626,7 @@ exp (List _ es) =
     in
     case es of
         [] ->
-            write "[]"
+            emptyBrackets
 
         _ ->
             ifFitsOnOneLineOrElse horizontal vertical
@@ -666,41 +652,92 @@ exp (Let _ binds e) =
         newline
         writeIn
         afterIn
-exp (ListComp _ e qstmt) = do
-    let horVariant =
-            brackets <| do
-                pretty e
-                write " | "
-                commas <| map pretty qstmt
-        verVariant = do
-            write "[ "
+exp (ListComp _ e qstmt) =
+    let
+        horizontal = do
+            write "["
+            space
+            pretty e
+            space
+            write "|"
+            space
+            qstmt
+                |> map pretty
+                |> commas
+            space
+            write "]"
+
+        vertical = do
+            write "["
+            space
             pretty e
             newline
-            depend (write "| ") <|
-                prefixedLined ", " <|
-                map pretty qstmt
+            write "|"
+            space
+            qstmt
+                |> setPrefixTail ", "
+                |> map pretty
+                |> lined
             newline
             write "]"
-    horVariant `ifFitsOnOneLineOrElse` verVariant
-exp (ParComp _ e qstmts) = do
-    let horVariant =
-            brackets <| do
-                pretty e
-                for_ qstmts <|
-                    \qstmt -> do
-                        write " | "
-                        commas <| map pretty qstmt
-        verVariant = do
-            depend (write "[ ") <| pretty e
+    in
+    case qstmt of
+        [] ->
+            emptyBrackets
+
+        _ ->
+            ifFitsOnOneLineOrElse horizontal vertical
+exp (ParComp _ e qstmts) =
+    let
+        checkEmpty fn qstmt =
+            case qstmt of
+                [] ->
+                    emptyBrackets
+
+                _ ->
+                    fn qstmt
+
+        horizontalQstmt qstmt = do
+            space
+            write "|"
+            space
+            qstmt
+                |> map pretty
+                |> commas
+
+        verticalQstmt qstmt = do
             newline
-            for_ qstmts <|
-                \qstmt -> do
-                    depend (write "| ") <|
-                        prefixedLined ", " <|
-                        map pretty qstmt
-                    newline
+            write "|"
+            space
+            qstmt
+                |> setPrefixTail ", "
+                |> map pretty
+                |> lined
+            newline
             write "]"
-    horVariant `ifFitsOnOneLineOrElse` verVariant
+
+        horizontal = do
+            write "["
+            space
+            pretty e
+            for_ qstmts <| checkEmpty horizontalQstmt
+            space
+            write "]"
+
+        vertical = do
+            write "["
+            space
+            pretty e
+            for_ qstmts <| checkEmpty verticalQstmt
+            newline
+            write "]"
+    in
+    case qstmts of
+        [] ->
+            emptyBrackets
+
+        _ ->
+            ifFitsOnOneLineOrElse horizontal vertical
 exp (TypeApp _ t) = do
     write "@"
     pretty t
@@ -724,17 +761,30 @@ exp (Lambda _ ps e) = do
         ]
     swing (write " ->") <| pretty e
 exp (Paren _ e) =
-    parens (pretty e)
+    let
+        horizontal = do
+            write "("
+            pretty e
+            write ")"
+
+        vertical = do
+            write "("
+            space
+            indented 2 <| pretty e
+            newline
+            write ")"
+    in
+    ifFitsOnOneLineOrElse horizontal vertical
 exp (Case _ e alts) =
     let
-        onelineExpression = do
+        horizontal = do
             writeCase
             space
             pretty e
             space
             writeOf
 
-        multilineExpression = do
+        vertical = do
             writeCase
             newline
             indentedBlock <| pretty e
@@ -752,7 +802,7 @@ exp (Case _ e alts) =
                 |> doubleLined
                 |> indentedBlock
     in do
-        ifFitsOnOneLineOrElse onelineExpression multilineExpression
+        ifFitsOnOneLineOrElse horizontal vertical
         if null alts then
             emptyAlternatives
 
@@ -797,65 +847,85 @@ exp (MDo _ statements) = do
         |> lined
         |> indentedBlock
 exp (LeftSection _ e op) =
-    parens
-        (depend
-            (do
-                pretty e
-                space
-            )
-            (pretty op)
-        )
-exp (RightSection _ e op) =
-    parens
-        (depend
-            (do
-                pretty e
-                space
-            )
-            (pretty op)
-        )
-exp (EnumFrom _ e) =
-    brackets
-        (do
+    let
+        horizontal = do
+            write "("
             pretty e
-            write " .."
-        )
-exp (EnumFromTo _ e f) =
-    brackets
-        (depend
-            (do
-                pretty e
-                write " .. "
-            )
-            (pretty f)
-        )
-exp (EnumFromThen _ e t) =
-    brackets
-        (depend
-            (do
-                pretty e
-                write ","
-            )
-            (do
-                pretty t
-                write " .."
-            )
-        )
-exp (EnumFromThenTo _ e t f) =
-    brackets
-        (depend
-            (do
-                pretty e
-                write ","
-            )
-            (depend
-                (do
-                    pretty t
-                    write " .. "
-                )
-                (pretty f)
-            )
-        )
+            space
+            pretty op
+            write ")"
+
+        vertical = do
+            write "("
+            space
+            pretty e
+            newline
+            indentedBlock <| pretty op
+            newline
+            write ")"
+    in
+    ifFitsOnOneLineOrElse horizontal vertical
+exp (RightSection _ e op) =
+    let
+        horizontal = do
+            write "("
+            pretty e
+            space
+            pretty op
+            write ")"
+
+        vertical = do
+            write "("
+            space
+            pretty e
+            newline
+            indentedBlock <| pretty op
+            newline
+            write ")"
+    in
+    ifFitsOnOneLineOrElse horizontal vertical
+exp (EnumFrom _ e) = do
+    write "["
+    space
+    pretty e
+    space
+    write ".."
+    space
+    write "]"
+exp (EnumFromTo _ e f) = do
+    write "["
+    space
+    pretty e
+    space
+    write ".."
+    space
+    pretty f
+    space
+    write "]"
+exp (EnumFromThen _ e t) = do
+    write "["
+    space
+    pretty e
+    write ","
+    space
+    pretty t
+    space
+    write ".."
+    space
+    write "]"
+exp (EnumFromThenTo _ e t f) = do
+    write "["
+    space
+    pretty e
+    write ","
+    space
+    pretty t
+    space
+    write ".."
+    space
+    pretty f
+    space
+    write "]"
 exp (ExpTypeSig _ e t) =
     depend
         (do
@@ -877,7 +947,7 @@ exp (LCase _ alts) = do
     write "\\case"
     if null alts then do
         space
-        write "{}"
+        emptyBraces
 
     else do
         newline
@@ -1175,9 +1245,14 @@ decl (InlineSig _ inline active name) = do
             write ("[~" ++ show x ++ "] ")
     pretty name
     write " #-}"
-decl (MinimalPragma _ (Just formula)) =
-    wrap "{-# " " #-}" <| do
-        depend (write "MINIMAL ") <| pretty formula
+decl (MinimalPragma _ (Just formula)) = do
+    write "{-#"
+    space
+    write "MINIMAL"
+    space
+    pretty formula
+    space
+    write "#-}"
 decl (ForImp _ callconv maybeSafety maybeName name ty) = do
     string "foreign import "
     pretty' callconv >> space
@@ -1276,39 +1351,57 @@ instance Pretty TypeEqn where
 
 instance Pretty Deriving where
     prettyInternal (Deriving _ strategy heads) =
-        depend (write "deriving" >> space >> writeStrategy) <| do
-            let heads' =
-                    if length heads == 1 then
-                        map stripParens heads
-
-                    else
-                        heads
-            maybeDerives <- fitsOnOneLine <| parens (commas (map pretty heads'))
-            case maybeDerives of
-                Nothing ->
-                    formatMultiLine heads'
-
-                Just derives ->
-                    put derives
-        where
-            writeStrategy =
-                case strategy of
-                    Nothing ->
-                        return ()
-
-                    Just st ->
-                        pretty st >> space
-
+        let
             stripParens (IParen _ iRule) =
                 stripParens iRule
             stripParens x =
                 x
 
-            formatMultiLine derives = do
-                depend (write "( ") <|
-                    prefixedLined ", " (map pretty derives)
-                newline
+            heads' =
+                if length heads == 1 then
+                    map stripParens heads
+
+                else
+                    heads
+
+            derive =
+                case strategy of
+                    Nothing ->
+                        write "deriving"
+
+                    Just st -> do
+                        write "deriving"
+                        space
+                        pretty st
+
+            horizontal = do
+                derive
+                space
+                write "("
+                heads'
+                    |> map pretty
+                    |> commas
                 write ")"
+
+            vertical = do
+                derive
+                newline
+                indentedBlock <| do
+                    write "("
+                    space
+                    heads'
+                        |> setPrefixTail ", "
+                        |> map pretty
+                        |> lined
+                    newline
+                    write ")"
+        in
+        case heads of
+            [] ->
+                nothing
+
+            _ ->
+                ifFitsOnOneLineOrElse horizontal vertical
 
 
 instance Pretty DerivStrategy where
@@ -1362,8 +1455,10 @@ instance Pretty Asst where
                 write " :: "
                 pretty ty
 
-            ParenA _ asst ->
-                parens (pretty asst)
+            ParenA _ asst -> do
+                write "("
+                pretty asst
+                write ")"
 
             TypeA _ ty ->
                 pretty ty
@@ -1623,12 +1718,29 @@ instance Pretty Splice where
                 string str
 
             ParenSplice _ e ->
-                depend (write "$") (parens (pretty e))
+                let
+                    horizontal = do
+                        write "$("
+                        space
+                        pretty e
+                        space
+                        write ")"
+
+                    vertical = do
+                        write "$("
+                        space
+                        pretty e
+                        newline
+                        write ")"
+                in
+                ifFitsOnOneLineOrElse horizontal vertical
 
 
 instance Pretty InstRule where
-    prettyInternal (IParen _ rule) =
-        parens <| pretty rule
+    prettyInternal (IParen _ rule) = do
+        write "("
+        pretty rule
+        write ")"
     prettyInternal (IRule _ mvarbinds mctx ihead) = do
         case mvarbinds of
             Nothing ->
@@ -1686,8 +1798,10 @@ instance Pretty InstHead where
                     )
             -- Wrapping in parens
 
-            IHParen _ h ->
-                parens (pretty h)
+            IHParen _ h -> do
+                write "("
+                pretty h
+                write ")"
 
 
 instance Pretty DeclHead where
@@ -1696,8 +1810,10 @@ instance Pretty DeclHead where
             DHead _ name ->
                 prettyQuoteName name
 
-            DHParen _ h ->
-                parens (pretty h)
+            DHParen _ h -> do
+                write "("
+                pretty h
+                write ")"
 
             DHInfix _ var name -> do
                 pretty var
@@ -2057,8 +2173,10 @@ instance Pretty BooleanFormula where
 
             Just formulas ->
                 put formulas
-    prettyInternal (ParenFormula _ f) =
-        parens <| pretty f
+    prettyInternal (ParenFormula _ f) = do
+        write "("
+        pretty f
+        write ")"
 
 
 --------------------------------------------------------------------------------
@@ -2144,11 +2262,15 @@ instance Pretty QName where
                         string s
                         write ")"
 
-            Special _ s@Cons {} ->
-                parens (pretty s)
+            Special _ s@Cons {} -> do
+                write "("
+                pretty s
+                write ")"
 
-            Special _ s@FunCon {} ->
-                parens (pretty s)
+            Special _ s@FunCon {} -> do
+                write "("
+                pretty s
+                write ")"
 
             Special _ s ->
                 pretty s
@@ -2158,22 +2280,29 @@ instance Pretty SpecialCon where
     prettyInternal s =
         case s of
             UnitCon _ ->
-                write "()"
+                emptyParens
 
             ListCon _ ->
-                write "[]"
+                emptyBrackets
 
             FunCon _ ->
-                write "->"
+                rightArrow
 
-            TupleCon _ Boxed i ->
-                string ("(" ++ replicate (i - 1) ',' ++ ")")
+            TupleCon _ boxed i ->
+                let
+                    ( open, close ) =
+                        boxWrap boxed
+                in do
+                    write open
+                    space
+                    write <| replicate (i - 1) ','
+                    space
+                    write close
 
-            TupleCon _ Unboxed i ->
-                string ("(# " ++ replicate (i - 1) ',' ++ " #)")
-
-            Cons _ ->
-                write " : "
+            Cons _ -> do
+                space
+                write ":"
+                space
 
             UnboxedSingleCon _ ->
                 write "(##)"
@@ -2259,21 +2388,35 @@ instance Pretty ModuleName where
 
 
 instance Pretty ImportSpecList where
-    prettyInternal (ImportSpecList _ hiding spec) = do
-        when hiding <| write " hiding"
-        let verVar = do
+    prettyInternal (ImportSpecList _ hiding spec) =
+        let
+            horizontal = do
+                write "("
+                spec
+                    |> map pretty
+                    |> commas
+                write ")"
+
+            vertical = do
+                write "("
                 space
-                parens (commas (map pretty spec))
-        let horVar = do
+                spec
+                    |> setPrefixTail ", "
+                    |> map pretty
+                    |> lined
                 newline
-                indentedBlock
-                    (do
-                        depend (write "( ")
-                            (prefixedLined ", " (map pretty spec))
-                        newline
-                        write ")"
-                    )
-        verVar `ifFitsOnOneLineOrElse` horVar
+                write ")"
+        in do
+            when hiding <| do
+                space
+                write "hiding"
+            space
+            case spec of
+                [] ->
+                    emptyParens
+
+                _ ->
+                    ifFitsOnOneLineOrElse horizontal vertical
 
 
 instance Pretty ImportSpec where
@@ -2504,27 +2647,48 @@ context ctx =
             pretty a
 
         CxTuple _ as -> do
-            depend (write "( ") <| prefixedLined ", " (map pretty as)
+            write "("
+            space
+            as
+                |> setPrefixTail ", "
+                |> map pretty
+                |> lined
             newline
             write ")"
 
         CxEmpty _ ->
-            parens (return ())
+            emptyParens
 
 
 typ :: Type NodeInfo -> Printer ()
-typ (TyTuple _ Boxed types) = do
-    let horVar = parens <| inter (write ", ") (map pretty types)
-    let verVar =
-            parens <|
-                prefixedLined "," (map (depend space . pretty) types)
-    horVar `ifFitsOnOneLineOrElse` verVar
-typ (TyTuple _ Unboxed types) = do
-    let horVar = wrap "(# " " #)" <| inter (write ", ") (map pretty types)
-    let verVar =
-            wrap "(#" " #)" <|
-                prefixedLined "," (map (depend space . pretty) types)
-    horVar `ifFitsOnOneLineOrElse` verVar
+typ (TyTuple _ boxed types) =
+    let
+        ( open, close ) =
+            boxWrap boxed
+
+        horizontal = do
+            write open
+            types
+                |> map pretty
+                |> commas
+            write close
+
+        vertical = do
+            write open
+            space
+            types
+                |> setPrefixTail ", "
+                |> map pretty
+                |> lined
+            newline
+            write close
+    in
+    case types of
+        [] ->
+            emptyParens
+
+        _ ->
+            ifFitsOnOneLineOrElse horizontal vertical
 typ (TyForall _ mbinds ctx ty) =
     depend
         (case mbinds of
@@ -2546,23 +2710,26 @@ typ (TyFun _ a b) =
             write " -> "
         )
         (pretty b)
-typ (TyList _ t) =
-    brackets (pretty t)
-typ (TyParArray _ t) =
-    brackets
-        (do
-            write ":"
-            pretty t
-            write ":"
-        )
+typ (TyList _ t) = do
+    write "["
+    pretty t
+    write "]"
+typ (TyParArray _ t) = do
+    write "["
+    write ":"
+    pretty t
+    write ":"
+    write "]"
 typ (TyApp _ f a) =
     spaced [ pretty f, pretty a ]
 typ (TyVar _ n) =
     pretty n
 typ (TyCon _ p) =
     pretty p
-typ (TyParen _ e) =
-    parens (pretty e)
+typ (TyParen _ e) = do
+    write "("
+    pretty e
+    write ")"
 typ (TyInfix _ a promotedop b)
     -- Apply special rules to line-break operators.
  = do
@@ -2588,13 +2755,14 @@ typ (TyInfix _ a promotedop b)
         prettyInfixOp' promotedop
         space
         pretty b
-typ (TyKind _ ty k) =
-    parens
-        (do
-            pretty ty
-            write " :: "
-            pretty k
-        )
+typ (TyKind _ ty k) = do
+    write "("
+    pretty ty
+    space
+    write "::"
+    space
+    pretty k
+    write ")"
 typ (TyBang _ bangty unpackty right) = do
     pretty unpackty
     pretty bangty
@@ -2644,8 +2812,10 @@ typ (TyStar _) =
 prettyTopName :: Name NodeInfo -> Printer ()
 prettyTopName x@Ident {} =
     pretty x
-prettyTopName x@Symbol {} =
-    parens <| pretty x
+prettyTopName x@Symbol {} = do
+    write "("
+    pretty x
+    write ")"
 
 
 -- | Specially format records. Indent where clauses only 2 spaces.
@@ -2840,11 +3010,13 @@ recUpdateExpr wholeExpression expWriter updates =
         horizontal = do
             expWriter
             space
+            write "{"
+            space
             updates
                 |> map pretty
                 |> commas
-                |> wrapSpaces
-                |> braces
+            space
+            write "}"
 
         vertical = do
             expWriter
@@ -2863,7 +3035,7 @@ recUpdateExpr wholeExpression expWriter updates =
             [] -> do
                 expWriter
                 space
-                write "{}"
+                emptyBraces
 
             _ ->
                 if isBreakFromFile then
