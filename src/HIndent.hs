@@ -38,7 +38,6 @@ import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.UTF8 as UTF8
 import qualified Data.ByteString.Unsafe as S
 import Data.Either
-import Data.Foldable (foldr')
 import Data.Function
 import Data.Functor.Identity
 import Data.List
@@ -453,7 +452,6 @@ collectAllComments =
                 )
             )
         )
-        --     <=< shortCircuit addCommentsToTopLevelWhereClauses
         <=< shortCircuit
             ( traverse
                 -- Collect forwards comments which start at the end line of a
@@ -537,77 +535,6 @@ collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _ _
 
 -- | Reintroduce comments which were immediately above declarations in where clauses.
 -- Affects where clauses of top level declarations only.
-
-
-addCommentsToTopLevelWhereClauses ::
-    Module NodeInfo
-    -> State [Comment] (Module NodeInfo)
-addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
-    Module x x' x'' x''' <$> traverse addCommentsToWhereClauses topLevelDecls
-    where
-        addCommentsToWhereClauses ::
-            Decl NodeInfo
-            -> State [Comment] (Decl NodeInfo)
-        addCommentsToWhereClauses (PatBind x x' x'' (Just (BDecls x''' whereDecls))) = do
-            newWhereDecls <- traverse addCommentsToPatBind whereDecls
-            return <|
-                PatBind x x' x'' (Just (BDecls x''' newWhereDecls))
-
-        addCommentsToWhereClauses other =
-            return other
-
-        addCommentsToPatBind :: Decl NodeInfo -> State [Comment] (Decl NodeInfo)
-        addCommentsToPatBind (PatBind bindInfo (PVar x (Ident declNodeInfo declString)) x' x'') = do
-            bindInfoWithComments <- addCommentsBeforeNode bindInfo
-            return <|
-                PatBind bindInfoWithComments
-                    (PVar x (Ident declNodeInfo declString))
-                    x'
-                    x''
-
-        addCommentsToPatBind other =
-            return other
-
-        addCommentsBeforeNode :: NodeInfo -> State [Comment] NodeInfo
-        addCommentsBeforeNode nodeInfo = do
-            comments <- get
-            let ( notAbove, above ) = partitionAboveNotAbove comments nodeInfo
-            put notAbove
-            return <| addCommentsToNode CommentBeforeLine above nodeInfo
-
-        partitionAboveNotAbove ::
-            [Comment]
-            -> NodeInfo
-            -> ([Comment], [Comment])
-        partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _ _) =
-            fst <|
-                foldr'
-                    ( \comment@(Comment _ commentSpan _) ( ( ls, rs ), lastSpan ) ->
-                        if comment `isAbove` lastSpan then
-                            ( ( ls, comment : rs ), commentSpan )
-
-                        else
-                            ( ( comment : ls, rs ), lastSpan )
-                    )
-                    ( ( [], [] ), nodeSpan )
-                    cs
-
-        isAbove :: Comment -> SrcSpan -> Bool
-        isAbove (Comment _ commentSpan _) span =
-            let
-                ( _, commentColStart ) =
-                    srcSpanStart commentSpan
-
-                ( commentLnEnd, _ ) =
-                    srcSpanEnd commentSpan
-
-                ( lnStart, colStart ) =
-                    srcSpanStart span
-            in
-            commentColStart == colStart && commentLnEnd + 1 == lnStart
-
-addCommentsToTopLevelWhereClauses other =
-    return other
 
 
 addCommentsToNode ::
