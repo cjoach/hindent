@@ -2497,6 +2497,7 @@ instance Pretty ImportSpecList where
     prettyInternal (ImportSpecList _ hiding spec) =
         let
             horizontal = do
+                space
                 write "("
                 spec
                     |> map pretty
@@ -2504,21 +2505,23 @@ instance Pretty ImportSpecList where
                 write ")"
 
             vertical = do
-                write "("
-                space
-                spec
-                    |> setPrefixTail ", "
-                    |> map pretty
-                    |> lined
                 newline
-                write ")"
+                indentedBlock <| do
+                    write "("
+                    space
+                    spec
+                        |> setPrefixTail ", "
+                        |> map pretty
+                        |> lined
+                    newline
+                    write ")"
         in do
             when hiding <| do
                 space
                 write "hiding"
-            space
             case spec of
-                [] ->
+                [] -> do
+                    space
                     emptyParens
 
                 _ ->
