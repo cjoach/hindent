@@ -141,24 +141,6 @@ maybeOverlap =
     maybe (return ()) (\p -> pretty p >> space)
 
 
--- | Swing the second printer below and indented
-swing :: Printer () -> Printer b -> Printer ()
-swing a b = do
-    a
-    mst <-
-        fitsOnOneLine <| do
-            space
-            b
-    case mst of
-        Just st ->
-            put st
-
-        Nothing -> do
-            newline
-            _ <- indentedBlock b
-            return ()
-
-
 --------------------------------------------------------------------------------
 -- * Instances
 instance Pretty Context where
@@ -410,7 +392,6 @@ instance Pretty Exp where
 
 -- | Render an expression.
 exp :: Exp NodeInfo -> Printer ()
--- | Do after lambda should swing.
 exp (Lambda _ pats doExpression@(Do _ _)) = do
     write "\\"
     pats
@@ -731,23 +712,34 @@ exp (TypeApp _ t) = do
     pretty t
 exp (NegApp _ e) =
     depend (write "-") (pretty e)
-exp (Lambda _ ps e) = do
-    write "\\"
-    spaced
-        [ do
-            case ( i, x ) of
-                ( 0, PIrrPat {} ) ->
-                    space
+exp (Lambda _ ps e) =
+    let
+        rhsHorizontal = do
+            space
+            pretty e
 
-                ( 0, PBangPat {} ) ->
-                    space
+        rhsVertical = do
+            newline
+            indentedBlock <| pretty e
+    in do
+        write "\\"
+        spaced
+            [ do
+                case ( i, x ) of
+                    ( 0, PIrrPat {} ) ->
+                        space
 
-                _ ->
-                    return ()
-            pretty x
-        | ( i, x ) <- zip [ 0 :: Int .. ] ps
-        ]
-    swing (write " ->") <| pretty e
+                    ( 0, PBangPat {} ) ->
+                        space
+
+                    _ ->
+                        return ()
+                pretty x
+            | ( i, x ) <- zip [ 0 :: Int .. ] ps
+            ]
+        space
+        rightArrow
+        ifFitsOnOneLineOrElse rhsHorizontal rhsVertical
 exp (Paren _ e) =
     let
         horizontal = do
@@ -947,18 +939,21 @@ exp (MultiIf _ alts) =
     let
         prettyG (GuardedRhs _ stmts e) =
             let
-                fn =
-                    \( i, p ) -> do
-                        unless (i == 1) space
-                        pretty p
-                        unless (i == length stmts) (write ",")
+                rhsHorizontal = do
+                    space
+                    pretty e
+
+                rhsVertical = do
+                    newline
+                    indentedBlock <| pretty e
             in do
                 stmts
-                    |> zip [ 1 .. ]
-                    |> map fn
+                    |> setPrefixTail ", "
+                    |> map pretty
                     |> lined
-                    |> indented 1
-                swing (write " " >> rhsSeparator) (pretty e)
+                space
+                rhsSeparator
+                ifFitsOnOneLineOrElse rhsHorizontal rhsVertical
     in
     withCaseContext True <| do
         writeIf
@@ -1588,12 +1583,19 @@ instance Pretty FieldUpdate where
     prettyInternal x =
         case x of
             FieldUpdate _ n e ->
-                swing
-                    ( do
-                        pretty n
-                        write " ="
-                    )
-                    (pretty e)
+                let
+                    horizontal = do
+                        space
+                        pretty e
+
+                    vertical = do
+                        newline
+                        indentedBlock <| pretty e
+                in do
+                    pretty n
+                    space
+                    write "="
+                    ifFitsOnOneLineOrElse horizontal vertical
 
             FieldPun _ n ->
                 pretty n
@@ -2503,15 +2505,18 @@ stmt x =
     case x of
         Generator _ p e ->
             let
-                leftSide = do
-                    pretty p
+                horizontal = do
                     space
-                    write "<-"
-
-                rightSide =
                     pretty e
+
+                vertical = do
+                    newline
+                    indentedBlock <| pretty e
             in do
-                swing leftSide rightSide
+                pretty p
+                space
+                leftArrow
+                ifFitsOnOneLineOrElse horizontal vertical
 
         Qualifier _ e ->
             pretty e
