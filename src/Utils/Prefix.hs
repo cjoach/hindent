@@ -1,5 +1,6 @@
 module Utils.Prefix
-    ( setPrefixTail
+    ( setPrefixList
+    , setPrefixTail
     ) where
 
 
@@ -19,6 +20,15 @@ setPrefixTail _ [ x ] =
     [ x ]
 setPrefixTail prefix' (x : xs) =
     x : (map (setPrefix prefix') xs)
+
+
+setPrefixList ::
+    (Annotated ast, Typeable ast)
+    => String
+    -> [ast NodeInfo]
+    -> [ast NodeInfo]
+setPrefixList prefix' =
+    map (setPrefix prefix')
 
 
 setPrefix ::

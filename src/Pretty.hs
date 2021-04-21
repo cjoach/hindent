@@ -972,18 +972,14 @@ exp (MultiIf _ alts) =
                     |> indented 1
                 swing (write " " >> rhsSeparator) (pretty e)
     in
-    withCaseContext True
-        ( depend (write "if ")
-            ( lined
-                ( map
-                    ( \p -> do
-                        write "| "
-                        prettyG p
-                    )
-                    alts
-                )
-            )
-        )
+    withCaseContext True <| do
+        writeIf
+        space
+        indentedBlock <| do
+            alts
+                |> setPrefixList "| "
+                |> map prettyG
+                |> lined
 exp (Lit _ lit) =
     prettyInternal lit
 exp (Var _ q) =
@@ -2533,11 +2529,9 @@ stmt x =
 rhs :: Rhs NodeInfo -> Printer ()
 rhs (UnGuardedRhs _ e) =
     pretty e
-rhs (GuardedRhss _ gas) = do
-    write "|"
-    space
+rhs (GuardedRhss _ gas) =
     gas
-        |> setPrefixTail "| "
+        |> setPrefixList "| "
         |> map pretty
         |> lined
 

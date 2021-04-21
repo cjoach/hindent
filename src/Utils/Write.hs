@@ -18,6 +18,7 @@ module Utils.Write
     , writeCase
     , writeDo
     , writeForall
+    , writeIf
     , writeIn
     , writeLet
     , writeMdo
@@ -134,6 +135,11 @@ writeLet =
 writeIn :: Printer ()
 writeIn =
     write "in"
+
+
+writeIf :: Printer ()
+writeIf =
+    write "if"
 
 
 writeCase :: Printer ()
