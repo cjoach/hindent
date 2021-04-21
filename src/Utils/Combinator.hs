@@ -13,7 +13,6 @@ module Utils.Combinator
     , lined
     , parens
     , prefixedLined
-    , prefixedLined_
     , quotation
     , spaced
     , withCaseContext
@@ -211,25 +210,6 @@ prefixedLined pref ps' =
                     )
                     ps
                 )
-
-
--- | Print all the printers separated newlines and optionally a line
--- prefix.
-prefixedLined_ :: String -> [Printer ()] -> Printer ()
-prefixedLined_ pref ps' =
-    case ps' of
-        [] ->
-            return ()
-
-        (p : ps) -> do
-            p
-            mapM_
-                (\p' -> do
-                    newline
-                    write pref
-                    p'
-                )
-                ps
 
 
 -- | Set the (newline-) indent level to the given column for the given

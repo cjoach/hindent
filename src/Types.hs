@@ -156,11 +156,12 @@ data NodeInfo
     = NodeInfo
         { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
         , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
+        , prefix :: !String
         }
 
 
 instance Show NodeInfo where
-    show (NodeInfo _ []) =
+    show (NodeInfo _ [] _) =
         ""
-    show (NodeInfo _ s) =
+    show (NodeInfo _ s _) =
         "{- " ++ show s ++ " -}"

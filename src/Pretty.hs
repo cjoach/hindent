@@ -29,6 +29,7 @@ import Types
 import Utils.Combinator
 import Utils.Fits
 import Utils.Flow
+import Utils.Prefix
 import Utils.Write
 
 
@@ -54,6 +55,10 @@ pretty a = do
                 _ ->
                     return ()
             )
+    a
+        |> ann
+        |> prefix
+        |> write
     prettyInternal a
     mapM_
         (\( i, c' ) -> do
@@ -278,8 +283,9 @@ instance Pretty Pat where
                                     write "{"
                                     space
                                     fields
+                                        |> setPrefixTail ", "
                                         |> map pretty
-                                        |> prefixedLined_ ", "
+                                        |> lined
                                     newline
                                     write "}"
                 horVariant `ifFitsOnOneLineOrElse` verVariant
@@ -447,8 +453,9 @@ exp (Tuple _ boxed exps) =
             write "("
             space
             exps
+                |> setPrefixTail ", "
                 |> map pretty
-                |> prefixedLined_ ", "
+                |> lined
                 |> boxWrap
             newline
             write ")"
@@ -625,8 +632,9 @@ exp (List _ es) =
             write "["
             space
             es
+                |> setPrefixTail ", "
                 |> map pretty
-                |> prefixedLined_ ", "
+                |> lined
             newline
             write "]"
     in
@@ -1579,8 +1587,9 @@ instance Pretty GadtDecl where
                         write "{"
                         space
                         fs
+                            |> setPrefixTail ", "
                             |> map pretty
-                            |> prefixedLined_ ", "
+                            |> lined
                         newline
                         write "}"
                         p
@@ -2316,8 +2325,9 @@ instance Pretty ExportSpecList where
             write "("
             space
             sortedExports
+                |> setPrefixTail ", "
                 |> map pretty
-                |> prefixedLined_ ", "
+                |> lined
             newline
             write ")"
 
@@ -2769,8 +2779,9 @@ prettyTy breakLine ty =
 
                 tys -> do
                     tys
+                        |> setPrefixTail "-> "
                         |> map pretty
-                        |> prefixedLined_ "-> "
+                        |> lined
     in do
         isOneLine <- fitsOnOneLine_ oneline
         if breakLine || (not isOneLine) then
@@ -2789,8 +2800,9 @@ conDecl (RecDecl _ name fields) = do
         write "{"
         space
         fields
+            |> setPrefixTail ", "
             |> map pretty
-            |> prefixedLined_ ", "
+            |> lined
         newline
         write "}"
 conDecl (ConDecl _ name bangty) = do
@@ -2841,8 +2853,9 @@ recUpdateExpr wholeExpression expWriter updates =
                 write "{"
                 space
                 updates
+                    |> setPrefixTail ", "
                     |> map pretty
-                    |> prefixedLined_ ", "
+                    |> lined
                 newline
                 write "}"
     in do

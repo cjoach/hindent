@@ -375,7 +375,7 @@ collectAllComments :: Module SrcSpanInfo -> State [Comment] (Module NodeInfo)
 collectAllComments =
     let
         nodify s =
-            NodeInfo s mempty
+            NodeInfo s mempty ""
         -- Sort the comments by their end position.
 
         traverseBackwards =
@@ -457,7 +457,8 @@ collectCommentsBy ::
     -> (SrcSpan -> SrcSpan -> Bool)
     -> NodeInfo
     -> State [Comment] NodeInfo
-collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _) = do
+collectCommentsBy cons predicate nodeInfo@(NodeInfo (SrcSpanInfo nodeSpan _) _ _
+                                          ) = do
     comments <- get
     let ( others, mine ) =
             partitionEithers
@@ -521,7 +522,7 @@ addCommentsToTopLevelWhereClauses (Module x x' x'' x''' topLevelDecls) =
             [Comment]
             -> NodeInfo
             -> ([Comment], [Comment])
-        partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _) =
+        partitionAboveNotAbove cs (NodeInfo (SrcSpanInfo nodeSpan _) _ _) =
             fst <|
                 foldr'
                     (\comment@(Comment _ commentSpan _) ( ( ls, rs ), lastSpan ) ->
@@ -556,7 +557,7 @@ addCommentsToNode ::
     -> [Comment]
     -> NodeInfo
     -> NodeInfo
-addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments
+addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments _
                                                      ) =
     nodeInfo
         { nodeInfoComments =
