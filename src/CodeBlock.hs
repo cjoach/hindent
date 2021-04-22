@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
-
 module CodeBlock
     ( CodeBlock(..)
     , cppSplitBlocks

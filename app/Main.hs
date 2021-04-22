@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
-
 -- | Main entry point to hindent.
 --
 -- hindent

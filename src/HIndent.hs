@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -12,7 +11,6 @@ module HIndent
     ( defaultExtensions
     , getExtensions
     , parseMode
-    -- * Testing
     , prettyPrint
     , reformat
     , test

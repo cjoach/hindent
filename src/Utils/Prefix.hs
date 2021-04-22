@@ -40,4 +40,4 @@ setPrefix ::
     -> ast NodeInfo
     -> ast NodeInfo
 setPrefix prefix' =
-    amap (\n -> n { prefix = prefix' })
+    amap (\n -> n { linePrefix = prefix' })

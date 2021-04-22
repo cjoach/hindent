@@ -1,6 +1,3 @@
-{-# LANGUAGE CPP #-}
-
-
 module CabalFile
     ( getCabalExtensionsForSourcePath
     ) where

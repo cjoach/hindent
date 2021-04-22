@@ -1,6 +1,4 @@
-{-# OPTIONS_GHC -cpp #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -182,7 +180,7 @@ data NodeInfo
     = NodeInfo
         { nodeInfoSpan :: !SrcSpanInfo -- ^ Location info from the parser.
         , nodeInfoComments :: ![NodeComment] -- ^ Comments attached to this node.
-        , prefix :: !String
+        , linePrefix :: !String
         }
 
 

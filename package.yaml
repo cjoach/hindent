@@ -1,8 +1,13 @@
 name: hindent-elm
 version: "0.1.7"
+default-extensions:
+- LambdaCase
+- OverloadedStrings
+- StrictData
 ghc-options:
+- -fwrite-ide-info
+- -hiedir=.hie
 - -Wall
-- -Wno-incomplete-patterns
 dependencies:
 - Cabal
 - base

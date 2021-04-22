@@ -1,11 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
 
 -- | Pretty printing.
@@ -125,7 +122,7 @@ pretty a =
             nothing
         a
             |> ann
-            |> prefix
+            |> linePrefix
             |> write
         prettyInternal a
         commentsSame
@@ -388,6 +385,9 @@ instance Pretty Pat where
             PSplice _ s ->
                 pretty s
 
+            PUnboxedSum _ _ _ _ ->
+                error "Unboxed sum pattern not implemented"
+
 
 -- | Pretty infix application of a name (identifier or symbol).
 
@@ -514,7 +514,7 @@ exp (TupleSection _ boxed mexps) =
         write close
 
 exp (UnboxedSum {}) =
-    error "FIXME: No implementation for UnboxedSum."
+    error "UnboxedSum is not implemented"
 
 -- | Infix apps, same algorithm as ChrisDone at the moment.
 
