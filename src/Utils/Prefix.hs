@@ -15,14 +15,16 @@ setPrefixTail ::
     => String
     -> [ast NodeInfo]
     -> [ast NodeInfo]
-setPrefixTail _ [] =
-    []
+setPrefixTail prefix nodes =
+    case nodes of
+        [] ->
+            []
 
-setPrefixTail _ [ x ] =
-    [ x ]
+        [ x ] ->
+            [ x ]
 
-setPrefixTail prefix' (x : xs) =
-    x : (map (setPrefix prefix') xs)
+        (x : xs) ->
+            x : map (setPrefix prefix) xs
 
 
 setPrefixList ::
@@ -30,8 +32,8 @@ setPrefixList ::
     => String
     -> [ast NodeInfo]
     -> [ast NodeInfo]
-setPrefixList prefix' =
-    map (setPrefix prefix')
+setPrefixList prefix =
+    map (setPrefix prefix)
 
 
 setPrefix ::
@@ -39,5 +41,5 @@ setPrefix ::
     => String
     -> ast NodeInfo
     -> ast NodeInfo
-setPrefix prefix' =
-    amap (\n -> n { linePrefix = prefix' })
+setPrefix prefix =
+    amap (\n -> n { linePrefix = prefix })
