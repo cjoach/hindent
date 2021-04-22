@@ -377,7 +377,8 @@ traverseInOrder ::
     -> m (t b)
 traverseInOrder cmp f ast = do
     indexed <-
-        fmap (zip [ 0 :: Integer .. ] . reverse)
+        fmap
+            (zip [ 0 :: Integer .. ] . reverse)
             (execStateT (traverse (modify . ( : )) ast) [])
     let sorted = sortBy (\( _, x ) ( _, y ) -> cmp x y) indexed
     results <-
@@ -420,7 +421,8 @@ collectAllComments =
         traverseBackwards =
             traverseInOrder
                 ( \x y ->
-                    on (flip compare)
+                    on
+                        (flip compare)
                         (srcSpanEnd . srcInfoSpan . nodeInfoSpan)
                         x
                         y -- Stop traversing if all comments have been consumed.
@@ -447,7 +449,8 @@ collectAllComments =
     shortCircuit
         ( traverse
             -- Finally, collect forward comments which come before each node.
-            ( collectCommentsBy CommentBeforeLine
+            ( collectCommentsBy
+                CommentBeforeLine
                 ( \nodeSpan commentSpan ->
                     srcSpanEndLine commentSpan < srcSpanStartLine nodeSpan
                 )
@@ -458,7 +461,8 @@ collectAllComments =
                 -- Collect forwards comments which start at the end line of a
                 -- node: Does the start line of the comment match the end-line
                 -- of the node?
-                ( collectCommentsBy CommentSameLine
+                ( collectCommentsBy
+                    CommentSameLine
                     ( \nodeSpan commentSpan ->
                         srcSpanStartLine commentSpan == srcSpanEndLine nodeSpan
                     )
@@ -469,7 +473,8 @@ collectAllComments =
                 -- Collect backwards comments which are on the same line as a
                 -- node: Does the start line & end line of the comment match
                 -- that of the node?
-                ( collectCommentsBy CommentSameLine
+                ( collectCommentsBy
+                    CommentSameLine
                     ( \nodeSpan commentSpan ->
                         ( srcSpanStartLine commentSpan
                             == srcSpanStartLine nodeSpan
@@ -485,7 +490,8 @@ collectAllComments =
             ( traverseBackwards
                 -- First, collect forwards comments for declarations which both
                 -- start on column 1 and occur before the declaration.
-                ( collectCommentsBy TopLevelCommentAfterLine
+                ( collectCommentsBy
+                    TopLevelCommentAfterLine
                     ( \nodeSpan commentSpan ->
                         atFirstColumn commentSpan nodeSpan
                             && commentAfterNode commentSpan nodeSpan
@@ -496,7 +502,8 @@ collectAllComments =
             ( traverse
                 -- First, collect forwards comments for declarations which both
                 -- start on column 1 and occur before the declaration.
-                ( collectCommentsBy TopLevelCommentBeforeLine
+                ( collectCommentsBy
+                    TopLevelCommentBeforeLine
                     ( \nodeSpan commentSpan ->
                         atFirstColumn commentSpan nodeSpan
                             && commentBeforeNode commentSpan nodeSpan
@@ -551,7 +558,8 @@ addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _)
     where
         mkBeforeNodeComment :: Comment -> NodeComment
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
-            mkNodeComment commentSpan
+            mkNodeComment
+                commentSpan
                 ( ( if multiLine then
                         MultiLine
 

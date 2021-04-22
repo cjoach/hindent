@@ -585,10 +585,9 @@ exp expression@(App _ op arg) =
         flattened =
             flatten op ++ [ arg ]
 
-
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
- 
+
         srcSpan =
             ann expression
                 |> nodeInfoSpan
@@ -613,7 +612,6 @@ exp expression@(App _ op arg) =
 
     else
         ifFitsOnOneLineOrElse horizontal vertical
-
 
 -- | Space out commas in list.
 
@@ -1194,7 +1192,8 @@ decl (FunBind _ matches) =
 
 decl (ClassDecl _ ctx dhead fundeps decls) = do
     classHead ctx dhead fundeps decls
-    unless (null (fromMaybe [] decls))
+    unless
+        (null (fromMaybe [] decls))
         ( do
             newline
             indentedBlock (lined (map pretty (fromMaybe [] decls)))
@@ -1303,7 +1302,8 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                     |> lined
 
 decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
-    depend (pretty dataornew >> space)
+    depend
+        (pretty dataornew >> space)
         ( do
             writeCtx ctx
             pretty dhead
@@ -1437,15 +1437,19 @@ classHead ctx dhead fundeps decls =
     shortHead `ifFitsOnOneLineOrElse` longHead
     where
         shortHead =
-            depend (write "class ")
+            depend
+                (write "class ")
                 ( do
                     writeCtx ctx
-                    depend (pretty dhead)
+                    depend
+                        (pretty dhead)
                         ( depend
-                            ( unless (null fundeps)
+                            ( unless
+                                (null fundeps)
                                 (write " | " >> commas (map pretty fundeps))
                             )
-                            ( unless (null (fromMaybe [] decls))
+                            ( unless
+                                (null (fromMaybe [] decls))
                                 (write " where")
                             )
                         )
@@ -1669,8 +1673,10 @@ instance Pretty ClassDecl where
                             pretty kind
 
             ClsTyFam _ h msig minj ->
-                depend (write "type ")
-                    ( depend (pretty h)
+                depend
+                    (write "type ")
+                    ( depend
+                        (pretty h)
                         ( depend
                             ( traverse_
                                 ( \case
@@ -1796,7 +1802,8 @@ instance Pretty QualConDecl where
         case x of
             QualConDecl _ tyvars ctx d ->
                 depend
-                    ( unless (null (fromMaybe [] tyvars))
+                    ( unless
+                        (null (fromMaybe [] tyvars))
                         ( do
                             write "forall "
                             spaced (map pretty (reverse (fromMaybe [] tyvars)))
@@ -1925,7 +1932,8 @@ instance Pretty InstHead where
                 pretty name
 
             IHInfix _ typ' name ->
-                depend (pretty typ')
+                depend
+                    (pretty typ')
                     ( do
                         space
                         prettyInfixOp name
@@ -1933,7 +1941,8 @@ instance Pretty InstHead where
 
             -- Recursive application
             IHApp _ ihead typ' ->
-                depend (pretty ihead)
+                depend
+                    (pretty ihead)
                     ( do
                         space
                         pretty typ'
@@ -1963,7 +1972,8 @@ instance Pretty DeclHead where
                 prettyInfixName name
 
             DHApp _ dhead var ->
-                depend (pretty dhead)
+                depend
+                    (pretty dhead)
                     ( do
                         space
                         pretty var
@@ -2016,7 +2026,8 @@ instance Pretty Module where
     prettyInternal x =
         case x of
             Module _ mayModHead pragmas imps decls -> do
-                inter twoEmptyLines
+                inter
+                    twoEmptyLines
                     ( mapMaybe
                         ( \( isNull, r ) ->
                             if isNull then
@@ -2035,7 +2046,8 @@ instance Pretty Module where
                         )
                         , ( null imps, formatImports imps )
                         , ( null decls
-                        , interOf newline
+                        , interOf
+                            newline
                             ( map
                                 ( \case
                                     r@TypeSig {} ->
@@ -2566,7 +2578,8 @@ instance Pretty ModuleHead where
         write "module "
         pretty name
         maybe (return ()) pretty mwarnings
-        maybe (return ())
+        maybe
+            (return ())
             ( \exports -> do
                 newline
                 indentedBlock (pretty exports)
@@ -3248,7 +3261,8 @@ conDecl (RecDecl _ name fields) = do
 
 conDecl (ConDecl _ name bangty) = do
     prettyQuoteName name
-    unless (null bangty)
+    unless
+        (null bangty)
         ( ifFitsOnOneLineOrElse
             ( do
                 space

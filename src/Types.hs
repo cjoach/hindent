@@ -115,15 +115,20 @@ readExtension x =
 instance FromJSON Config where
     parseJSON (Y.Object v) =
         Config
-            <$> fmap (fromMaybe (configMaxColumns defaultConfig))
+            <$> fmap
+                (fromMaybe (configMaxColumns defaultConfig))
                 (v Y..:? "line-length")
-            <*> fmap (fromMaybe (configMaxCodeColumns defaultConfig))
+            <*> fmap
+                (fromMaybe (configMaxCodeColumns defaultConfig))
                 (v Y..:? "code-length")
-            <*> fmap (fromMaybe (configIndentSpaces defaultConfig))
+            <*> fmap
+                (fromMaybe (configIndentSpaces defaultConfig))
                 (v Y..:? "indent-size" <|> v Y..:? "tab-size")
-            <*> fmap (fromMaybe (configLineBreaksBefore defaultConfig))
+            <*> fmap
+                (fromMaybe (configLineBreaksBefore defaultConfig))
                 (v Y..:? "line-breaks-before")
-            <*> fmap (fromMaybe (configLineBreaksAfter defaultConfig))
+            <*> fmap
+                (fromMaybe (configLineBreaksAfter defaultConfig))
                 (v Y..:? "line-breaks-after")
             <*>
                 ( traverse readExtension

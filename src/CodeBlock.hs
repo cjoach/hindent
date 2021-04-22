@@ -79,7 +79,8 @@ cppSplitBlocks inp =
 
         cppLine :: ByteString -> Bool
         cppLine src =
-            any (`S8.isPrefixOf` src)
+            any
+                (`S8.isPrefixOf` src)
                 [ "#if"
                 , "#end"
                 , "#else"
