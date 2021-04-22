@@ -114,7 +114,7 @@ spaced =
 
 commas :: [Printer ()] -> Printer ()
 commas =
-    inter (write ", ")
+    inter <| write ", "
 
 
 -- | Print all the printers separated by sep.
@@ -131,20 +131,18 @@ inter sep ps =
 
 
 lined :: [Printer ()] -> Printer ()
-lined ps =
-    ps
-        |> intersperse newline
-        |> sequence_
+lined =
+    inter newline
 
 
 -- | Print all the printers separated by newlines.
 
 
 doubleLined :: [Printer ()] -> Printer ()
-doubleLined ps =
-    ps
-        |> intersperse oneEmptyLine
-        |> sequence_
+doubleLined =
+    inter <| do
+        newline
+        newline
 
 
 -- | Set the (newline-) indent level to the given column for the given
