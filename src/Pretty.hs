@@ -40,9 +40,7 @@ import Utils.Write
 -- | Pretty printing class.
 
 
-class (Annotated ast, Typeable ast) =>
-      Pretty ast
-    where
+class (Annotated ast, Typeable ast) => Pretty ast where
     prettyInternal :: ast NodeInfo -> Printer ()
 
 
@@ -168,31 +166,20 @@ rhsSeparator = do
         write "="
 
 
--- -- | Play with a printer and then restore the state to what it was
--- -- before.
--- sandbox :: Printer a -> Printer (a, PrintState)
--- sandbox p = do
---     orig <- get
---     a <- p
---     new <- get
---     put orig
---     return (a, new)
--- | Render a type with a context, or not.
-
-
-withCtx ::
+writeCtx ::
     (Pretty ast, Show (ast NodeInfo))
     => Maybe (ast NodeInfo)
-    -> Printer b
-    -> Printer b
-withCtx Nothing m =
-    m
+    -> Printer ()
+writeCtx mctx =
+    case mctx of
+        Just ctx -> do
+            pretty ctx
+            space
+            write "=>"
+            space
 
-withCtx (Just ctx) m = do
-    pretty ctx
-    write " =>"
-    newline
-    m
+        Nothing ->
+            nothing
 
 
 -- | Maybe render an overlap definition.
@@ -1305,17 +1292,17 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
 decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
     pretty dataornew
     space
-    withCtx ctx <| do
-        pretty dhead
-        case ( dataornew, condecls ) of
-            ( _, [] ) ->
-                return ()
+    writeCtx ctx
+    pretty dhead
+    case ( dataornew, condecls ) of
+        ( _, [] ) ->
+            return ()
 
-            ( NewType _, [ x ] ) ->
-                singleCons x
+        ( NewType _, [ x ] ) ->
+            singleCons x
 
-            ( _, xs ) ->
-                multiCons xs
+        ( _, xs ) ->
+            multiCons xs
     case mderivs of
         [] ->
             nothing
@@ -1345,18 +1332,17 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
 
 decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
     depend (pretty dataornew >> space)
-        ( withCtx ctx
-            ( do
-                pretty dhead
-                case mkind of
-                    Nothing ->
-                        return ()
+        ( do
+            writeCtx ctx
+            pretty dhead
+            case mkind of
+                Nothing ->
+                    return ()
 
-                    Just kind -> do
-                        write " :: "
-                        pretty kind
-                write " where"
-            )
+                Just kind -> do
+                    write " :: "
+                    pretty kind
+            write " where"
         )
     indentedBlock <| do
         case condecls of
@@ -1473,7 +1459,8 @@ classHead ctx dhead fundeps decls =
     where
         shortHead =
             depend (write "class ")
-                ( withCtx ctx <|
+                ( do
+                    writeCtx ctx
                     depend (pretty dhead)
                         ( depend
                             ( unless (null fundeps)
@@ -1486,7 +1473,9 @@ classHead ctx dhead fundeps decls =
                 )
 
         longHead = do
-            depend (write "class ") (withCtx ctx <| pretty dhead)
+            depend (write "class ") <| do
+                writeCtx ctx
+                pretty dhead
             newline
             indentedBlock <| do
                 unless (null fundeps) <| do
@@ -1689,8 +1678,8 @@ instance Pretty ClassDecl where
                 pretty d
 
             ClsDataFam _ ctx h mkind ->
-                depend (write "data ") <|
-                    withCtx ctx <| do
+                depend (write "data ") <| do
+                    writeCtx ctx
                     pretty h
                     case mkind of
                         Nothing ->
@@ -1835,7 +1824,10 @@ instance Pretty QualConDecl where
                             write ". "
                         )
                     )
-                    (withCtx ctx (pretty d))
+                    ( do
+                        writeCtx ctx
+                        pretty d
+                    )
 
 
 instance Pretty GadtDecl where
@@ -1939,8 +1931,9 @@ instance Pretty InstRule where
                         space
                         write "where"
 
-                    vertical =
-                        withCtx mctx (pretty ihead)
+                    vertical = do
+                        writeCtx mctx
+                        pretty ihead
                 in
                 ifFitsOnOneLineOrElse horizontal vertical
 
@@ -2952,7 +2945,8 @@ typ (TyForall _ mbinds ctx ty) =
                 write ". "
         )
         ( do
-            withCtx ctx (indentedBlock (pretty ty))
+            writeCtx ctx
+            indentedBlock <| pretty ty
         )
 
 typ (TyFun _ a b) =
