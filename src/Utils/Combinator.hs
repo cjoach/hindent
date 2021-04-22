@@ -3,7 +3,6 @@ module Utils.Combinator
     , commas
     , depend
     , doubleLined
-    , getIndentSpaces
     , identity
     , indented
     , indentedBlock
@@ -45,19 +44,19 @@ quotation quoter p =
         close =
             "|]"
 
-        oneline = do
+        horizontal = do
             write open
             p' <- p
             write close
             return p'
 
-        multiline = do
+        vertical = do
             write open
             p' <- indented 1 p
             write close
             return p'
     in
-    ifFitsOnOneLineOrElse oneline multiline
+    ifFitsOnOneLineOrElse horizontal vertical
 
 
 getIndentSpaces :: Printer Int64
@@ -123,21 +122,9 @@ commas =
 
 inter :: Printer () -> [Printer ()] -> Printer ()
 inter sep ps =
-    foldr
-        ( \( i, p ) next ->
-            depend
-                ( do
-                    p
-                    if i < length ps then
-                        sep
-
-                    else
-                        return ()
-                )
-                next
-        )
-        (return ())
-        (zip [ 1 .. ] ps)
+    ps
+        |> intersperse sep
+        |> sequence_
 
 
 -- | Print all the printers separated by newlines.
