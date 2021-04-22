@@ -348,7 +348,7 @@ s8_stripPrefix bs1@(S.PS _ _ l1) bs2
 
 getExtensions :: [Text] -> [Extension]
 getExtensions =
-    foldl f defaultExtensions . map T.unpack
+    List.foldl' f defaultExtensions . map T.unpack
     where
         f _ "Haskell98" =
             []
