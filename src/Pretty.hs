@@ -237,19 +237,12 @@ instance Pretty Pat where
                     Special {} ->
                         depend (pretty a) (depend (prettyInfixOp op) (pretty b))
 
-                    _ ->
-                        depend
-                            ( do
-                                pretty a
-                                space
-                            )
-                            ( depend
-                                ( do
-                                    prettyInfixOp op
-                                    space
-                                )
-                                (pretty b)
-                            )
+                    _ -> do
+                        pretty a
+                        space
+                        prettyInfixOp op
+                        space
+                        pretty b
 
             PApp _ f args ->
                 depend
