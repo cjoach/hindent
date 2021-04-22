@@ -241,8 +241,10 @@ instance Pretty Pat where
 
             PInfixApp _ a op b ->
                 case op of
-                    Special {} ->
-                        depend (pretty a) (depend (prettyInfixOp op) (pretty b))
+                    Special {} -> do
+                        pretty a
+                        prettyInfixOp op
+                        pretty b
 
                     _ -> do
                         pretty a
