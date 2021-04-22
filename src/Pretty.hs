@@ -357,7 +357,7 @@ instance Pretty Pat where
                     (pretty p)
 
             PQuasiQuote _ name str ->
-                quotation name (string str)
+                quotation name (write str)
 
             PBangPat _ p ->
                 depend (write "!") (pretty p)
@@ -393,11 +393,11 @@ instance Pretty Pat where
 prettyInfixName :: Name NodeInfo -> Printer ()
 prettyInfixName (Ident _ n) = do
     write "`"
-    string n
+    write n
     write "`"
 
 prettyInfixName (Symbol _ s) =
-    string s
+    write s
 
 
 -- | Pretty print a name for being an infix operator.
@@ -412,13 +412,13 @@ prettyInfixOp x =
                     write "`"
                     pretty mn
                     write "."
-                    string i
+                    write i
                     write "`"
 
                 Symbol _ s -> do
                     pretty mn
                     write "."
-                    string s
+                    write s
 
         UnQual _ n ->
             prettyInfixName n
@@ -431,10 +431,10 @@ prettyQuoteName :: Name NodeInfo -> Printer ()
 prettyQuoteName x =
     case x of
         Ident _ i ->
-            string i
+            write i
 
         Symbol _ s ->
-            string ("(" ++ s ++ ")")
+            write ("(" ++ s ++ ")")
 
 
 instance Pretty Type where
@@ -1030,7 +1030,7 @@ exp (SpliceExp _ s) =
     pretty s
 
 exp (QuasiQuote _ n s) =
-    quotation n (string s)
+    quotation n (write s)
 
 exp (LCase _ alts) = do
     write "\\case"
@@ -1138,7 +1138,7 @@ exp x@ParArrayComp {} =
     pretty' x
 
 exp (OverloadedLabel _ label) =
-    string ('#' : label)
+    write ('#' : label)
 
 
 instance Pretty IPName where
@@ -1876,7 +1876,7 @@ instance Pretty Splice where
         case x of
             IdSplice _ str -> do
                 write "$"
-                string str
+                write str
 
             ParenSplice _ e ->
                 let
@@ -2393,7 +2393,7 @@ instance Pretty BooleanFormula where
         pretty' i
 
     prettyInternal (VarFormula _ (Symbol _ s)) =
-        write "(" >> string s >> write ")"
+        write "(" >> write s >> write ")"
 
     prettyInternal (AndFormula _ fs) =
         let
@@ -2456,31 +2456,31 @@ instance Pretty ResultSig where
 instance Pretty Literal where
     prettyInternal (String _ _ rep) = do
         write "\""
-        string rep
+        write rep
         write "\""
 
     prettyInternal (Char _ _ rep) = do
         write "'"
-        string rep
+        write rep
         write "'"
 
     prettyInternal (PrimString _ _ rep) = do
         write "\""
-        string rep
+        write rep
         write "\"#"
 
     prettyInternal (PrimChar _ _ rep) = do
         write "'"
-        string rep
+        write rep
         write "'#"
 
     -- We print the original notation (because HSE doesn't track Hex
     -- vs binary vs decimal notation).
     prettyInternal (Int _l _i originalString) =
-        string originalString
+        write originalString
 
     prettyInternal (Frac _l _r originalString) =
-        string originalString
+        write originalString
 
     prettyInternal x =
         pretty' x
@@ -2493,7 +2493,7 @@ instance Pretty Name where
                 pretty' x -- Identifiers.
 
             Symbol _ s ->
-                string s -- Symbols
+                write s -- Symbols
 
 
 instance Pretty QName where
@@ -2504,23 +2504,23 @@ instance Pretty QName where
                     Ident _ i -> do
                         pretty mn
                         write "."
-                        string i
+                        write i
 
                     Symbol _ s -> do
                         write "("
                         pretty mn
                         write "."
-                        string s
+                        write s
                         write ")"
 
             UnQual _ n ->
                 case n of
                     Ident _ i ->
-                        string i
+                        write i
 
                     Symbol _ s -> do
                         write "("
-                        string s
+                        write s
                         write ")"
 
             Special _ s@Cons {} -> do
@@ -2690,10 +2690,10 @@ instance Pretty ImportSpec where
 
 instance Pretty WarningText where
     prettyInternal (DeprText _ s) =
-        write "{-# DEPRECATED " >> string s >> write " #-}"
+        write "{-# DEPRECATED " >> write s >> write " #-}"
 
     prettyInternal (WarnText _ s) =
-        write "{-# WARNING " >> string s >> write " #-}"
+        write "{-# WARNING " >> write s >> write " #-}"
 
 
 instance Pretty ExportSpecList where
@@ -3048,7 +3048,7 @@ typ (TyPromoted _ (PromotedCon _ _ tname)) = do
 typ (TyPromoted _ (PromotedString _ _ raw)) = do
     do
         write "\""
-        string raw
+        write raw
         write "\""
 
 typ ty@TyPromoted {} =
@@ -3067,7 +3067,7 @@ typ (TyWildCard _ name) =
             pretty n
 
 typ (TyQuasiQuote _ n s) =
-    quotation n (string s)
+    quotation n (write s)
 
 typ (TyUnboxedSum {}) =
     error "FIXME: No implementation for TyUnboxedSum."

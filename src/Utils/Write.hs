@@ -12,7 +12,6 @@ module Utils.Write
     , rightArrow
     , rightFatArrow
     , space
-    , string
     , twoEmptyLines
     , write
     , writeCase
@@ -179,11 +178,6 @@ comma =
 int :: Integer -> Printer ()
 int =
     write . show
-
-
-string :: String -> Printer ()
-string =
-    write
 
 
 nothing :: Printer ()
