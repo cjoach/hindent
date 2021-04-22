@@ -39,7 +39,8 @@ import qualified Data.ByteString.Unsafe as S
 import Data.Either
 import Data.Function
 import Data.Functor.Identity
-import Data.List
+import qualified Data.List as List
+import Data.List ((\\))
 import Data.Maybe
 import Data.Monoid
 import Data.Text (Text)
@@ -63,7 +64,7 @@ reformat ::
     -> ByteString
     -> Either String Builder
 reformat config mexts mfilepath =
-    fmap (\x -> x <> "\n") . fmap (mconcat . intersperse "\n")
+    fmap (\x -> x <> "\n") . fmap (mconcat . List.intersperse "\n")
         . mapM processBlock
         . cppSplitBlocks
     where
@@ -116,19 +117,19 @@ reformat config mexts mfilepath =
                         )
                         (prettyPrint config m comments)
 
-                ParseFailed loc e ->
+                ParseFailed loc' e ->
                     Left
                         ( Exts.prettyPrint
-                            (loc { srcLine = srcLine loc + line })
+                            (loc' { srcLine = srcLine loc' + line })
                             ++ ": "
                             ++ e
                         )
 
         unlines' =
-            S.concat . intersperse "\n"
+            S.concat . List.intersperse "\n"
 
         unlines'' =
-            L.concat . intersperse "\n"
+            L.concat . List.intersperse "\n"
 
         addPrefix :: ByteString -> L8.ByteString -> L8.ByteString
         addPrefix prefix =
@@ -353,10 +354,10 @@ getExtensions =
             []
 
         f a ('N' : 'o' : x)
-            | Just x' <- readExtension x = delete x' a
+            | Just x' <- readExtension x = List.delete x' a
 
         f a x
-            | Just x' <- readExtension x = x' : delete x' a
+            | Just x' <- readExtension x = x' : List.delete x' a
 
         f _ x =
             error <| "Unknown extension: " ++ x
@@ -378,7 +379,7 @@ traverseInOrder cmp f ast = do
         fmap
             (zip [ 0 :: Integer .. ] . reverse)
             (execStateT (traverse (modify . ( : )) ast) [])
-    let sorted = sortBy (\( _, x ) ( _, y ) -> cmp x y) indexed
+    let sorted = List.sortBy (\( _, x ) ( _, y ) -> cmp x y) indexed
     results <-
         mapM
             ( \( i, m ) -> do
