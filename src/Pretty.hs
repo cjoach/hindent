@@ -1191,18 +1191,23 @@ instance Pretty Decl where
 
 
 decl :: Decl NodeInfo -> Printer ()
-decl (InstDecl _ moverlap dhead decls) = do
-    depend (write "instance ")
-        ( depend (maybeOverlap moverlap)
-            ( depend (pretty dhead)
-                (unless (null (fromMaybe [] decls)) (write " where"))
-            )
-        )
-    unless (null (fromMaybe [] decls))
-        ( do
+decl (InstDecl _ moverlap dhead mdecls) = do
+    write "instance"
+    space
+    maybeOverlap moverlap
+    pretty dhead
+    case mdecls of
+        Just decls -> do
+            space
+            write "where"
             newline
-            indentedBlock (lined (map pretty (fromMaybe [] decls)))
-        )
+            indentedBlock <| do
+                decls
+                    |> map pretty
+                    |> lined
+
+        Nothing ->
+            nothing
 
 decl (SpliceDecl _ e) =
     pretty e
