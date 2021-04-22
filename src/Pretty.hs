@@ -585,37 +585,21 @@ exp expression@(App _ op arg) =
         flattened =
             flatten op ++ [ arg ]
 
+
         isBreakFromFile =
             srcSpanStartLine srcSpan /= srcSpanEndLine srcSpan
-
+ 
         srcSpan =
             ann expression
                 |> nodeInfoSpan
                 |> srcInfoSpan
 
-        oneLine = do
+        horizontal = do
             flattened
                 |> map pretty
                 |> spaced
 
-        firstArgOneLine = do
-            let (f : a1 : _) = flattened
-            pretty f
-            space
-            pretty a1
-
-        firstArgMultiline = do
-            let (f : a1 : args) = flattened
-            pretty f
-            space
-            pretty a1
-            newline
-            args
-                |> map pretty
-                |> lined
-                |> indentedBlock
-
-        multiline = do
+        vertical = do
             let (f : args) = flattened
             pretty f
             newline
@@ -623,23 +607,13 @@ exp expression@(App _ op arg) =
                 |> map pretty
                 |> lined
                 |> indentedBlock
-    in do
-        isOneLine <- fitsOnOneLine_ oneLine
-        isFirstArgOneLine <- fitsOnOneLine_ firstArgOneLine
-        if isBreakFromFile && isFirstArgOneLine then
-            firstArgMultiline
+    in
+    if isBreakFromFile then
+        vertical
 
-        else if isBreakFromFile && (not isFirstArgOneLine) then
-            multiline
+    else
+        ifFitsOnOneLineOrElse horizontal vertical
 
-        else if isOneLine then
-            oneLine
-
-        else if isFirstArgOneLine then
-            firstArgMultiline
-
-        else
-            multiline
 
 -- | Space out commas in list.
 
