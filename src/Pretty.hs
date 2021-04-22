@@ -186,8 +186,14 @@ writeCtx mctx =
 
 
 maybeOverlap :: Maybe (Overlap NodeInfo) -> Printer ()
-maybeOverlap =
-    maybe (return ()) (\p -> pretty p >> space)
+maybeOverlap mp =
+    case mp of
+        Just p -> do
+            pretty p
+            space
+
+        Nothing ->
+            nothing
 
 
 --------------------------------------------------------------------------------
@@ -221,8 +227,9 @@ instance Pretty Context where
 instance Pretty Pat where
     prettyInternal x =
         case x of
-            PLit _ sign l ->
-                pretty sign >> pretty l
+            PLit _ sign l -> do
+                pretty sign
+                pretty l
 
             PNPlusK _ n k ->
                 depend
@@ -533,7 +540,7 @@ exp (If _ if' then' else') =
                     writeDo
 
                 _ ->
-                    return ()
+                    nothing
 
         printExpression expression =
             case expression of
@@ -549,10 +556,12 @@ exp (If _ if' then' else') =
                     newline
                     indentedBlock (pretty expression)
     in do
-        isOneLiner <- fitsOnOneLine_ ifLine
+        isOneLine <- fitsOnOneLine ifLine
         write "if"
-        if isOneLiner then
-            space >> pretty if' >> space
+        if isOneLine then do
+            space
+            pretty if'
+            space
 
         else do
             newline
@@ -786,7 +795,7 @@ exp (Lambda _ ps e) =
                         space
 
                     _ ->
-                        return ()
+                        nothing
                 pretty x
             | ( i, x ) <- zip [ 0 :: Int .. ] ps
             ]
@@ -1226,14 +1235,14 @@ decl (TypeFamDecl _ declhead result injectivity) = do
             pretty r
 
         Nothing ->
-            return ()
+            nothing
     case injectivity of
         Just i -> do
             space
             pretty i
 
         Nothing ->
-            return ()
+            nothing
 
 decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     write "type family "
@@ -1267,7 +1276,7 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
     pretty dhead
     case ( dataornew, condecls ) of
         ( _, [] ) ->
-            return ()
+            nothing
 
         ( NewType _, [ x ] ) ->
             singleCons x
@@ -1303,28 +1312,35 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
 
 decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
     depend
-        (pretty dataornew >> space)
+        ( do
+            pretty dataornew
+            space
+        )
         ( do
             writeCtx ctx
             pretty dhead
             case mkind of
-                Nothing ->
-                    return ()
-
                 Just kind -> do
                     write " :: "
                     pretty kind
-            write " where"
+
+                Nothing ->
+                    nothing
+            space
+            write "where"
         )
     indentedBlock <| do
         case condecls of
             [] ->
-                return ()
+                nothing
 
             _ -> do
                 newline
                 lined (map pretty condecls)
-        forM_ mderivs <| \deriv -> newline >> pretty deriv
+        forM_ mderivs <|
+            \deriv -> do
+                newline
+                pretty deriv
 
 decl (InlineSig _ inline active name) = do
     write "{-#"
@@ -1334,7 +1350,7 @@ decl (InlineSig _ inline active name) = do
     space
     case active of
         Nothing ->
-            return ()
+            nothing
 
         Just (ActiveFrom _ x) -> do
             write "["
@@ -1446,7 +1462,14 @@ classHead ctx dhead fundeps decls =
                         ( depend
                             ( unless
                                 (null fundeps)
-                                (write " | " >> commas (map pretty fundeps))
+                                ( do
+                                    space
+                                    write "|"
+                                    space
+                                    fundeps
+                                        |> map pretty
+                                        |> commas
+                                )
                             )
                             ( unless
                                 (null (fromMaybe [] decls))
@@ -1539,7 +1562,7 @@ instance Pretty DerivStrategy where
     prettyInternal x =
         case x of
             DerivStock _ ->
-                return ()
+                nothing
 
             DerivAnyclass _ ->
                 write "anyclass"
@@ -1571,7 +1594,7 @@ instance Pretty Alt where
                         indentedBlock (pretty galts)
                 case mbinds of
                     Nothing ->
-                        return ()
+                        nothing
 
                     Just binds -> do
                         newline
@@ -1605,7 +1628,7 @@ instance Pretty BangType where
                 write "~"
 
             NoStrictAnnot _ ->
-                return ()
+                nothing
 
 
 instance Pretty Unpackedness where
@@ -1616,7 +1639,7 @@ instance Pretty Unpackedness where
         write "{-# NOUNPACK #-}"
 
     prettyInternal (NoUnpackPragma _) =
-        return ()
+        nothing
 
 
 instance Pretty Binds where
@@ -1666,7 +1689,7 @@ instance Pretty ClassDecl where
                     pretty h
                     case mkind of
                         Nothing ->
-                            return ()
+                            nothing
 
                         Just kind -> do
                             write " :: "
@@ -1680,11 +1703,17 @@ instance Pretty ClassDecl where
                         ( depend
                             ( traverse_
                                 ( \case
-                                    KindSig _ kind ->
-                                        write " :: " >> pretty kind
+                                    KindSig _ kind -> do
+                                        space
+                                        write "::"
+                                        space
+                                        pretty kind
 
-                                    TyVarSig _ tyVarBind ->
-                                        write " = " >> pretty tyVarBind
+                                    TyVarSig _ tyVarBind -> do
+                                        space
+                                        write "="
+                                        space
+                                        pretty tyVarBind
                                 )
                                 msig
                             )
@@ -1823,7 +1852,7 @@ instance Pretty GadtDecl where
             fields' p =
                 case fromMaybe [] fields of
                     [] ->
-                        return ()
+                        nothing
 
                     fs -> do
                         write "{"
@@ -2002,7 +2031,7 @@ instance Pretty Overlap where
 
 instance Pretty Sign where
     prettyInternal (Signless _) =
-        return ()
+        nothing
 
     prettyInternal (Negative _) =
         write "-"
@@ -2039,7 +2068,7 @@ instance Pretty Module where
                         [ ( null pragmas, inter newline (map pretty pragmas) )
                         , ( case mayModHead of
                             Nothing ->
-                                ( True, return () )
+                                ( True, nothing )
 
                             Just modHead ->
                                 ( False, pretty modHead )
@@ -2076,7 +2105,7 @@ instance Pretty Module where
                                 interOf i ps
 
                       interOf _ [] =
-                        return ()
+                        nothing
 
             XmlPage {} ->
                 error "FIXME: No implementation for XmlPage."
@@ -2383,8 +2412,10 @@ instance Pretty BooleanFormula where
     prettyInternal (VarFormula _ i@(Ident _ _)) =
         pretty' i
 
-    prettyInternal (VarFormula _ (Symbol _ s)) =
-        write "(" >> write s >> write ")"
+    prettyInternal (VarFormula _ (Symbol _ s)) = do
+        write "("
+        write s
+        write ")"
 
     prettyInternal (AndFormula _ fs) =
         let
@@ -2577,9 +2608,9 @@ instance Pretty ModuleHead where
     prettyInternal (ModuleHead _ name mwarnings mexports) = do
         write "module "
         pretty name
-        maybe (return ()) pretty mwarnings
+        maybe (nothing) pretty mwarnings
         maybe
-            (return ())
+            (nothing)
             ( \exports -> do
                 newline
                 indentedBlock (pretty exports)
@@ -2601,15 +2632,18 @@ instance Pretty ImportDecl where
         when qualified <| write " qualified"
         case mpkg of
             Nothing ->
-                return ()
+                nothing
 
-            Just pkg ->
-                space >> write ("\"" ++ pkg ++ "\"")
+            Just pkg -> do
+                space
+                write "\""
+                write pkg
+                write "\""
         space
         pretty name
         case mas of
             Nothing ->
-                return ()
+                nothing
 
             Just asName -> do
                 let asExpression = do
@@ -2617,7 +2651,7 @@ instance Pretty ImportDecl where
                         write "as"
                         space
                         pretty asName
-                fitsOnLine <- fitsOnOneLine_ asExpression
+                fitsOnLine <- fitsOnOneLine asExpression
                 if fitsOnLine then
                     asExpression
 
@@ -2629,7 +2663,7 @@ instance Pretty ImportDecl where
                         pretty asName
         case mspec of
             Nothing ->
-                return ()
+                nothing
 
             Just spec ->
                 pretty spec
@@ -2940,13 +2974,13 @@ typ (TyTuple _ boxed types) =
 typ (TyForall _ mbinds ctx ty) =
     depend
         ( case mbinds of
-            Nothing ->
-                return ()
-
             Just ts -> do
                 write "forall "
                 spaced (map pretty ts)
                 write ". "
+
+            Nothing ->
+                nothing
         )
         ( do
             writeCtx ctx
@@ -2957,7 +2991,9 @@ typ (TyFun _ a b) =
     depend
         ( do
             pretty a
-            write " -> "
+            space
+            write "->"
+            space
         )
         (pretty b)
 
@@ -2994,8 +3030,9 @@ typ (TyInfix _ a promotedop b) = do
     let symbolName = getSymbolNameTy promotedop
         prettyInfixOp' op =
             case op of
-                PromotedName _ op' ->
-                    write "'" >> prettyInfixOp op'
+                PromotedName _ op' -> do
+                    write "'"
+                    prettyInfixOp op'
 
                 UnpromotedName _ op' ->
                     prettyInfixOp op'
@@ -3145,7 +3182,7 @@ decl' (PatBind _ pat rhs' mbinds) =
                 write "="
                 isInLetStatement <- gets psInsideLetStatement
                 let expression = pretty rhs'
-                isOneLine <- fitsOnOneLine_ expression
+                isOneLine <- fitsOnOneLine expression
                 if isInLetStatement && isOneLine then do
                     space
                     pretty rhs'
@@ -3234,7 +3271,7 @@ prettyTy breakLine ty =
                         |> map pretty
                         |> lined
     in do
-        isOneLine <- fitsOnOneLine_ oneline
+        isOneLine <- fitsOnOneLine oneline
         if breakLine || (not isOneLine) then
             multiline
 
@@ -3480,7 +3517,7 @@ verticalInfixApplicationBefore a op b =
             newline
             indentedBlock <| do
                 pretty op
-                isOneLine <- fitsOnOneLine_ (space >> pretty b)
+                isOneLine <- fitsOnOneLine (space >> pretty b)
                 if isOneLine then do
                     space
                     pretty b

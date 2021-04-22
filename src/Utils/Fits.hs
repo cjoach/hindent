@@ -1,5 +1,5 @@
 module Utils.Fits
-    ( fitsOnOneLine_
+    ( fitsOnOneLine
     , ifFitsOnOneLineOrElse
     ) where
 
@@ -12,7 +12,7 @@ import Utils.Flow
 
 ifFitsOnOneLineOrElse :: Printer a -> Printer a -> Printer a
 ifFitsOnOneLineOrElse a b = do
-    aIsOneLine <- fitsOnOneLine_ a
+    aIsOneLine <- fitsOnOneLine a
     if aIsOneLine then
         a
 
@@ -20,8 +20,8 @@ ifFitsOnOneLineOrElse a b = do
         b
 
 
-fitsOnOneLine_ :: Printer a -> Printer Bool
-fitsOnOneLine_ p = do
+fitsOnOneLine :: Printer a -> Printer Bool
+fitsOnOneLine p = do
     st <- get
     put st { psFitOnOneLine = True }
     ok <- fmap (const True) p <|> return False
