@@ -58,11 +58,11 @@ main = do
         execParser
             ( info
                 (options config <**> helper)
-                (header "hindent - Reformat Haskell source code")
+                (header "hindent-elm - Reformat Haskell source code")
             )
     case runMode of
         ShowVersion ->
-            putStrLn ("hindent " ++ showVersion version)
+            putStrLn ("hindent-elm " ++ showVersion version)
 
         Run style exts action paths ->
             if null paths then
