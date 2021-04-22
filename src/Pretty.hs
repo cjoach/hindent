@@ -103,6 +103,20 @@ pretty a =
                         _ ->
                             False
                     )
+
+        prefixLength :: Int64
+        prefixLength =
+            a
+                |> ann
+                |> linePrefix
+                |> length
+                |> fromIntegral
+
+        writePrefix =
+            a
+                |> ann
+                |> linePrefix
+                |> write
     in do
         topLevelCommentsBefore
             |> map (\(TopLevelCommentBeforeLine _ c) -> writeComment c)
@@ -120,11 +134,8 @@ pretty a =
 
         else
             nothing
-        a
-            |> ann
-            |> linePrefix
-            |> write
-        prettyInternal a
+        writePrefix
+        indented prefixLength <| prettyInternal a
         commentsSame
             |> map (\(CommentSameLine _ c) -> (space >> writeComment c))
             |> sequence_
