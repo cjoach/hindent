@@ -1353,20 +1353,27 @@ decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
         forM_ mderivs <| \deriv -> newline >> pretty deriv
 
 decl (InlineSig _ inline active name) = do
-    write "{-# "
+    write "{-#"
+    space
     unless inline <| write "NO"
-    write "INLINE "
+    write "INLINE"
+    space
     case active of
         Nothing ->
             return ()
 
-        Just (ActiveFrom _ x) ->
-            write ("[" ++ show x ++ "] ")
+        Just (ActiveFrom _ x) -> do
+            write "["
+            write <| show x
+            write "]"
 
-        Just (ActiveUntil _ x) ->
-            write ("[~" ++ show x ++ "] ")
+        Just (ActiveUntil _ x) -> do
+            write "[~"
+            write <| show x
+            write "]"
     pretty name
-    write " #-}"
+    space
+    write "#-}"
 
 decl (MinimalPragma _ (Just formula)) = do
     write "{-#"
@@ -2687,11 +2694,23 @@ instance Pretty ImportSpec where
 
 
 instance Pretty WarningText where
-    prettyInternal (DeprText _ s) =
-        write "{-# DEPRECATED " >> write s >> write " #-}"
+    prettyInternal (DeprText _ s) = do
+        write "{-#"
+        space
+        write "DEPRECATED"
+        space
+        write s
+        space
+        write "#-}"
 
-    prettyInternal (WarnText _ s) =
-        write "{-# WARNING " >> write s >> write " #-}"
+    prettyInternal (WarnText _ s) = do
+        write "{-#"
+        space
+        write "WARNING"
+        space
+        write s
+        space
+        write "#-}"
 
 
 instance Pretty ExportSpecList where

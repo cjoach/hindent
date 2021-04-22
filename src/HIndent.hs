@@ -1,7 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, PatternGuards
-  #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 -- | Haskell indenter.
