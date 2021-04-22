@@ -2080,30 +2080,30 @@ instance Pretty Module where
                         )
                         [ ( null pragmas, inter newline (map pretty pragmas) )
                         , ( case mayModHead of
-                            Nothing ->
-                                ( True, nothing )
+                                Nothing ->
+                                    ( True, nothing )
 
-                            Just modHead ->
-                                ( False, pretty modHead )
-                        )
+                                Just modHead ->
+                                    ( False, pretty modHead )
+                          )
                         , ( null imps, formatImports imps )
                         , ( null decls
-                        , interOf
-                            newline
-                            ( map
-                                ( \case
-                                    r@TypeSig {} ->
-                                        ( 1, pretty r )
+                          , interOf
+                                newline
+                                ( map
+                                    ( \case
+                                        r@TypeSig {} ->
+                                            ( 1, pretty r )
 
-                                    r@InlineSig {} ->
-                                        ( 1, pretty r )
+                                        r@InlineSig {} ->
+                                            ( 1, pretty r )
 
-                                    r ->
-                                        ( 3, pretty r )
+                                        r ->
+                                            ( 3, pretty r )
+                                    )
+                                    decls
                                 )
-                                decls
-                            )
-                        )
+                          )
                         ]
                     )
                 newline
