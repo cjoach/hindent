@@ -64,7 +64,7 @@ pretty a =
             comments
                 |> filter
                     ( \case
-                        TopLevelCommentBeforeLine _ _ ->
+                        TopLevelCommentBeforeLine {} ->
                             True
 
                         _ ->
@@ -75,7 +75,7 @@ pretty a =
             comments
                 |> filter
                     ( \case
-                        TopLevelCommentAfterLine _ _ ->
+                        TopLevelCommentAfterLine {} ->
                             True
 
                         _ ->
@@ -86,7 +86,7 @@ pretty a =
             comments
                 |> filter
                     ( \case
-                        CommentBeforeLine _ _ ->
+                        CommentBeforeLine {} ->
                             True
 
                         _ ->
@@ -97,7 +97,7 @@ pretty a =
             comments
                 |> filter
                     ( \case
-                        CommentSameLine _ _ ->
+                        CommentSameLine {} ->
                             True
 
                         _ ->
@@ -396,7 +396,7 @@ instance Pretty Pat where
             PSplice _ s ->
                 pretty s
 
-            PUnboxedSum _ _ _ _ ->
+            PUnboxedSum {} ->
                 error "Unboxed sum pattern not implemented"
 
 
@@ -464,7 +464,7 @@ instance Pretty Exp where
 
 
 exp :: Exp NodeInfo -> Printer ()
-exp (Lambda _ pats doExpression@(Do _ _)) = do
+exp (Lambda _ pats doExpression@(Do {})) = do
     write "\\"
     pats
         |> map pretty
@@ -548,7 +548,7 @@ exp (If _ if' then' else') =
 
         potentialDo expression =
             case expression of
-                Do _ _ -> do
+                Do {} -> do
                     space
                     writeDo
 
@@ -557,11 +557,11 @@ exp (If _ if' then' else') =
 
         printExpression expression =
             case expression of
-                Do _ _ -> do
+                Do {} -> do
                     space
                     pretty expression
 
-                If _ _ _ _ -> do
+                If {} -> do
                     space
                     pretty expression
 
@@ -676,7 +676,7 @@ exp (Let _ binds e) =
     let
         afterIn =
             case e of
-                Do _ _ -> do
+                Do {} -> do
                     e
                         |> setPrefix "in "
                         |> pretty
@@ -1238,10 +1238,10 @@ decl (TypeFamDecl _ declhead result injectivity) = do
             space
             let sep =
                     case r of
-                        KindSig _ _ ->
+                        KindSig {} ->
                             "::"
 
-                        TyVarSig _ _ ->
+                        TyVarSig {} ->
                             "="
             write sep
             space
@@ -1265,10 +1265,10 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
             space
             let sep =
                     case r of
-                        KindSig _ _ ->
+                        KindSig {} ->
                             "::"
 
-                        TyVarSig _ _ ->
+                        TyVarSig {} ->
                             "="
             write sep
             space
@@ -1590,11 +1590,11 @@ instance Pretty Alt where
             Alt _ p galts mbinds -> do
                 pretty p
                 case galts of
-                    GuardedRhss _ _ -> do
+                    GuardedRhss {} -> do
                         newline
                         indentedBlock <| pretty galts
 
-                    UnGuardedRhs _ (Do _ _) -> do
+                    UnGuardedRhs _ (Do {}) -> do
                         space
                         rightArrow
                         space
@@ -1673,7 +1673,7 @@ formatBDecls (x : xs) =
     let
         separator =
             case x of
-                TypeSig _ _ _ ->
+                TypeSig {} ->
                     newline
 
                 _ -> do
@@ -2214,133 +2214,133 @@ importSpecCompare :: ImportSpec l -> ImportSpec l -> Ordering
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
+importSpecCompare (IAbs _ _ (Ident {})) (IAbs _ _ (Symbol {})) =
     GT
 
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
+importSpecCompare (IAbs _ _ (Ident {})) (IThingAll _ (Symbol {})) =
     GT
 
 importSpecCompare (IAbs _ _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
+importSpecCompare (IAbs _ _ (Ident {})) (IThingWith _ (Symbol {}) _) =
     GT
 
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
+importSpecCompare (IAbs _ _ (Symbol {})) (IAbs _ _ (Ident {})) =
     LT
 
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
+importSpecCompare (IAbs _ _ (Symbol {})) (IThingAll _ (Ident {})) =
     LT
 
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
+importSpecCompare (IAbs _ _ (Symbol {})) (IThingWith _ (Ident {}) _) =
     LT
 
 importSpecCompare (IAbs _ _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IAbs _ _ _) (IVar _ _) =
+importSpecCompare (IAbs {}) (IVar {}) =
     LT
 
 importSpecCompare (IThingAll _ (Ident _ s1)) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ (Ident _ _)) (IAbs _ _ (Symbol _ _)) =
+importSpecCompare (IThingAll _ (Ident _ _)) (IAbs _ _ (Symbol {})) =
     GT
 
 importSpecCompare (IThingAll _ (Ident _ s1)) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ (Ident _ _)) (IThingAll _ (Symbol _ _)) =
+importSpecCompare (IThingAll _ (Ident {})) (IThingAll _ (Symbol {})) =
     GT
 
 importSpecCompare (IThingAll _ (Ident _ s1)) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ (Ident _ _)) (IThingWith _ (Symbol _ _) _) =
+importSpecCompare (IThingAll _ (Ident {})) (IThingWith _ (Symbol {}) _) =
     GT
 
-importSpecCompare (IThingAll _ (Symbol _ _)) (IAbs _ _ (Ident _ _)) =
+importSpecCompare (IThingAll _ (Symbol {})) (IAbs _ _ (Ident {})) =
     LT
 
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ (Symbol _ _)) (IThingAll _ (Ident _ _)) =
+importSpecCompare (IThingAll _ (Symbol {})) (IThingAll _ (Ident {})) =
     LT
 
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ (Symbol _ _)) (IThingWith _ (Ident _ _) _) =
+importSpecCompare (IThingAll _ (Symbol {})) (IThingWith _ (Ident {}) _) =
     LT
 
 importSpecCompare (IThingAll _ (Symbol _ s1)) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IThingAll _ _) (IVar _ _) =
+importSpecCompare (IThingAll {}) (IVar {}) =
     LT
 
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IAbs _ _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ (Ident _ _) _) (IAbs _ _ (Symbol _ _)) =
+importSpecCompare (IThingWith _ (Ident {}) _) (IAbs _ _ (Symbol {})) =
     GT
 
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingAll _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ (Ident _ _) _) (IThingAll _ (Symbol _ _)) =
+importSpecCompare (IThingWith _ (Ident {}) _) (IThingAll _ (Symbol {})) =
     GT
 
 importSpecCompare (IThingWith _ (Ident _ s1) _) (IThingWith _ (Ident _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ (Ident _ _) _) (IThingWith _ (Symbol _ _) _) =
+importSpecCompare (IThingWith _ (Ident {}) _) (IThingWith _ (Symbol {}) _) =
     GT
 
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IAbs _ _ (Ident _ _)) =
+importSpecCompare (IThingWith _ (Symbol {}) _) (IAbs _ _ (Ident {})) =
     LT
 
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IAbs _ _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingAll _ (Ident _ _)) =
+importSpecCompare (IThingWith _ (Symbol {}) _) (IThingAll _ (Ident {})) =
     LT
 
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingAll _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ (Symbol _ _) _) (IThingWith _ (Ident _ _) _) =
+importSpecCompare (IThingWith _ (Symbol {}) _) (IThingWith _ (Ident {}) _) =
     LT
 
 importSpecCompare (IThingWith _ (Symbol _ s1) _) (IThingWith _ (Symbol _ s2) _) =
     compare s1 s2
 
-importSpecCompare (IThingWith _ _ _) (IVar _ _) =
+importSpecCompare (IThingWith {}) (IVar {}) =
     LT
 
 importSpecCompare (IVar _ (Ident _ s1)) (IVar _ (Ident _ s2)) =
     compare s1 s2
 
-importSpecCompare (IVar _ (Ident _ _)) (IVar _ (Symbol _ _)) =
+importSpecCompare (IVar _ (Ident {})) (IVar _ (Symbol {})) =
     GT
 
-importSpecCompare (IVar _ (Symbol _ _)) (IVar _ (Ident _ _)) =
+importSpecCompare (IVar _ (Symbol {})) (IVar _ (Ident {})) =
     LT
 
 importSpecCompare (IVar _ (Symbol _ s1)) (IVar _ (Symbol _ s2)) =
     compare s1 s2
 
-importSpecCompare (IVar _ _) _ =
+importSpecCompare (IVar {}) _ =
     GT
 
 
@@ -2348,22 +2348,22 @@ cNameCompare :: CName l -> CName l -> Ordering
 cNameCompare (VarName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
 
-cNameCompare (VarName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
+cNameCompare (VarName _ (Ident {})) (VarName _ (Symbol {})) =
     GT
 
 cNameCompare (VarName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
 
-cNameCompare (VarName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
+cNameCompare (VarName _ (Ident {})) (ConName _ (Symbol {})) =
     GT
 
-cNameCompare (VarName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
+cNameCompare (VarName _ (Symbol {})) (VarName _ (Ident {})) =
     LT
 
 cNameCompare (VarName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
 
-cNameCompare (VarName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
+cNameCompare (VarName _ (Symbol {})) (ConName _ (Ident {})) =
     LT
 
 cNameCompare (VarName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
@@ -2372,22 +2372,22 @@ cNameCompare (VarName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
 cNameCompare (ConName _ (Ident _ s1)) (VarName _ (Ident _ s2)) =
     compare s1 s2
 
-cNameCompare (ConName _ (Ident _ _)) (VarName _ (Symbol _ _)) =
+cNameCompare (ConName _ (Ident {})) (VarName _ (Symbol {})) =
     GT
 
 cNameCompare (ConName _ (Ident _ s1)) (ConName _ (Ident _ s2)) =
     compare s1 s2
 
-cNameCompare (ConName _ (Ident _ _)) (ConName _ (Symbol _ _)) =
+cNameCompare (ConName _ (Ident {})) (ConName _ (Symbol {})) =
     GT
 
-cNameCompare (ConName _ (Symbol _ _)) (VarName _ (Ident _ _)) =
+cNameCompare (ConName _ (Symbol {})) (VarName _ (Ident {})) =
     LT
 
 cNameCompare (ConName _ (Symbol _ s1)) (VarName _ (Symbol _ s2)) =
     compare s1 s2
 
-cNameCompare (ConName _ (Symbol _ _)) (ConName _ (Ident _ _)) =
+cNameCompare (ConName _ (Symbol {})) (ConName _ (Ident {})) =
     LT
 
 cNameCompare (ConName _ (Symbol _ s1)) (ConName _ (Symbol _ s2)) =
@@ -2406,7 +2406,7 @@ instance Pretty Bracket where
             TypeBracket _ ty ->
                 quotation "t" (pretty ty)
 
-            d@(DeclBracket _ _) ->
+            d@(DeclBracket {}) ->
                 pretty' d
 
 
@@ -2422,7 +2422,7 @@ instance Pretty IPBind where
 
 
 instance Pretty BooleanFormula where
-    prettyInternal (VarFormula _ i@(Ident _ _)) =
+    prettyInternal (VarFormula _ i@(Ident {})) =
         pretty' i
 
     prettyInternal (VarFormula _ (Symbol _ s)) = do
@@ -2524,7 +2524,7 @@ instance Pretty Literal where
 instance Pretty Name where
     prettyInternal x =
         case x of
-            Ident _ _ ->
+            Ident {} ->
                 pretty' x -- Identifiers.
 
             Symbol _ s ->
@@ -2854,7 +2854,7 @@ guardedRhs :: GuardedRhs NodeInfo -> Printer ()
 -- | Handle do specially.
 
 
-guardedRhs (GuardedRhs _ stmts doExpression@(Do _ _)) = do
+guardedRhs (GuardedRhs _ stmts doExpression@(Do {})) = do
     stmts
         |> setPrefixTail ", "
         |> map pretty
@@ -2886,10 +2886,10 @@ guardedRhs (GuardedRhs _ stmts e) =
 match :: Match NodeInfo -> Printer ()
 match (Match _ name pats rhs' mbinds) = do
     case name of
-        Ident _ _ ->
+        Ident {} ->
             pretty name
 
-        Symbol _ _ -> do
+        Symbol {} -> do
             write "("
             pretty name
             write ")"
@@ -2899,11 +2899,11 @@ match (Match _ name pats rhs' mbinds) = do
         |> spaced
         |> indentedBlock
     case rhs' of
-        GuardedRhss _ _ -> do
+        GuardedRhss {} -> do
             newline
             indentedBlock <| pretty rhs'
 
-        UnGuardedRhs _ (Do _ _) -> do
+        UnGuardedRhs _ (Do {}) -> do
             space
             write "="
             space
@@ -3180,11 +3180,11 @@ decl' (PatBind _ pat rhs' mbinds) =
     withCaseContext False <| do
         pretty pat
         case rhs' of
-            GuardedRhss _ _ -> do
+            GuardedRhss {} -> do
                 newline
                 indentedBlock <| pretty rhs'
 
-            UnGuardedRhs _ (Do _ _) -> do
+            UnGuardedRhs _ (Do {}) -> do
                 space
                 write "="
                 space
@@ -3471,7 +3471,7 @@ infixApp wholeExpression a op b =
 
         bIsDo =
             case b of
-                Do _ _ ->
+                Do {} ->
                     True
 
                 _ ->
@@ -3479,7 +3479,7 @@ infixApp wholeExpression a op b =
 
         bIsCase =
             case b of
-                Case _ _ _ ->
+                Case {} ->
                     True
 
                 _ ->
@@ -3517,7 +3517,7 @@ verticalInfixApplicationBefore ::
     -> Printer ()
 verticalInfixApplicationBefore a op b =
     case b of
-        App _ _ _ -> do
+        App {} -> do
             pretty a
             newline
             indentedBlock <| do
@@ -3550,4 +3550,4 @@ verticalInfixApplicationAfter a op b = do
     space
     pretty op
     newline
-    indentedBlock (pretty b)
+    indentedBlock <| pretty b
