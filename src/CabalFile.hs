@@ -86,14 +86,14 @@ packageStanzas pd =
         testStanza ts =
             mkStanza
                 (testBuildInfo ts)
-                ( case testInterface ts of
+                (case testInterface ts of
                     TestSuiteLibV09 _ mname ->
                         [ mname ]
 
                     _ ->
                         []
                 )
-                ( case testInterface ts of
+                (case testInterface ts of
                     TestSuiteExeV10 _ path ->
                         [ path ]
 

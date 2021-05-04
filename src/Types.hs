@@ -129,7 +129,7 @@ instance FromJSON Config where
                 (fromMaybe (configLineBreaksAfter defaultConfig))
                 (v Y..:? "line-breaks-after")
             <*>
-                ( traverse readExtension
+                (traverse readExtension
                     =<< fmap (fromMaybe []) (v Y..:? "extensions")
                 )
 

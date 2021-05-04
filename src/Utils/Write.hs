@@ -80,7 +80,7 @@ write x = do
         hardFail
         (guard (noAdditionalLines && notOverMaxColumn && notOverMaxCodeColumn))
     modify
-        ( \s ->
+        (\s ->
             s
                 { psOutput = psOutput state <> S.stringUtf8 out
                 , psNewline = False
