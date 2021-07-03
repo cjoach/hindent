@@ -2899,21 +2899,45 @@ match (Match _ name pats rhs' mbinds) = do
         |> indentedBlock
     case rhs' of
         GuardedRhss {} -> do
-            newline
-            indentedBlock <| pretty rhs'
+            nothing
 
-        UnGuardedRhs _ (Do {}) -> do
+        UnGuardedRhs {} -> do
             space
             write "="
-            space
-            pretty rhs'
+    case mbinds of
+        Just binds ->
+            let
+                afterIn =
+                    case rhs' of
+                        UnGuardedRhs _ (Do {}) -> do
+                            rhs'
+                                |> setPrefix "in "
+                                |> pretty
 
-        _ -> do
-            space
-            write "="
-            newline
-            indentedBlock <| pretty rhs'
-    for_ mbinds bindingGroup
+                        _ -> do
+                            write "in"
+                            newline
+                            pretty rhs'
+            in
+            indentedBlock <| do
+                newline
+                writeLet
+                newline
+                indentedBlock (pretty binds)
+                newline
+                afterIn
+
+        Nothing -> do
+            case rhs' of
+                UnGuardedRhs _ (Do {}) -> do
+                    space
+                    pretty rhs'
+
+                _ -> do
+                    newline
+                    rhs'
+                        |> pretty
+                        |> indentedBlock
 
 match (InfixMatch _ pat1 name pats rhs' mbinds) = do
     depend
@@ -3137,9 +3161,6 @@ prettyTopName x@Symbol {} = do
     write "("
     pretty x
     write ")"
-
-
--- | Specially format records. Indent where clauses only 2 spaces.
 
 
 decl' :: Decl NodeInfo -> Printer ()
