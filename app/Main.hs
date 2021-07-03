@@ -172,9 +172,7 @@ getConfig = do
 
 options :: Config -> Parser RunMode
 options config =
-    flag' ShowVersion (long "version" <> help "Print the version")
-        <|> (Run <$> style <*> exts <*> action <*> files)
-    where
+    let
         style =
             (makeStyle config <$> lineLen <*> indentSpaces)
                 <* optional
@@ -235,3 +233,6 @@ options config =
 
         files =
             many (strArgument (metavar "FILENAMES"))
+    in
+    flag' ShowVersion (long "version" <> help "Print the version")
+        <|> (Run <$> style <*> exts <*> action <*> files)

@@ -1281,31 +1281,8 @@ decl (ClosedTypeFamDecl _ declhead result injectivity instances) = do
     newline
     indentedBlock (lined (map pretty instances))
 
-decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
-    pretty dataornew
-    space
-    writeCtx ctx
-    pretty dhead
-    case ( dataornew, condecls ) of
-        ( _, [] ) ->
-            nothing
-
-        ( NewType _, [ x ] ) ->
-            singleCons x
-
-        ( _, xs ) ->
-            multiCons xs
-    case mderivs of
-        [] ->
-            nothing
-
-        _ -> do
-            newline
-            indentedBlock <| do
-                mderivs
-                    |> map pretty
-                    |> lined
-    where
+decl (DataDecl _ dataornew ctx dhead condecls mderivs) =
+    let
         singleCons x = do
             space
             write "="
@@ -1321,6 +1298,30 @@ decl (DataDecl _ dataornew ctx dhead condecls mderivs) = do
                     |> setPrefixTail "| "
                     |> map pretty
                     |> lined
+    in do
+        pretty dataornew
+        space
+        writeCtx ctx
+        pretty dhead
+        case ( dataornew, condecls ) of
+            ( _, [] ) ->
+                nothing
+
+            ( NewType _, [ x ] ) ->
+                singleCons x
+
+            ( _, xs ) ->
+                multiCons xs
+        case mderivs of
+            [] ->
+                nothing
+
+            _ -> do
+                newline
+                indentedBlock <| do
+                    mderivs
+                        |> map pretty
+                        |> lined
 
 decl (GDataDecl _ dataornew ctx dhead mkind condecls mderivs) = do
     depend
@@ -1462,8 +1463,7 @@ classHead ::
     -> Maybe [ClassDecl NodeInfo]
     -> Printer ()
 classHead ctx dhead fundeps decls =
-    shortHead `ifFitsOnOneLineOrElse` longHead
-    where
+    let
         shortHead =
             depend
                 (write "class ")
@@ -1505,6 +1505,8 @@ classHead ctx dhead fundeps decls =
                         |> lined
                     newline
                 unless (null (fromMaybe [] decls)) (write "where")
+    in
+    shortHead `ifFitsOnOneLineOrElse` longHead
 
 
 instance Pretty TypeEqn where
@@ -1859,8 +1861,7 @@ instance Pretty QualConDecl where
 
 instance Pretty GadtDecl where
     prettyInternal (GadtDecl _ name _ _ fields t) =
-        horVar `ifFitsOnOneLineOrElse` verVar
-        where
+        let
             fields' p =
                 case fromMaybe [] fields of
                     [] ->
@@ -1891,6 +1892,8 @@ instance Pretty GadtDecl where
                         newline
                         write "-> "
                     declTy True t
+        in
+        horVar `ifFitsOnOneLineOrElse` verVar
 
 
 instance Pretty Rhs where
@@ -2169,8 +2172,7 @@ formatImports =
             imp { importSpecs = fmap sortImportSpecs (importSpecs imp) }
 
         sortImportSpecs (ImportSpecList l hiding specs) =
-            ImportSpecList l hiding sortedSpecs
-            where
+            let
                 sortedSpecs =
                     sortBy importSpecCompare . map sortCNames <| specs
 
@@ -2179,6 +2181,8 @@ formatImports =
 
                 sortCNames is =
                     is
+            in
+            ImportSpecList l hiding sortedSpecs
 
 
 groupAdjacentBy :: (a -> a -> Bool) -> [a] -> [[a]]
@@ -2186,10 +2190,11 @@ groupAdjacentBy _ [] =
     []
 
 groupAdjacentBy adj items =
-    xs : groupAdjacentBy adj rest
-    where
+    let
         ( xs, rest ) =
             spanAdjacentBy adj items
+    in
+    xs : groupAdjacentBy adj rest
 
 
 spanAdjacentBy :: (a -> a -> Bool) -> [a] -> ([a], [a])

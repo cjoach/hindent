@@ -64,10 +64,7 @@ reformat ::
     -> ByteString
     -> Either String Builder
 reformat config mexts mfilepath =
-    fmap (\x -> x <> "\n") . fmap (mconcat . List.intersperse "\n")
-        . mapM processBlock
-        . cppSplitBlocks
-    where
+    let
         processBlock :: CodeBlock -> Either String Builder
         processBlock (Shebang text) =
             Right <| S.byteString text
@@ -205,6 +202,10 @@ reformat config mexts mfilepath =
                             parseMode
             in
             m { parseFilename = fromMaybe "<interactive>" mfilepath }
+    in
+    fmap (\x -> x <> "\n") . fmap (mconcat . List.intersperse "\n")
+        . mapM processBlock
+        . cppSplitBlocks
 
 
 -- | Print the module.

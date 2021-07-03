@@ -37,11 +37,7 @@ data CodeBlock
 
 cppSplitBlocks :: ByteString -> [CodeBlock]
 cppSplitBlocks inp =
-    modifyLast (inBlock (<> trailing)) . groupLines . classifyLines
-        . zip [ 0 .. ]
-        . S8.lines <|
-        inp
-    where
+    let
         groupLines :: [CodeBlock] -> [CodeBlock]
         groupLines (line1 : line2 : remainingLines) =
             case mergeLines line1 line2 of
@@ -151,3 +147,8 @@ cppSplitBlocks inp =
 
         inBlock _ dir =
             dir
+    in
+    modifyLast (inBlock (<> trailing)) . groupLines . classifyLines
+        . zip [ 0 .. ]
+        . S8.lines <|
+        inp
