@@ -550,20 +550,27 @@ addCommentsToNode ::
     -> NodeInfo
     -> NodeInfo
 addCommentsToNode mkNodeComment newComments nodeInfo@(NodeInfo (SrcSpanInfo _ _) existingComments _) =
-    nodeInfo
-        { nodeInfoComments =
-            existingComments <> map mkBeforeNodeComment newComments
-        }
-    where
+    let
         mkBeforeNodeComment :: Comment -> NodeComment
         mkBeforeNodeComment (Comment multiLine commentSpan commentString) =
-            mkNodeComment
-                commentSpan
-                ((if multiLine then
-                    MultiLine
+            let
+                commentType =
+                    if multiLine then
+                        MultiLine
 
-                  else
-                    EndOfLine
-                 )
-                    commentString
-                )
+                    else
+                        EndOfLine
+            in
+            commentString
+                |> T.pack
+                |> T.stripEnd
+                |> T.unpack
+                |> commentType
+                |> mkNodeComment commentSpan
+
+        allComments =
+            newComments
+                |> map mkBeforeNodeComment
+                |> (\c -> existingComments <> c)
+    in
+    nodeInfo { nodeInfoComments = allComments }
